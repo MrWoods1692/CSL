@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minecraft Launcher</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 顶栏 -->
+      <header class="top-bar">
+        <div class="logo-area">
+          <span class="craft-icon">⛏</span>
+          <h1>Minecraft Launcher</h1>
+        </div>
+        <div class="user-area">
+          <span id="user-status" class="user-status">未登录</span>
+          <button id="login-btn" class="btn btn-login">🔑 登录</button>
+          <button id="logout-btn" class="btn btn-logout" style="display:none">退出</button>
+        </div>
+      </header>
+
+      <!-- 主内容 -->
+      <main class="main-content">
+        <!-- 左侧：版本列表 -->
+        <section class="panel versions-panel">
+          <div class="panel-header">
+            <h2>📦 版本管理</h2>
+            <div class="tab-bar">
+              <button class="tab active" data-tab="available">可用版本</button>
+              <button class="tab" data-tab="installed">已安装</button>
+            </div>
+          </div>
+          <div class="search-bar">
+            <input type="text" id="version-search" placeholder="搜索版本..." />
+            <select id="version-type-filter">
+              <option value="all">全部类型</option>
+              <option value="release">正式版</option>
+              <option value="snapshot">快照版</option>
+              <option value="old_alpha">旧版 Alpha</option>
+              <option value="old_beta">旧版 Beta</option>
+            </select>
+          </div>
+          <div id="version-list" class="version-list">
+            <div class="loading">加载版本列表中...</div>
+          </div>
+          <div class="version-actions">
+            <button id="install-btn" class="btn btn-primary" disabled>⬇ 安装选中版本</button>
+          </div>
+        </section>
+
+        <!-- 右侧：设置 + 启动 -->
+        <section class="panel right-panels">
+          <!-- 启动面板 -->
+          <div class="sub-panel launch-panel">
+            <div class="panel-header">
+              <h2>🚀 启动游戏</h2>
+            </div>
+            <div class="launch-controls">
+              <select id="launch-version-select" class="full-width">
+                <option value="">-- 选择版本 --</option>
+              </select>
+              <button id="launch-btn" class="btn btn-launch" disabled>▶ 启动 Minecraft</button>
+            </div>
+            <div id="launch-status" class="launch-status"></div>
+            <div id="launch-args-preview" class="args-preview" style="display:none">
+              <h4>启动参数预览：</h4>
+              <pre id="args-content"></pre>
+            </div>
+          </div>
+
+          <!-- 设置面板 -->
+          <div class="sub-panel settings-panel">
+            <div class="panel-header">
+              <h2>⚙ 启动设置</h2>
+            </div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>最大内存 (MB)</label>
+                <input type="number" id="max-memory" value="4096" min="512" max="32768" step="512" />
+              </div>
+              <div class="form-group">
+                <label>最小内存 (MB)</label>
+                <input type="number" id="min-memory" value="512" min="256" max="8192" step="256" />
+              </div>
+              <div class="form-group">
+                <label>窗口宽度</label>
+                <input type="number" id="window-width" value="854" min="640" max="3840" />
+              </div>
+              <div class="form-group">
+                <label>窗口高度</label>
+                <input type="number" id="window-height" value="480" min="480" max="2160" />
+              </div>
+              <div class="form-group">
+                <label>.minecraft 目录</label>
+                <input type="text" id="minecraft-dir" placeholder="自动检测..." />
+              </div>
+              <div class="form-group">
+                <label>Java 路径（可选）</label>
+                <input type="text" id="java-path" placeholder="java（默认 PATH 中的 java）" />
+              </div>
+              <div class="form-group">
+                <label>额外 JVM 参数（每行一个）</label>
+                <textarea id="extra-jvm-args" rows="4" placeholder="-XX:+UseG1GC&#10;-XX:-UseAdaptiveSizePolicy"></textarea>
+              </div>
+              <button id="save-settings-btn" class="btn btn-primary">💾 保存设置</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- 状态栏 -->
+      <footer class="status-bar">
+        <span id="status-message">就绪</span>
+      </footer>
+    </div>
+
+    <!-- 登录对话框 -->
+    <div id="login-modal" class="modal" style="display:none">
+      <div class="modal-content">
+        <h2>Microsoft 账号登录</h2>
+        <div id="login-step-1">
+          <p>请打开以下链接并输入验证码：</p>
+          <div class="auth-code">
+            <span id="auth-user-code">------</span>
+          </div>
+          <p>打开链接：<a id="auth-verification-uri" href="#" target="_blank">microsoft.com/link</a></p>
+          <p class="hint">链接和验证码已复制到剪贴板</p>
+          <button id="cancel-login-btn" class="btn btn-secondary">取消</button>
+        </div>
+        <div id="login-step-2" style="display:none">
+          <p>正在等待认证完成...</p>
+          <div class="spinner"></div>
+          <p id="login-error" class="error-msg" style="display:none"></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
