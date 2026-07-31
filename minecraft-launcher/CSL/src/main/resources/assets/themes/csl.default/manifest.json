@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.glavo.site/csl/theme-pack/1.0.0",
+  "id": "csl.default",
+  "version": "1.0.0",
+  "name": {
+    "default": "Default",
+    "en-Qabs": "ʇꞁnɐɟǝᗡ",
+    "es": "Predeterminado",
+    "ja": "デフォルト",
+    "ru": "По умолчанию",
+    "uk": "За замовчуванням",
+    "zh-Hans": "默认主题",
+    "zh-Hant": "預設主題",
+    "lzh": "預設主題"
+  },
+  "description": {
+    "default": "CSL Default",
+    "es": "CSL Predeterminado",
+    "ja": "CSL デフォルト",
+    "ru": "CSL По умолчанию",
+    "uk": "CSL За замовчуванням",
+    "zh-Hans": "CSL 默认主题",
+    "zh-Hant": "CSL 預設主題",
+    "lzh": "CSL 預設主題"
+  },
+  "authors": [
+    {
+      "name": {
+        "default": "CSL",
+        "en-Qabs": "ꞀƆWH"
+      }
+    }
+  ],
+  "theme": {}
+}

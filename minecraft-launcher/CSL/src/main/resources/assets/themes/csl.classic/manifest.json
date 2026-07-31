@@ -1,0 +1,120 @@
+{
+  "$schema": "https://schemas.glavo.site/csl/theme-pack/1.0.0",
+  "id": "csl.classic",
+  "version": "1.0.0",
+  "name": {
+    "default": "Classic",
+    "es": "Clásico",
+    "ja": "クラシック",
+    "ru": "Классическая",
+    "uk": "Класична",
+    "zh-Hans": "经典主题",
+    "zh-Hant": "經典主題",
+    "lzh": "舊觀"
+  },
+  "description": {
+    "default": "Classic CSL launcher themes",
+    "es": "Temas clásicos del launcher CSL",
+    "ja": "CSL ランチャーのクラシックテーマ",
+    "ru": "Классические темы лаунчера CSL",
+    "uk": "Класичні теми лаунчера CSL",
+    "zh-Hans": "CSL 启动器经典主题",
+    "zh-Hant": "CSL 啟動器經典主題",
+    "lzh": "CSL 啟動器之舊觀"
+  },
+  "authors": [
+    {
+      "name": {
+        "default": "CSL",
+        "en-Qabs": "ꞀƆWH"
+      }
+    }
+  ],
+  "themes": [
+    {
+      "id": "2021-08-26",
+      "name": {
+        "default": "Current Theme",
+        "es": "Tema actual",
+        "ja": "現在のテーマ",
+        "ru": "Текущая тема",
+        "uk": "Поточна тема",
+        "zh-Hans": "当前主题",
+        "zh-Hant": "當前主題",
+        "lzh": "今觀"
+      },
+      "description": {
+        "default": "CSL current theme",
+        "es": "Tema actual de CSL",
+        "ja": "CSL の現在のテーマ",
+        "ru": "Текущая тема CSL",
+        "uk": "Поточна тема CSL",
+        "zh-Hans": "CSL 当前主题",
+        "zh-Hant": "CSL 當前主題",
+        "lzh": "CSL 之今觀"
+      },
+      "color": "#5C6BC0",
+      "brightness": "light",
+      "colorStyle": "fidelity",
+      "background": {
+        "type": "builtin",
+        "id": "2021-08-26",
+        "opacity": 1.0
+      },
+      "titleBar": {
+        "transparent": false
+      }
+    },
+    {
+      "id": "2016-02-25",
+      "name": "CSL 3.3",
+      "description": {
+        "default": "CSL 3.3 classic appearance",
+        "es": "Apariencia clásica de CSL 3.3",
+        "ja": "CSL 3.3 のクラシックな外観",
+        "ru": "Классический вид CSL 3.3",
+        "uk": "Класичний вигляд CSL 3.3",
+        "zh-Hans": "CSL 3.3 经典外观",
+        "zh-Hant": "CSL 3.3 經典外觀",
+        "lzh": "CSL 3.3 之舊觀"
+      },
+      "color": "#5C6BC0",
+      "brightness": "light",
+      "colorStyle": "fidelity",
+      "background": {
+        "type": "builtin",
+        "id": "2016-02-25",
+        "opacity": 1.0
+      },
+      "titleBar": {
+        "transparent": true
+      }
+    },
+    {
+      "id": "2015-06-22",
+      "name": {
+        "default": "CSL 2.3"
+      },
+      "description": {
+        "default": "CSL 2.3 classic appearance",
+        "es": "Apariencia clásica de CSL 2.3",
+        "ja": "CSL 2.3 のクラシックな外観",
+        "ru": "Классический вид CSL 2.3",
+        "uk": "Класичний вигляд CSL 2.3",
+        "zh-Hans": "CSL 2.3 经典外观",
+        "zh-Hant": "CSL 2.3 經典外觀",
+        "lzh": "CSL 2.3 之舊觀"
+      },
+      "color": "#E67E22",
+      "brightness": "light",
+      "colorStyle": "fidelity",
+      "background": {
+        "type": "builtin",
+        "id": "2015-06-22"
+      },
+      "titleBar": {
+        "transparent": false
+      }
+    }
+  ]
+}

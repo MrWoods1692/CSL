@@ -1,0 +1,8 @@
+{
+  "$schema": "https://schemas.glavo.site/csl/authlib-injector-servers/1.0.0",
+  "servers": [
+    {
+      "url": "https://littleskin.cn/api/yggdrasil/"
+    }
+  ]
+}

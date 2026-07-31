@@ -1,0 +1,66 @@
+/*
+ * CSL - Craft Something Launcher
+ * Copyright (C) 2020  huangyuhui <huanghongxun2008@126.com> and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package org.jackhuang.csl.launch;
+
+import org.jackhuang.csl.auth.AuthInfo;
+import org.jackhuang.csl.game.GameInstanceManifest;
+import org.jackhuang.csl.game.GameRepository;
+import org.jackhuang.csl.game.LaunchOptions;
+import org.jackhuang.csl.util.platform.ManagedProcess;
+
+import java.io.IOException;
+import java.nio.file.Path;
+
+/**
+ *
+ * @author huangyuhui
+ */
+public abstract class Launcher {
+
+    protected final GameRepository repository;
+    protected final GameInstanceManifest manifest;
+    protected final AuthInfo authInfo;
+    protected final LaunchOptions options;
+    protected final ProcessListener listener;
+    protected final boolean daemon;
+
+    public Launcher(GameRepository repository, GameInstanceManifest manifest, AuthInfo authInfo, LaunchOptions options) {
+        this(repository, manifest, authInfo, options, null);
+    }
+
+    public Launcher(GameRepository repository, GameInstanceManifest manifest, AuthInfo authInfo, LaunchOptions options, ProcessListener listener) {
+        this(repository, manifest, authInfo, options, listener, true);
+    }
+
+    public Launcher(GameRepository repository, GameInstanceManifest manifest, AuthInfo authInfo, LaunchOptions options, ProcessListener listener, boolean daemon) {
+        this.repository = repository;
+        this.manifest = manifest;
+        this.authInfo = authInfo;
+        this.options = options;
+        this.listener = listener;
+        this.daemon = daemon;
+    }
+
+    /**
+     * @param file the file path.
+     */
+    public abstract void makeLaunchScript(Path file) throws IOException;
+
+    public abstract ManagedProcess launch() throws IOException, InterruptedException;
+
+}
