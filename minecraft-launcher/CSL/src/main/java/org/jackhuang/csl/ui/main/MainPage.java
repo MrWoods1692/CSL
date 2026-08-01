@@ -55,7 +55,6 @@ import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.SVG;
-import org.jackhuang.csl.ui.SystemStatusView;
 import org.jackhuang.csl.ui.animation.AnimationUtils;
 import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jackhuang.csl.ui.construct.TwoLineListItem;
@@ -97,9 +96,6 @@ public final class MainPage extends StackPane implements DecoratorPage {
 
     private final StackPane updatePane;
     private final JFXButton menuButton;
-
-    private final JFXButton statusButton = new JFXButton();
-    private SystemStatusView systemStatusView;
 
     private RemoteVersion lastShownVersion;
 
@@ -151,16 +147,10 @@ public final class MainPage extends StackPane implements DecoratorPage {
             updatePane.getChildren().setAll(hBox, closeUpdateButton);
         }
 
-        statusButton.getStyleClass().add("status-monitor-button");
-        statusButton.setGraphic(SVG.SYSTEM_MONITOR.createIcon(16));
-        FXUtils.installFastTooltip(statusButton, i18n("status"));
-        statusButton.setOnAction(e -> toggleSystemStatus());
-        addEventFilter(MouseEvent.MOUSE_CLICKED, this::onSystemStatusBackgroundClick);
-
         HBox topRightPane = new HBox(8);
         topRightPane.setAlignment(Pos.TOP_RIGHT);
         StackPane.setAlignment(topRightPane, Pos.TOP_RIGHT);
-        topRightPane.getChildren().setAll(updatePane, statusButton);
+        topRightPane.getChildren().setAll(updatePane);
 
         HBox launchPane = new HBox();
         launchPane.getStyleClass().add("launch-pane");
@@ -355,51 +345,6 @@ public final class MainPage extends StackPane implements DecoratorPage {
     private void closeUpdateBubble() {
         showUpdate.unbind();
         showUpdate.set(false);
-    }
-
-    private void toggleSystemStatus() {
-        if (systemStatusView != null && systemStatusView.isVisible()) {
-            hideSystemStatus();
-            return;
-        }
-
-        if (systemStatusView == null) {
-            systemStatusView = new SystemStatusView(this::hideSystemStatus);
-            systemStatusView.setVisible(false);
-            // Shift the panel left by half its own width so it no longer hangs over
-            // the right edge (the status button stays clickable).
-            systemStatusView.translateXProperty().bind(systemStatusView.widthProperty().multiply(-0.5));
-            StackPane.setAlignment(systemStatusView, Pos.TOP_RIGHT);
-            StackPane.setMargin(systemStatusView, new Insets(34, 0, 0, 0));
-            getChildren().add(systemStatusView);
-        }
-
-        systemStatusView.show();
-    }
-
-    private void hideSystemStatus() {
-        if (systemStatusView != null && systemStatusView.isVisible())
-            systemStatusView.hide();
-    }
-
-    private void onSystemStatusBackgroundClick(MouseEvent event) {
-        if (systemStatusView == null || !systemStatusView.isVisible())
-            return;
-        if (!(event.getTarget() instanceof Node target))
-            return;
-        if (target == statusButton || isDescendant(statusButton, target) || isDescendant(systemStatusView, target))
-            return;
-        hideSystemStatus();
-    }
-
-    private static boolean isDescendant(Node parent, Node node) {
-        Node current = node;
-        while (current != null) {
-            if (current == parent)
-                return true;
-            current = current.getParent();
-        }
-        return false;
     }
 
     @Override

@@ -22,6 +22,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -1112,6 +1113,23 @@ public final class Themes {
     /// Returns whether the launcher window should be transparent after applying launcher and theme settings.
     public static BooleanBinding windowTransparentProperty() {
         return windowTransparent;
+    }
+
+    /// The sidebar background opacity after applying launcher and theme settings.
+    private static final DoubleBinding sidebarOpacity = Bindings.createDoubleBinding(
+            () -> {
+                if (settings().getThemeAppearanceOverrides().contains(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY)) {
+                    return settings().sidebarOpacityProperty().get();
+                }
+                return 1.0;
+            },
+            settings().sidebarOpacityProperty(),
+            settings().getThemeAppearanceOverrides()
+    );
+
+    /// Returns the sidebar background opacity after applying launcher and theme settings.
+    public static DoubleBinding sidebarOpacityProperty() {
+        return sidebarOpacity;
     }
 
     /// Returns whether the current color scheme uses dark brightness.

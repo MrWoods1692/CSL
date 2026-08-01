@@ -104,6 +104,10 @@ public final class LauncherHelper {
 
     private final TaskExecutorDialogPane launchingStepsPane = new TaskExecutorDialogPane(TaskCancellationAction.NORMAL);
 
+    {
+        launchingStepsPane.setForceLoadingMode(true);
+    }
+
     public Account getAccount() {
         return account;
     }

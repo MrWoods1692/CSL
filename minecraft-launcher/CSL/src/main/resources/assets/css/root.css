@@ -17,6 +17,28 @@
  */
 
 .root {
+    /* Smooth font rendering */
+    -fx-font-smoothing-type: gray;
+}
+
+/* ============================================================
+ * Global smooth transitions for interactive elements
+ * ============================================================ */
+.jfx-button,
+.jfx-combo-box,
+.jfx-toggle-button,
+.toggle-button,
+.advanced-list-item > .rippler-container > .container,
+.game-directory-list-item > .rippler-container > BorderPane,
+.navigation-drawer-item > .rippler-container > .container,
+.options-list-item,
+.card,
+.status-card,
+.menu-container,
+.jfx-decorator-button,
+.window-control-button,
+.sidebar-toggle-button {
+    -fx-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .svg {
@@ -29,8 +51,31 @@
 
 .scroll-bar .thumb {
     -fx-fill: -monet-surface-tint;
-    -fx-arc-width: 6;
-    -fx-arc-height: 6;
+    -fx-arc-width: 8;
+    -fx-arc-height: 8;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
 }
 
 .title-label {
@@ -43,10 +88,18 @@
 
 .hyperlink {
     -fx-text-fill: -monet-primary;
+    -fx-cursor: hand;
+}
+
+.hyperlink:hover {
+    -fx-text-fill: derive(-monet-primary, 20%);
+    -fx-underline: true;
 }
 
 .hyperlink:focused {
     -fx-border-color: -monet-primary;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
 }
 
 .hint {
@@ -123,16 +176,19 @@
 
 .memory-status-bar .track {
     -fx-background-color: -monet-secondary-container;
-    -fx-background-radius: 4;
+    -fx-background-radius: 6;
     -fx-background-insets: 0;
+    -fx-pref-height: 6px;
 }
 
 .memory-status-bar .memory-used {
     -fx-fill: -monet-primary;
+    -fx-background-radius: 6;
 }
 
 .memory-status-bar .memory-allocate {
     -fx-fill: -monet-primary-transparent-50;
+    -fx-background-radius: 6;
 }
 
 .update-label {
@@ -176,25 +232,36 @@
 .advanced-list-item > .rippler-container > .container {
     -fx-padding: 12 16 12 16;
     -fx-background-color: null;
+    -fx-background-radius: 12;
+    -fx-margin: 2 8 2 8;
 }
 
 .advanced-list-item > .rippler-container > .container > .two-line-list-item {
     -fx-alignment: center-left;
-    -fx-padding: 0 0 0 10;
+    -fx-padding: 0 0 0 12;
 }
 
 .advanced-list-item > .rippler-container > .container > .two-line-list-item > .first-line > .title {
-    -fx-font-size: 13;
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
     -fx-text-alignment: justify;
 }
 
 .advanced-list-item > .rippler-container > .container > .two-line-list-item > HBox > .subtitle {
-    -fx-font-size: 10;
+    -fx-font-size: 11;
     -fx-text-alignment: justify;
 }
 
+.advanced-list-item:hover > .rippler-container > .container {
+    -fx-background-color: -monet-surface-container-highest;
+}
+
 .advanced-list-item:selected > .rippler-container > .container {
-    -fx-background-color: -monet-secondary-container-transparent-50;
+    -fx-background-color: -monet-secondary-container;
+    /* Left accent bar */
+    -fx-border-width: 0 0 0 3;
+    -fx-border-color: -monet-primary;
+    -fx-border-radius: 0 8 8 0;
 }
 
 .advanced-list-item:selected > .rippler-container > .container > .two-line-list-item > .first-line > .title {
@@ -210,12 +277,12 @@
     -fx-padding: 0 0 0 0;
 }
 
-/* Compact sidebar items: the icon is pinned at the same left position in both
-   the collapsed and expanded states (left padding 20 matches the centered
-   position of the collapsed toggle button icon); toggling the sidebar only
-   shows/hides the text label next to the icon. */
+/* Compact sidebar items: when collapsed the icon is centered in the
+   available width; when expanded the icon stays left-aligned and the
+   text label appears next to it. */
 .advanced-list-item.compact > .rippler-container > .container {
-    -fx-padding: 12 16 12 20;
+    -fx-padding: 12 16 12 16;
+    -fx-alignment: center-left;
 }
 
 /* The toggle button icon stays at a fixed position (left-aligned with a fixed
@@ -226,18 +293,21 @@
     -fx-alignment: center-left;
     -fx-graphic-text-gap: 10;
     -fx-text-fill: -monet-on-surface-variant;
+    -fx-background-radius: 12;
+    -fx-margin: 4 8 4 8;
 }
 
 .sidebar-toggle-button .svg {
     -fx-fill: -monet-on-surface-variant;
 }
 
-.sidebar-toggle-button:hover .svg {
-    -fx-fill: -monet-on-surface;
+.sidebar-toggle-button:hover {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-text-fill: -monet-on-surface;
 }
 
-.sidebar-toggle-button:hover {
-    -fx-text-fill: -monet-on-surface;
+.sidebar-toggle-button:hover .svg {
+    -fx-fill: -monet-on-surface;
 }
 
 .game-directory-list-item > .rippler-container > BorderPane > .two-line-list-item > .first-line > .title {
@@ -250,10 +320,18 @@
 
 .game-directory-list-item > .rippler-container > BorderPane {
     -fx-padding: 8 0 8 16;
+    -fx-background-radius: 10;
+}
+
+.game-directory-list-item:hover > .rippler-container > BorderPane {
+    -fx-background-color: -monet-surface-container-highest;
 }
 
 .game-directory-list-item:selected > .rippler-container > BorderPane {
-    -fx-background-color: -monet-secondary-container-transparent-50;
+    -fx-background-color: -monet-secondary-container;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-color: -monet-primary;
+    -fx-border-radius: 0 8 8 0;
 }
 
 .game-directory-list-item:selected > .rippler-container > BorderPane > .two-line-list-item > .first-line > .title {
@@ -266,10 +344,12 @@
 }
 
 .notice-pane > .label {
-    -fx-text-fill: -monet-on-surface;
-    -fx-font-size: 20;
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 16;
     -fx-wrap-text: true;
     -fx-text-alignment: CENTER;
+    -fx-padding: 32 16 32 16;
+    -fx-opacity: 0.7;
 }
 
 .class-title {
@@ -323,6 +403,14 @@
     -fx-padding: 8 16 8 16;
 }
 
+.popup-menu {
+    -fx-background-color: -monet-surface;
+}
+
+.popup-menu .scroll-pane {
+    -fx-background-color: -monet-surface;
+}
+
 .popup-menu .scroll-bar .thumb {
     -fx-fill: -monet-surface-tint;
 }
@@ -334,6 +422,7 @@
 
 .popup-menu-content {
     -fx-padding: 4 0 4 0;
+    -fx-background-color: -monet-surface;
 }
 
 .two-line-list-item > .first-line > .title {
@@ -409,8 +498,10 @@
 }
 
 .bubble {
-    -fx-background-color: -monet-inverse-surface-transparent-80;
-    -fx-background-radius: 2px;
+    -fx-background-color: -monet-inverse-surface;
+    -fx-background-radius: 12px;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0.06, 0, 2);
 }
 
 .bubble > HBox > .two-line-list-item > .first-line > .title,
@@ -431,32 +522,101 @@
 }
 
 .installer-item-wrapper {
-    -fx-background-color: -monet-surface;
-    -fx-background-radius: 4;
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 12;
     -fx-pref-width: 180px;
+    -fx-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.installer-item-wrapper:hover {
+    -fx-background-color: -monet-surface-container-high;
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
 }
 
 .installer-item-wrapper:card {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.26), 10, 0.12, -1, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0.04, 0, 2);
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 12;
+}
+
+.installer-item-wrapper:card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 16, 0.08, 0, 4);
+    -fx-border-color: -monet-primary;
 }
 
 .installer-item-wrapper .installer-item:list-item {
-    -fx-padding: 8px;
+    -fx-padding: 10 14 10 14;
     -fx-border-color: -monet-outline-variant;
     -fx-border-width: 0 0 1 0;
     -fx-alignment: center-left;
+    -fx-background-radius: 10;
+}
+
+.installer-item-wrapper .installer-item:list-item:hover {
+    -fx-background-color: -monet-surface-container-highest;
 }
 
 .installer-item-wrapper .installer-item:list-item > .installer-item-name {
     -fx-pref-width: 100px;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
 }
 
 .installer-item-wrapper .installer-item:list-item > .installer-item-status {
     -fx-max-width: infinity;
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
 }
 
 .installer-item-wrapper .installer-item:card {
     -fx-alignment: center;
+    -fx-padding: 12 8 8 8;
+    -fx-spacing: 4;
+}
+
+.installer-item-wrapper .installer-item:card > .installer-item-name {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.installer-item-wrapper .installer-item:card > .installer-item-status {
+    -fx-font-size: 11px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.installer-item-wrapper .installer-item:card > .installer-item-image {
+    -fx-opacity: 0.9;
+}
+
+.installer-card-pane {
+    -fx-padding: 12 8 12 8;
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-alignment: top-center;
+}
+
+.install-action-button {
+    -fx-background-radius: 12;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.input-label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.edge-to-edge {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.edge-to-edge > .viewport {
+    -fx-background-color: transparent;
 }
 
 /*******************************************************************************
@@ -531,6 +691,26 @@
 
 .tab-selected-line {
     -fx-background-color: -monet-primary;
+    -fx-background-radius: 2;
+}
+
+.tab-header-area {
+    -fx-padding: 0 8 0 8;
+}
+
+.tab-label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 13px;
+    -fx-padding: 0 8 0 8;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: -monet-primary;
+    -fx-font-weight: bold;
+}
+
+.tab:hover .tab-label {
+    -fx-text-fill: -monet-on-surface;
 }
 
 /* TODO: It seems not actually used */
@@ -668,6 +848,11 @@
     -fx-background-color: -monet-surface;
     -fx-background-radius: 10;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 14, 0.1, 0, 4);
+}
+
+/* Prevent black flash on popup: ensure popup content has opaque background */
+.jfx-popup-container > .jfx-popup-content {
+    -fx-background-color: -monet-surface;
 }
 
 .popup-list-view {
@@ -808,16 +993,19 @@
     -fx-max-width: 42px;
     -fx-min-height: 42px;
     -fx-max-height: 42px;
-    -fx-background-radius: 8px;
+    -fx-background-radius: 10px;
     -fx-background-color: transparent;
+    -fx-cursor: hand;
 }
 
 .jfx-decorator-button:hover {
-    -fx-background-color: rgba(128.0, 128.0, 128.0, 0.15);
+    -fx-background-color: -monet-surface-container-highest;
 }
 
 .jfx-decorator-button:armed {
-    -fx-background-color: rgba(128.0, 128.0, 128.0, 0.25);
+    -fx-background-color: -monet-surface-container-high;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
 }
 
 .jfx-decorator-button .icon {
@@ -826,22 +1014,23 @@
 }
 
 .window-control-button {
-    -fx-min-width: 16px;
-    -fx-max-width: 16px;
-    -fx-pref-width: 16px;
-    -fx-min-height: 16px;
-    -fx-max-height: 16px;
-    -fx-pref-height: 16px;
+    -fx-min-width: 14px;
+    -fx-max-width: 14px;
+    -fx-pref-width: 14px;
+    -fx-min-height: 14px;
+    -fx-max-height: 14px;
+    -fx-pref-height: 14px;
     -fx-background-radius: 50%;
     -fx-background-insets: 0;
     -fx-padding: 0;
-    -fx-border-width: 1;
+    -fx-border-width: 0;
     -fx-border-radius: 50%;
-    -fx-border-color: rgba(0, 0, 0, 0.12);
+    -fx-cursor: hand;
 }
 
 .window-control-button:hover {
-    -fx-opacity: 0.85;
+    -fx-opacity: 0.8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0.15, 0, 1);
 }
 
 .window-control-close {
@@ -871,6 +1060,11 @@
     -jfx-selected-color: -monet-primary;
     -jfx-unselected-color: -monet-on-surface-variant;
     -fx-text-fill: -monet-on-surface;
+    -fx-cursor: hand;
+}
+
+.jfx-radio-button:hover {
+    -fx-opacity: 0.85;
 }
 
 /*******************************************************************************
@@ -933,6 +1127,17 @@
 .jfx-button {
     -jfx-disable-visual-focus: true;
     -fx-cursor: hand;
+    -fx-background-radius: 8;
+}
+
+.jfx-button:hover {
+    -fx-opacity: 0.92;
+}
+
+.jfx-button:armed {
+    -fx-opacity: 0.85;
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
 }
 
 .jfx-button .jfx-rippler {
@@ -943,6 +1148,13 @@
 
 .jfx-button-raised {
     -fx-background-color: -monet-primary;
+    -fx-background-radius: 12px;
+    -fx-padding: 10 24 10 24;
+}
+
+.jfx-button-raised:hover {
+    -fx-background-color: derive(-monet-primary, 8%);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 8, 0.08, 0, 2);
 }
 
 .jfx-button-raised .jfx-rippler {
@@ -987,7 +1199,12 @@
     -fx-font-weight: BOLD;
     -fx-text-fill: -monet-on-surface;
     -jfx-checked-color: -monet-primary;
-    -jfx-unchecked-color: transparent;
+    -jfx-unchecked-color: -monet-outline;
+    -fx-cursor: hand;
+}
+
+.jfx-check-box:hover {
+    -fx-opacity: 0.85;
 }
 
 .table-view .jfx-check-box .jfx-rippler {
@@ -1003,17 +1220,50 @@
 
 .jfx-progress-bar > .track {
     -fx-background-color: -monet-secondary-container;
+    -fx-background-radius: 8;
 }
 
 .jfx-progress-bar > .bar {
     -fx-background-color: -monet-primary;
     -fx-padding: 2;
+    -fx-background-radius: 8;
 }
 
 .jfx-progress-bar > .track,
 .jfx-progress-bar > .bar {
-    -fx-background-radius: 6;
+    -fx-background-radius: 8;
     -fx-background-insets: 0;
+}
+
+/* Single download progress bar - beautified */
+.single-download-progress {
+    -fx-max-width: 400;
+    -fx-pref-width: 400;
+}
+
+.single-download-progress > .track {
+    -fx-background-color: -monet-secondary-container;
+    -fx-pref-height: 8px;
+    -fx-max-height: 8px;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.15), 2, 0.5, 0, 1);
+}
+
+.single-download-progress > .bar {
+    -fx-background-color: linear-gradient(to right, -monet-primary, derive(-monet-primary, 30%));
+    -fx-padding: 2;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+}
+
+.single-download-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: -monet-on-surface;
+    -fx-opacity: 0.7;
+    -fx-alignment: center;
+    -fx-max-width: 400;
+    -fx-wrap-text: true;
 }
 
 /*******************************************************************************
@@ -1046,6 +1296,135 @@
     -fx-text-fill: -monet-on-secondary-container;
 }
 
+/* Global context menu styling */
+.context-menu {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 10;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 12, 0.08, 0, 4);
+}
+
+.context-menu .menu-item {
+    -fx-background-radius: 6;
+    -fx-padding: 6 12 6 12;
+}
+
+.context-menu .menu-item:hover,
+.context-menu .menu-item:focused {
+    -fx-background-color: -monet-secondary-container;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: -monet-on-surface;
+}
+
+.context-menu .menu-item:hover .label,
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: -monet-on-secondary-container;
+}
+
+/*******************************************************************************
+*                                                                              *
+* Search Bar                                                                   *
+*                                                                              *
+*******************************************************************************/
+
+.search-bar {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 16;
+    -fx-padding: 16 20 16 20;
+    -fx-spacing: 6;
+    -fx-alignment: CENTER;
+}
+
+.search-bar .label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 2 0;
+}
+
+.search-bar .jfx-text-field {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-padding: 8 12;
+    -fx-font-weight: NORMAL;
+    -fx-font-size: 13;
+}
+
+.search-bar .jfx-text-field:focused {
+    -fx-background-color: -monet-surface-container-high;
+}
+
+.search-bar .jfx-text-field .input-line {
+    -fx-pref-height: 0;
+}
+
+.search-bar .jfx-combo-box {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-padding: 2 4;
+}
+
+.search-bar .jfx-combo-box .list-cell {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+}
+
+.search-bar .jfx-decorator-button {
+    -fx-min-width: 32px;
+    -fx-max-width: 32px;
+    -fx-pref-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-height: 32px;
+    -fx-pref-height: 32px;
+    -fx-background-radius: 8;
+}
+
+.search-bar .jfx-decorator-button:hover {
+    -fx-background-color: -monet-surface-container-highest;
+}
+
+.search-bar .jfx-decorator-button .svg {
+    -fx-fill: -monet-on-surface-variant;
+}
+
+.search-bar .jfx-button {
+    -fx-background-color: -monet-primary;
+    -fx-text-fill: -monet-on-primary;
+    -fx-background-radius: 10;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+}
+
+.search-bar .jfx-button:hover {
+    -fx-background-color: derive(-monet-primary, 10%);
+}
+
+.search-bar .jfx-button:armed {
+    -fx-background-color: derive(-monet-primary, -10%);
+}
+
+.search-bar .pagination-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-padding: 6 12;
+    -fx-background-radius: 8;
+}
+
+.search-bar .pagination-button:hover {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.search-bar .pagination-label {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
 /*******************************************************************************
 *                                                                              *
 * JFX List View                                                                *
@@ -1062,29 +1441,37 @@
 
 .jfx-list-cell, .list-cell {
     -fx-background-color: transparent;
+    -fx-text-fill: -monet-on-surface;
+    -fx-background-radius: 10;
+    -fx-padding: 4 8 4 8;
 }
 
-.list-cell:selected, .jfx-list-cell:selected,
+.list-cell:selected, .jfx-list-cell:selected {
+    -fx-background-color: -monet-secondary-container;
+    -fx-text-fill: -monet-on-secondary-container;
+}
+
 .list-cell:hover, .jfx-list-cell:hover {
-    -fx-text-fill: black;
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.list-cell:focused, .jfx-list-cell:focused {
+    -fx-background-color: transparent;
 }
 
 .jfx-list-cell .jfx-rippler {
     -jfx-rippler-fill: -monet-primary-container;
 }
 
-/*.list-cell:odd:selected > .jfx-rippler > StackPane,*/
-/*.list-cell:even:selected > .jfx-rippler > StackPane {*/
-/*    -fx-background-color: derive(-monet-primary, 30%);*/
-/*}*/
-
 .jfx-list-view {
     -fx-background-insets: 0.0;
     -jfx-cell-horizontal-margin: 0.0;
-    -jfx-cell-vertical-margin: 5.0;
-    -jfx-vertical-gap: 10.0;
+    -jfx-cell-vertical-margin: 4.0;
+    -jfx-vertical-gap: 6.0;
     -jfx-expanded: false;
     -fx-background-color: transparent;
+    -fx-padding: 4 0 4 0;
 }
 
 .jfx-list-view .scroll-bar {
@@ -1145,26 +1532,53 @@
 }
 
 .card {
-    -fx-background-color: -monet-surface-container-low-transparent-80;
-    -fx-background-radius: 12;
-    -fx-padding: 12px;
-
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 16, 0.08, 0, 4);
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 16;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0.04, 0, 2);
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 16;
 }
 
 .card-no-padding {
-    -fx-background-color: -monet-surface-container-low-transparent-80;
-    -fx-background-radius: 12;
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 10, 0.02, 0, 2);
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 16;
+}
 
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 16, 0.08, 0, 4);
+.card-no-padding:hover {
+    -fx-background-color: -monet-surface-container-high;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 14, 0.06, 0, 4);
+    -fx-border-color: -monet-primary;
 }
 
 .card-non-transparent {
     -fx-background-color: -monet-surface-container-low;
-    -fx-background-radius: 12;
-    -fx-padding: 12px;
+    -fx-background-radius: 16;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 10, 0.02, 0, 2);
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 16;
+}
 
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0.06, 0, 3);
+.card-non-transparent .jfx-text-field {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px;
+}
+
+.card-non-transparent .jfx-text-field:focused {
+    -fx-background-color: -monet-surface-container-high;
+}
+
+.card-non-transparent .jfx-text-field .input-line {
+    -fx-pref-height: 0;
 }
 
 .card-list {
@@ -1175,10 +1589,50 @@
 .md-list-cell {
     -fx-border-color: -monet-outline-variant;
     -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 10;
 }
 
 .md-list-cell:selected {
     -fx-background-color: -monet-secondary-container;
+    -fx-background-radius: 10;
+}
+
+.md-list-cell:hover {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+}
+
+.two-line-list-item {
+    -fx-spacing: 2;
+    -fx-alignment: center-left;
+}
+
+.two-line-list-item .title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.two-line-list-item .subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.two-line-list-item .tag {
+    -fx-font-size: 10px;
+    -fx-background-color: -monet-secondary-container;
+    -fx-text-fill: -monet-on-secondary-container;
+    -fx-background-radius: 6;
+    -fx-padding: 1 6 1 6;
+}
+
+.two-line-list-item .tag:warning {
+    -fx-font-size: 10px;
+    -fx-background-color: -monet-error-container;
+    -fx-text-fill: -monet-on-error-container;
+    -fx-background-radius: 6;
+    -fx-padding: 1 6 1 6;
 }
 
 .mod-info-list-cell:warning {
@@ -1201,12 +1655,21 @@
     -fx-background-color: -monet-surface;
     -fx-border-color: -monet-outline-variant;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 10 16 10 16;
+    -fx-padding: 12 16 12 16;
     -fx-font-size: 12;
+    -fx-background-radius: 0;
+}
+
+.options-list-item:hover {
+    -fx-background-color: -monet-surface-container-highest;
 }
 
 .options-sublist .options-list-item {
     -fx-background-color: -monet-surface-container;
+}
+
+.options-sublist .options-list-item:hover {
+    -fx-background-color: -monet-surface-container-highest;
 }
 
 .options-sublist .multi-file-item {
@@ -1575,7 +2038,9 @@
 *******************************************************************************/
 
 .jfx-spinner .arc {
-    -fx-stroke: -monet-primary-container;
+    -fx-stroke: -monet-primary;
+    -fx-stroke-width: 3;
+    -fx-stroke-line-cap: round;
 }
 
 .small-spinner {
@@ -1605,8 +2070,14 @@
     -jfx-focus-color: transparent;
     -jfx-unfocus-color: transparent;
     -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
     -fx-padding: 4;
     -fx-max-width: 1000000000;
+    -fx-cursor: hand;
+}
+
+.jfx-combo-box:hover {
+    -fx-background-color: -monet-surface-container-high;
 }
 
 .jfx-combo-box .arrow {
@@ -1624,6 +2095,10 @@
 
 .combo-box-popup .list-view {
     -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 4);
 }
 
 .combo-box-popup .list-view .jfx-list-cell {
@@ -1631,16 +2106,29 @@
     -fx-text-fill: -monet-on-surface;
     -fx-cursor: hand;
     -fx-background-insets: 0.0;
+    -fx-background-radius: 8;
+    -fx-padding: 6 10 6 10;
 }
 
 .combo-box-popup .list-view .list-cell:odd:selected > .jfx-rippler > StackPane,
 .combo-box-popup .list-view .list-cell:even:selected > .jfx-rippler > StackPane {
     -fx-background-color: -monet-secondary-container;
     -fx-text-fill: -monet-on-secondary-container;
+    -fx-background-radius: 8;
 }
 
 .combo-box-popup .list-view .list-cell:hover > .jfx-rippler > StackPane {
-    -fx-background-color: -monet-secondary-container-transparent-50;
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 8;
+}
+
+/* Prevent black flash on combo-box popup */
+.combo-box-popup {
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -monet-surface-container;
 }
 
 .jfx-combo-box-warning {
@@ -1800,8 +2288,14 @@
     -fx-border-radius: 6;
 }
 
-.tree-cell:focused {
+.tree-cell:hover {
+    -fx-background-color: -monet-surface-container-highest;
+}
+
+.tree-cell:focused,
+.tree-cell:selected {
     -fx-background-color: -monet-secondary-container;
+    -fx-text-fill: -monet-on-secondary-container;
 }
 
 .tree-cell .arrow {
@@ -1854,6 +2348,15 @@
 
 .gray-background {
     -fx-background-color: -monet-surface-transparent-50;
+}
+
+/* The persistent global sidebar container; uses a solid background
+   for clear visual separation from the content area. */
+.global-sidebar-container {
+    -fx-background-color: -monet-surface;
+}
+
+.global-sidebar {
 }
 
 /*******************************************************************************
@@ -2190,12 +2693,12 @@
 
 .system-status-pane .status-card {
     -fx-background-color: -monet-surface;
-    -fx-background-radius: 8px;
-    -fx-border-color: rgba(255, 255, 255, 0.35) rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.12) rgba(255, 255, 255, 0.35);
-    -fx-border-radius: 8px;
-    -fx-border-width: 1px;
-    -fx-padding: 7 9 7 9;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 5, 0, 1, 2);
+    -fx-background-radius: 10px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 10px;
+    -fx-border-width: 0.5px;
+    -fx-padding: 8 10 8 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 1, 2);
 }
 
 .system-status-pane .status-gauge-card {
@@ -2222,4 +2725,265 @@
 .system-status-pane .tile-sub {
     -fx-text-fill: -monet-on-surface-variant;
     -fx-font-size: 11px;
+}
+
+/* ===== Status Page (full-page dashboard) ===== */
+
+.status-page-root {
+    -fx-background-color: transparent;
+}
+
+.status-page {
+    -fx-background-color: transparent;
+}
+
+.status-page-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -monet-outline-variant transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.status-header-icon {
+    -fx-background-color: -monet-primary-container;
+    -fx-background-radius: 50%;
+    -fx-min-width: 56px;
+    -fx-min-height: 56px;
+    -fx-max-width: 56px;
+    -fx-max-height: 56px;
+    -fx-alignment: center;
+}
+
+.status-header-icon .svg {
+    -fx-fill: -monet-on-primary-container;
+}
+
+.status-header-title {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.status-header-subtitle {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 13px;
+    -fx-max-width: 400px;
+}
+
+/* Full-page mode: remove the popup-style background and shadow */
+.status-page-view {
+    -fx-background-color: transparent;
+}
+
+.status-page-view > .system-status-background {
+    -fx-background-color: transparent;
+    -fx-effect: none;
+    -fx-opacity: 1;
+}
+
+/* Full-page mode: larger content padding */
+.status-page-view > .system-status-content {
+    -fx-padding: 16 20 16 20;
+}
+
+/* Full-page mode: hide the inline title (page header replaces it) */
+.status-page-view > .system-status-content > .title {
+    -fx-font-size: 0;
+    visibility: hidden;
+}
+
+/* Full-page mode: larger gauge text */
+.status-page-view .gauge-percent {
+    -fx-font-size: 18px;
+}
+
+.status-page-view .gauge-caption {
+    -fx-font-size: 13px;
+}
+
+/* Full-page mode: larger tile text */
+.status-page-view .tile-name {
+    -fx-font-size: 12px;
+}
+
+.status-page-view .tile-value {
+    -fx-font-size: 13px;
+}
+
+.status-page-view .tile-sub {
+    -fx-font-size: 12px;
+}
+
+/* Full-page mode: larger row text */
+.status-page-view .name {
+    -fx-font-size: 14px;
+}
+
+.status-page-view .value {
+    -fx-font-size: 14px;
+}
+
+/* Full-page mode: transparent cards with subtle border */
+.status-page-view .status-card {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: none;
+}
+
+.status-page-view .status-tile {
+    -fx-min-height: 88px;
+    -fx-pref-height: 88px;
+    -fx-max-height: 88px;
+}
+
+/* Full-page mode: gauge cards transparent */
+.status-page-view .status-gauge-card {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: none;
+    .status-page-view .status-gauge-card {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: none;
+    -fx-padding: 12 8 10 8;
+}
+
+/* ============================================================
+ * Game Crash Window - Apple-style window chrome
+ * ============================================================ */
+.game-crash-root {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.12, 0, 8);
+}
+
+.game-crash-title-bar {
+    -fx-background-color: transparent;
+    -fx-min-height: 38px;
+    -fx-max-height: 38px;
+    -fx-pref-height: 38px;
+}
+
+.game-crash-title-label {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* ============================================================
+ * Log Window - Apple-style window chrome
+ * ============================================================ */
+.log-window-root {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.12, 0, 8);
+}
+
+.log-window-title-bar {
+    -fx-background-color: transparent;
+    -fx-min-height: 38px;
+    -fx-max-height: 38px;
+    -fx-pref-height: 38px;
+}
+
+.log-window-title-label {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* ============================================================
+ * Crash Window - Apple-style window chrome
+ * ============================================================ */
+.crash-window-root {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 12px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 12px;
+    -fx-border-width: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.12, 0, 8);
+}
+
+.crash-window-title-bar {
+    -fx-background-color: transparent;
+    -fx-min-height: 38px;
+    -fx-max-height: 38px;
+    -fx-pref-height: 38px;
+}
+
+.crash-window-title-label {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.game-crash-title-label {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/*******************************************************************************
+*                                                                              *
+* Download List                                                                *
+*                                                                              *
+*******************************************************************************/
+
+.download-list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 4 8 4 8;
+}
+
+.download-list-cell .card-no-padding {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 8, 0.02, 0, 1);
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0.5;
+    -fx-border-radius: 14;
+}
+
+.download-list-cell .card-no-padding:hover {
+    -fx-background-color: -monet-surface-container-high;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 14, 0.06, 0, 3);
+    -fx-border-color: -monet-primary;
+}
+
+.download-list-cell .image-container {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0.02, 0, 1);
+    -fx-background-radius: 8;
+}
+
+.download-list-cell .two-line-list-item .title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.download-list-cell .two-line-list-item .subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-max-height: 32px;
+}
+
+.download-list-cell .two-line-list-item .tag {
+    -fx-font-size: 9px;
+    -fx-background-color: -monet-tertiary-container;
+    -fx-text-fill: -monet-on-tertiary-container;
+    -fx-background-radius: 4;
+    -fx-padding: 1 5 1 5;
 }

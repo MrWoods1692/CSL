@@ -22,6 +22,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -30,9 +31,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import kala.encdet.EncodingDetector;
 import org.jackhuang.csl.Metadata;
 import org.jackhuang.csl.download.LibraryAnalyzer;
@@ -112,15 +116,89 @@ public class GameCrashWindow extends Stage {
 
         this.view = new View();
 
-        this.stackPane = new StackPane(view);
+        // Wrap view with custom window chrome (Apple-style controls)
+        VBox rootPane = new VBox();
+        rootPane.getStyleClass().add("game-crash-root");
+
+        // Custom title bar with Apple-style window controls
+        HBox titleBar = createWindowTitleBar();
+        rootPane.getChildren().add(titleBar);
+
+        // Content area
+        StackPane contentPane = new StackPane(view);
+        VBox.setVgrow(contentPane, Priority.ALWAYS);
+        rootPane.getChildren().add(contentPane);
+
+        this.stackPane = new StackPane(rootPane);
         this.feedbackTextFlow.getChildren().addAll(FXUtils.parseSegment(i18n("game.crash.feedback"), Controllers::onHyperlinkAction));
 
-        setScene(new Scene(stackPane, 800, 480));
+        Scene scene = new Scene(stackPane, 800, 480);
+        scene.setFill(Color.TRANSPARENT);
+        setScene(scene);
         StyleSheets.init(getScene());
         setTitle(i18n("game.crash.title"));
         FXUtils.setIcon(this);
+        initStyle(StageStyle.TRANSPARENT);
 
         analyzeCrashReport();
+    }
+
+    private HBox createWindowTitleBar() {
+        HBox titleBar = new HBox(8);
+        titleBar.setAlignment(Pos.CENTER_LEFT);
+        titleBar.setPadding(new Insets(8, 8, 8, 8));
+        titleBar.getStyleClass().add("game-crash-title-bar");
+
+        // Apple-style window control buttons
+JFXButton btnClose = createWindowControlButton("window-control-close", () -> close());
+            JFXButton btnMin = createWindowControlButton("window-control-min", () -> setIconified(true));
+            JFXButton btnMax = createWindowControlButton("window-control-max", () -> setMaximized(!isMaximized()));
+
+        HBox buttonsContainer = new HBox(8);
+        buttonsContainer.setAlignment(Pos.CENTER_LEFT);
+        buttonsContainer.getChildren().setAll(btnClose, btnMin, btnMax);
+
+        // Title label
+        Label titleLabel = new Label();
+        titleLabel.getStyleClass().add("game-crash-title-label");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(titleLabel, Priority.ALWAYS);
+        titleLabel.setAlignment(Pos.CENTER);
+
+        switch (exitType) {
+            case JVM_ERROR:
+                titleLabel.setText(i18n("launch.failed.cannot_create_jvm"));
+                break;
+            case APPLICATION_ERROR:
+                titleLabel.setText(i18n("launch.failed.exited_abnormally"));
+                break;
+            case SIGKILL:
+                titleLabel.setText(i18n("launch.failed.sigkill"));
+                break;
+        }
+
+        titleBar.getChildren().setAll(buttonsContainer, titleLabel);
+
+        // Make window draggable by title bar
+        final double[] dragDelta = new double[2];
+        titleBar.setOnMousePressed(e -> {
+            dragDelta[0] = getX() - e.getScreenX();
+            dragDelta[1] = getY() - e.getScreenY();
+        });
+        titleBar.setOnMouseDragged(e -> {
+            setX(e.getScreenX() + dragDelta[0]);
+            setY(e.getScreenY() + dragDelta[1]);
+        });
+
+        return titleBar;
+    }
+
+    private JFXButton createWindowControlButton(String colorClass, Runnable action) {
+        JFXButton btn = new JFXButton();
+        btn.setFocusTraversable(false);
+        btn.getStyleClass().addAll("window-control-button", colorClass);
+        btn.setOnAction(e -> action.run());
+        return btn;
     }
 
     @SuppressWarnings("unchecked")
@@ -310,28 +388,6 @@ public class GameCrashWindow extends Stage {
         View() {
             this.getStyleClass().add("game-crash-window");
 
-            HBox titlePane = new HBox();
-            {
-                Label title = new Label();
-                HBox.setHgrow(title, Priority.ALWAYS);
-
-                switch (exitType) {
-                    case JVM_ERROR:
-                        title.setText(i18n("launch.failed.cannot_create_jvm"));
-                        break;
-                    case APPLICATION_ERROR:
-                        title.setText(i18n("launch.failed.exited_abnormally"));
-                        break;
-                    case SIGKILL:
-                        title.setText(i18n("launch.failed.sigkill"));
-                        break;
-                }
-
-                titlePane.setAlignment(Pos.CENTER);
-                titlePane.getStyleClass().addAll("jfx-tool-bar-second", "depth-1", "padding-8");
-                titlePane.getChildren().setAll(title);
-            }
-
             HBox infoPane = new HBox(8);
             {
                 infoPane.setPadding(new Insets(8));
@@ -475,7 +531,7 @@ public class GameCrashWindow extends Stage {
                 toolBar.getChildren().setAll(exportButtonPane, logButton, helpButton);
             }
 
-            getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, toolBar);
+            getChildren().setAll(infoPane, moddedPane, gameDirPane, toolBar);
         }
 
     }

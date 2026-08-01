@@ -507,6 +507,10 @@ public final class ThemePackManagementPage extends ListPageBase<ThemePackManager
         /// Search toolbar.
         private final HBox searchBar = new HBox();
 
+        {
+            searchBar.getStyleClass().add("search-bar");
+        }
+
         /// Toolbar shown during normal browsing.
         private final HBox toolbarNormal = new HBox();
 

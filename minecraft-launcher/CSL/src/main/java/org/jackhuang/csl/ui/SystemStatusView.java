@@ -29,6 +29,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -86,8 +87,8 @@ import static org.jackhuang.csl.util.i18n.I18n.i18n;
 public final class SystemStatusView extends StackPane {
 
     private static final int REFRESH_INTERVAL_MILLIS = 2000;
-    private static final long SLOW_PROBE_INTERVAL_MILLIS = 10_000;
-    private static final long GAME_SIZE_INTERVAL_MILLIS = 30_000;
+    private static final long SLOW_PROBE_INTERVAL_MILLIS = 30_000; // 30s, was 10s
+    private static final long GAME_SIZE_INTERVAL_MILLIS = 120_000; // 2 minutes, was 30s
 
     /// CPU frequency from a cached platform-specific probe (all platforms except Linux).
     private static volatile String cachedCpuFrequency;
@@ -136,7 +137,8 @@ public final class SystemStatusView extends StackPane {
         header.setAlignment(Pos.CENTER_LEFT);
         header.getChildren().setAll(headerIcon, title, closeButton);
 
-        HBox dashboard = new HBox(8);
+        // Gauges row: CPU / Memory / Disk
+        HBox dashboard = new HBox(16);
         dashboard.setAlignment(Pos.CENTER);
         gauges = List.of(
                 new Gauge(i18n("status.cpu.usage")),
@@ -145,17 +147,26 @@ public final class SystemStatusView extends StackPane {
         );
         dashboard.getChildren().setAll(gauges);
 
+        // Detail tiles: 2x3 grid with equal-width columns
         GridPane tileGrid = new GridPane();
-        tileGrid.setHgap(8);
-        tileGrid.setVgap(8);
+        tileGrid.setHgap(12);
+        tileGrid.setVgap(12);
+        // Two equal columns
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(50);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(50);
+        tileGrid.getColumnConstraints().addAll(col1, col2);
         tiles = List.of(
                 addTile(tileGrid, 0, 0, i18n("status.cpu"), SVG.HOST, "tile-sub"),
                 addTile(tileGrid, 1, 0, i18n("status.gpu.state"), SVG.SCREENSHOT_MONITOR, "tile-sub"),
                 addTile(tileGrid, 0, 1, i18n("status.launcher.usage"), SVG.ROCKET_LAUNCH, "tile-sub"),
-                addTile(tileGrid, 1, 1, i18n("status.power.network"), SVG.POWER, "tile-value")
+                addTile(tileGrid, 1, 1, i18n("status.power.network"), SVG.POWER, "tile-value"),
+                addTile(tileGrid, 0, 2, i18n("status.game.size"), SVG.STORAGE, "tile-sub"),
+                addTile(tileGrid, 1, 2, i18n("status.java"), SVG.JAVA, "tile-sub")
         );
 
-        VBox rows = new VBox(6);
+        VBox rows = new VBox(10);
         rows.getChildren().add(tileGrid);
         gpuInfoLabel = addRow(rows, i18n("status.gpu.info"), SVG.SCREENSHOT_MONITOR);
         memoryBar = addBarSection(rows, i18n("status.memory"), SVG.MEMORY);
@@ -163,7 +174,7 @@ public final class SystemStatusView extends StackPane {
         diskBar = addBarSection(rows, i18n("status.disk"), SVG.STORAGE);
 
         content.getStyleClass().add("system-status-content");
-        content.setMaxWidth(310);
+        content.setMaxWidth(560);
         content.getChildren().setAll(header, dashboard, rows);
 
         getChildren().setAll(background, content);
@@ -248,7 +259,7 @@ public final class SystemStatusView extends StackPane {
         return valueLabel;
     }
 
-    private static final int TILE_HEIGHT = 84;
+    private static final int TILE_HEIGHT = 96;
 
     /// A square dashboard tile showing one metric (icon + name + value).
     ///
@@ -376,6 +387,8 @@ public final class SystemStatusView extends StackPane {
         tiles.get(3).extra.setVisible(true);
         tiles.get(3).extra.setManaged(true);
         setStatusColor(tiles.get(3).extra, newStatus.networkState());
+        tiles.get(4).value.setText(newStatus.gameSize());
+        tiles.get(5).value.setText(newStatus.javaVersion());
 
         gpuInfoLabel.setText(newStatus.gpuInfo());
 
@@ -479,7 +492,9 @@ public final class SystemStatusView extends StackPane {
             String gpuInfo,
             String launcherUsage,
             String power,
-            String network
+            String network,
+            String gameSize,
+            String javaVersion
     ) {
     }
 
@@ -489,9 +504,9 @@ public final class SystemStatusView extends StackPane {
     /// shifts the geometry through layout bounds recalculation.
     private static final class Gauge extends StackPane {
 
-        private static final double DIAMETER = 60;
-        private static final double RADIUS = 22;
-        private static final double STROKE_WIDTH = 5;
+        private static final double DIAMETER = 80;
+        private static final double RADIUS = 30;
+        private static final double STROKE_WIDTH = 6;
         private static final Duration ANIMATION_DURATION = Duration.millis(400);
 
         private final Arc valueArc;
@@ -684,7 +699,10 @@ public final class SystemStatusView extends StackPane {
                             : formatGraphicsCards(graphicsCards),
                     getLauncherUsage(),
                     powerStatus,
-                    networkStatus
+                    networkStatus,
+                    gameBytes >= 0 ? DataSizeUnit.format(gameBytes) : i18n("status.unknown"),
+                    System.getProperty("java.version", i18n("status.unknown"))
+                            + " (" + System.getProperty("java.vendor", "") + ")"
             );
         }
 
@@ -827,6 +845,8 @@ public final class SystemStatusView extends StackPane {
                 Files.walkFileTree(directory, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                        if (Thread.interrupted())
+                            return FileVisitResult.TERMINATE;
                         size[0] += attrs.size();
                         return FileVisitResult.CONTINUE;
                     }

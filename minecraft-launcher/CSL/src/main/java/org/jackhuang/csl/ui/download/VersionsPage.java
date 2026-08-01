@@ -310,7 +310,7 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
 
             GridPane searchPane = new GridPane();
             root.setTop(searchPane);
-            searchPane.getStyleClass().addAll("card");
+            searchPane.getStyleClass().addAll("card", "search-bar");
             BorderPane.setMargin(searchPane, new Insets(10, 10, 0, 10));
 
             ColumnConstraints nameColumn = new ColumnConstraints();
@@ -383,7 +383,7 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
                 spinner = new JFXSpinner();
 
                 StackPane centerWrapper = new StackPane();
-                centerWrapper.setStyle("-fx-padding: 10;");
+                centerWrapper.setStyle("-fx-padding: 8 10 10 10;");
                 {
                     ComponentList centrePane = new ComponentList();
                     centrePane.getStyleClass().add("no-padding");

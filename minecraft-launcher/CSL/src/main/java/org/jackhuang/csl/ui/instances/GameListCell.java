@@ -168,7 +168,6 @@ public final class GameListCell extends ListCell<GameListItem> {
         this.content.titleProperty().unbind();
         this.content.subtitleProperty().unbind();
         this.tag.unbind();
-        this.right.getChildren().clear();
         this.chkSelected.selectedProperty().unbind();
 
         if (empty || item == null) {
@@ -181,9 +180,9 @@ public final class GameListCell extends ListCell<GameListItem> {
             this.content.titleProperty().bind(item.titleProperty());
             this.content.subtitleProperty().bind(item.subtitleProperty());
             this.tag.bind(item.tagProperty());
-            if (item.canUpdate())
-                this.right.getChildren().add(btnUpgrade);
-            this.right.getChildren().addAll(btnLaunch, btnManage);
+            // Toggle visibility instead of clearing/re-adding children
+            this.btnUpgrade.setVisible(item.canUpdate());
+            this.btnUpgrade.setManaged(item.canUpdate());
         }
     }
 

@@ -212,6 +212,7 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
                     toolbarPane = new TransitionPane();
 
                     searchBar = new HBox();
+                    searchBar.getStyleClass().add("search-bar");
                     toolbarNormal = new HBox();
 
                     searchBar.setAlignment(Pos.CENTER);

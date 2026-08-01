@@ -225,6 +225,19 @@ public class DecoratorSkin extends SkinBase<Decorator> {
 
         frame.setCenter(container);
 
+        // Persistent global sidebar on the left, shown when the decorator has one set.
+        {
+            FXUtils.onChangeAndOperate(skinnable.sidebarProperty(), sidebarNode -> {
+                if (sidebarNode != null) {
+                    sidebarNode.getStyleClass().add("global-sidebar-container");
+                    sidebarNode.opacityProperty().bind(Themes.sidebarOpacityProperty());
+                    frame.setLeft(sidebarNode);
+                } else {
+                    frame.setLeft(null);
+                }
+            });
+        }
+
         titleContainer = new StackPane();
         titleContainer.setPickOnBounds(false);
         titleContainer.getStyleClass().addAll("jfx-tool-bar");
@@ -325,57 +338,15 @@ public class DecoratorSkin extends SkinBase<Decorator> {
         navBar.getStyleClass().add("navigation-bar");
 
         {
-            HBox navLeft = new HBox();
-            navLeft.setAlignment(Pos.CENTER_LEFT);
-            navLeft.setPadding(new Insets(0, 5, 0, 5));
-
-            if (canBack) {
-                JFXButton backNavButton = new JFXButton();
-                skinnable.forbidDraggingWindow(backNavButton);
-                backNavButton.setFocusTraversable(false);
-                backNavButton.setGraphic(SVG.ARROW_BACK.createIcon(Themes.titleFillProperty()));
-                backNavButton.getStyleClass().add("jfx-decorator-button");
-                backNavButton.onActionProperty().bind(skinnable.onBackNavButtonActionProperty());
-                backNavButton.visibleProperty().set(canBack);
-
-                navLeft.getChildren().add(backNavButton);
-            }
-
-            if (canClose) {
-                JFXButton closeNavButton = new JFXButton();
-                skinnable.forbidDraggingWindow(closeNavButton);
-                closeNavButton.setFocusTraversable(false);
-                closeNavButton.setGraphic(SVG.CLOSE.createIcon(Themes.titleFillProperty()));
-                closeNavButton.getStyleClass().add("jfx-decorator-button");
-                closeNavButton.onActionProperty().bind(skinnable.onCloseNavButtonActionProperty());
-                if (showCloseAsHome)
-                    closeNavButton.setGraphic(SVG.HOME.createIcon(Themes.titleFillProperty()));
-                else
-                    closeNavButton.setGraphic(SVG.CLOSE.createIcon(Themes.titleFillProperty()));
-
-                navLeft.getChildren().add(closeNavButton);
-            }
-
-            if (canBack || canClose) {
-                navBar.setLeft(navLeft);
-            }
-
             BorderPane center = new BorderPane();
             if (title != null) {
                 Label titleLabel = new Label();
                 titleLabel.textFillProperty().bind(Themes.titleFillProperty());
                 BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
                 titleLabel.getStyleClass().add("jfx-decorator-title");
-                if (titleNode == null) {
-                    titleLabel.maxWidthProperty().bind(Bindings.createDoubleBinding(
-                            () -> skinnable.getWidth() - 150 - navLeft.getWidth(),
-                            skinnable.widthProperty(), navLeft.widthProperty()));
-                } else {
-                    titleLabel.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> {
-                        // 8 (margin-left)
-                        return leftPaneWidth - 8 - navLeft.getWidth();
-                    }, navLeft.widthProperty()));
-                }
+                titleLabel.maxWidthProperty().bind(Bindings.createDoubleBinding(
+                        () -> skinnable.getWidth() - 150,
+                        skinnable.widthProperty()));
                 titleLabel.setText(title);
                 center.setCenter(titleLabel);
                 BorderPane.setAlignment(titleLabel, Pos.CENTER);
@@ -490,10 +461,12 @@ public class DecoratorSkin extends SkinBase<Decorator> {
                     root.setCursor(Cursor.S_RESIZE);
                 }
             } else {
-                root.setCursor(Cursor.DEFAULT);
+                // Use null instead of Cursor.DEFAULT so the Scene-level custom cursor
+                // (set by CursorManager) can take effect when not on a resize edge.
+                root.setCursor(null);
             }
         } else {
-            root.setCursor(Cursor.DEFAULT);
+            root.setCursor(null);
         }
     }
 

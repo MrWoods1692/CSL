@@ -256,7 +256,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
 
             GridPane searchPane = new GridPane();
             pane.setTop(searchPane);
-            searchPane.getStyleClass().addAll("card");
+            searchPane.getStyleClass().addAll("card", "search-bar");
             BorderPane.setMargin(searchPane, new Insets(10, 10, 0, 10));
 
             ColumnConstraints nameColumn = new ColumnConstraints();
@@ -413,6 +413,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
                     Holder<Runnable> changeButton = new Holder<>();
 
                     JFXButton firstPageButton = FXUtils.newBorderButton(i18n("search.first_page"));
+                    firstPageButton.getStyleClass().add("pagination-button");
                     firstPageButton.setOnAction(event -> {
                         control.pageOffset.set(0);
                         searchAction.handle(event);
@@ -420,6 +421,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
                     });
 
                     JFXButton previousPageButton = FXUtils.newBorderButton(i18n("search.previous_page"));
+                    previousPageButton.getStyleClass().add("pagination-button");
                     previousPageButton.setOnAction(event -> {
                         int pageOffset = control.pageOffset.get();
                         if (pageOffset > 0) {
@@ -430,12 +432,14 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
                     });
 
                     Label pageDescription = new Label();
+                    pageDescription.getStyleClass().add("pagination-label");
                     pageDescription.textProperty().bind(Bindings.createStringBinding(() -> {
                         int pageCount = control.pageCount.get();
                         return i18n("search.page_n", control.pageOffset.get() + 1, pageCount == -1 ? "-" : String.valueOf(pageCount));
                     }, control.pageOffset, control.pageCount));
 
                     JFXButton nextPageButton = FXUtils.newBorderButton(i18n("search.next_page"));
+                    nextPageButton.getStyleClass().add("pagination-button");
                     nextPageButton.setOnAction(event -> {
                         int nv = control.pageOffset.get() + 1;
                         if (nv < control.pageCount.get()) {
@@ -446,6 +450,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
                     });
 
                     JFXButton lastPageButton = FXUtils.newBorderButton(i18n("search.last_page"));
+                    lastPageButton.getStyleClass().add("pagination-button");
                     lastPageButton.setOnAction(event -> {
                         control.pageOffset.set(control.pageCount.get() - 1);
                         searchAction.handle(event);
@@ -551,6 +556,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
 
                     {
                         setPadding(PADDING);
+                        getStyleClass().add("download-list-cell");
 
                         HBox container = new HBox(8);
                         container.setPadding(new Insets(8));
@@ -558,6 +564,7 @@ public class DownloadListPage extends Control implements DecoratorPage, GameInst
                         container.setAlignment(Pos.CENTER_LEFT);
 
                         imageContainer.setMouseTransparent(true);
+                        imageContainer.getStyleClass().add("image-container");
 
                         container.getChildren().setAll(imageContainer, content);
                         HBox.setHgrow(content, Priority.ALWAYS);

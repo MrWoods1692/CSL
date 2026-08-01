@@ -52,6 +52,11 @@ public class DecoratorController {
         navigator.setOnNavigated(this::onNavigated);
         navigator.init(mainPage);
 
+        // Set up the persistent global sidebar if the main page is a RootPage.
+        if (mainPage instanceof org.jackhuang.csl.ui.main.RootPage rootPage) {
+            decorator.setSidebar(new GlobalSidebar(rootPage));
+        }
+
         decorator.getContent().setAll(navigator);
         decorator.onCloseNavButtonActionProperty().set(e -> close());
         decorator.onBackNavButtonActionProperty().set(e -> back());
@@ -140,6 +145,11 @@ public class DecoratorController {
                 return;
             }
         }
+        navigator.clear();
+    }
+
+    /// Navigates back to the root (home) page, clearing the navigation stack.
+    public void goHome() {
         navigator.clear();
     }
 

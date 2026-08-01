@@ -56,6 +56,7 @@ import org.jackhuang.csl.ui.decorator.DecoratorController;
 import org.jackhuang.csl.ui.download.DownloadPage;
 import org.jackhuang.csl.ui.main.LauncherSettingsPage;
 import org.jackhuang.csl.ui.main.RootPage;
+import org.jackhuang.csl.ui.main.StatusPage;
 import org.jackhuang.csl.ui.terracotta.TerracottaPage;
 import org.jackhuang.csl.ui.instances.GameListPage;
 import org.jackhuang.csl.ui.instances.GameInstancePage;
@@ -117,6 +118,7 @@ public final class Controllers {
     });
     private static LauncherSettingsPage settingsPage;
     private static Lazy<TerracottaPage> terracottaPage = new Lazy<>(TerracottaPage::new);
+    private static Lazy<StatusPage> statusPage = new Lazy<>(StatusPage::new);
 
     private Controllers() {
     }
@@ -208,6 +210,11 @@ public final class Controllers {
     @FXThread
     public static Node getTerracottaPage() {
         return terracottaPage.get();
+    }
+
+    @FXThread
+    public static StatusPage getStatusPage() {
+        return statusPage.get();
     }
 
     @FXThread
@@ -356,6 +363,10 @@ public final class Controllers {
         stage.setTitle(Metadata.FULL_TITLE);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setScene(scene);
+
+        // Apply the user-selected cursor style and keep it in sync with the setting.
+        CursorManager.applyCursor(settings().cursorStyleProperty().get());
+        settings().cursorStyleProperty().addListener((obs, old, val) -> CursorManager.applyCursor(val));
 
         if (AnimationUtils.playWindowAnimation()) {
             Timeline timeline = new Timeline(

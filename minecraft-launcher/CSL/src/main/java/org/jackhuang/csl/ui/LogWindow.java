@@ -31,7 +31,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.jackhuang.csl.game.GameDumpGenerator;
 import org.jackhuang.csl.game.Log;
 import org.jackhuang.csl.setting.StyleSheets;
@@ -94,16 +96,79 @@ public final class LogWindow extends Stage {
 
         this.logs = logs;
         this.impl = new LogWindowImpl();
-        setScene(new Scene(impl, 800, 480));
+
+        // Wrap content with custom window chrome (Apple-style controls)
+        VBox rootPane = new VBox();
+        rootPane.getStyleClass().add("log-window-root");
+
+        // Custom title bar with Apple-style window controls
+        HBox titleBar = createWindowTitleBar();
+        rootPane.getChildren().add(titleBar);
+
+        // Content area
+        StackPane contentPane = new StackPane(impl);
+        VBox.setVgrow(contentPane, Priority.ALWAYS);
+        rootPane.getChildren().add(contentPane);
+
+        Scene scene = new Scene(rootPane, 800, 480);
+        scene.setFill(Color.TRANSPARENT);
+        setScene(scene);
         StyleSheets.init(getScene());
         setTitle(i18n("logwindow.title"));
         FXUtils.setIcon(this);
+        initStyle(StageStyle.TRANSPARENT);
 
         for (SimpleBooleanProperty property : levelShownMap.values()) {
             property.addListener(o -> shakeLogs());
         }
 
         this.gameProcess = gameProcess;
+    }
+
+    private HBox createWindowTitleBar() {
+        HBox titleBar = new HBox(8);
+        titleBar.setAlignment(Pos.CENTER_LEFT);
+        titleBar.setPadding(new Insets(8, 8, 8, 8));
+        titleBar.getStyleClass().add("log-window-title-bar");
+
+        // Apple-style window control buttons
+        JFXButton btnClose = createWindowButton("window-control-close", () -> close());
+        JFXButton btnMin = createWindowButton("window-control-min", () -> setIconified(true));
+        JFXButton btnMax = createWindowButton("window-control-max", () -> setMaximized(!isMaximized()));
+
+        HBox buttonsContainer = new HBox(8);
+        buttonsContainer.setAlignment(Pos.CENTER_LEFT);
+        buttonsContainer.getChildren().setAll(btnClose, btnMin, btnMax);
+
+        // Title label
+        Label titleLabel = new Label(i18n("logwindow.title"));
+        titleLabel.getStyleClass().add("log-window-title-label");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(titleLabel, Priority.ALWAYS);
+        titleLabel.setAlignment(Pos.CENTER);
+
+        titleBar.getChildren().setAll(buttonsContainer, titleLabel);
+
+        // Make window draggable by title bar
+        final double[] dragDelta = new double[2];
+        titleBar.setOnMousePressed(e -> {
+            dragDelta[0] = getX() - e.getScreenX();
+            dragDelta[1] = getY() - e.getScreenY();
+        });
+        titleBar.setOnMouseDragged(e -> {
+            setX(e.getScreenX() + dragDelta[0]);
+            setY(e.getScreenY() + dragDelta[1]);
+        });
+
+        return titleBar;
+    }
+
+    private JFXButton createWindowButton(String colorClass, Runnable action) {
+        JFXButton btn = new JFXButton();
+        btn.setFocusTraversable(false);
+        btn.getStyleClass().addAll("window-control-button", colorClass);
+        btn.setOnAction(e -> action.run());
+        return btn;
     }
 
     public void logLine(Log log) {

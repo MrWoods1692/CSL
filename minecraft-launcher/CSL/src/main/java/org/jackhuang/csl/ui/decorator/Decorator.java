@@ -58,6 +58,7 @@ public class Decorator extends Control {
     private final ObjectProperty<EventHandler<ActionEvent>> onCloseNavButtonAction = new SimpleObjectProperty<>();
     private final ObjectProperty<EventHandler<ActionEvent>> onBackNavButtonAction = new SimpleObjectProperty<>();
     private final ObjectProperty<EventHandler<ActionEvent>> onRefreshNavButtonAction = new SimpleObjectProperty<>();
+    private final ObjectProperty<Node> sidebar = new SimpleObjectProperty<>();
     private final BooleanProperty canRefresh = new SimpleBooleanProperty(false);
     private final BooleanProperty canBack = new SimpleBooleanProperty(false);
     private final BooleanProperty canClose = new SimpleBooleanProperty(false);
@@ -184,6 +185,21 @@ public class Decorator extends Control {
 
     public BooleanProperty showCloseAsHomeProperty() {
         return showCloseAsHome;
+    }
+
+    /// Returns the persistent global sidebar node, or {@code null} if no sidebar is set.
+    public Node getSidebar() {
+        return sidebar.get();
+    }
+
+    /// Returns the property holding the persistent global sidebar node.
+    public ObjectProperty<Node> sidebarProperty() {
+        return sidebar;
+    }
+
+    /// Sets the persistent global sidebar node.
+    public void setSidebar(Node sidebar) {
+        this.sidebar.set(sidebar);
     }
 
     public boolean isAllowMove() {

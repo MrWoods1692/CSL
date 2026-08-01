@@ -266,6 +266,10 @@ public final class ResourcePackListPage extends ListPageBase<ResourcePackListPag
 
         private final TransitionPane toolbarPane = new TransitionPane();
         private final HBox searchBar = new HBox();
+
+        {
+            searchBar.getStyleClass().add("search-bar");
+        }
         private final HBox toolbarNormal = new HBox();
         private final HBox toolbarSelecting = new HBox();
 

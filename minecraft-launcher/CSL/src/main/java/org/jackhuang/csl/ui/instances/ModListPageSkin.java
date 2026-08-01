@@ -118,6 +118,7 @@ final class ModListPageSkin extends SkinBase<ModListPage> {
             toolbarPane = new TransitionPane();
 
             searchBar = new HBox();
+            searchBar.getStyleClass().add("search-bar");
             toolbarNormal = new HBox();
             toolbarSelecting = new HBox();
 

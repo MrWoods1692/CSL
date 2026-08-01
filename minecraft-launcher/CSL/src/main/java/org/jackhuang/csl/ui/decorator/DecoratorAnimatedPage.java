@@ -62,8 +62,18 @@ public class DecoratorAnimatedPage extends Control {
             super(control);
 
             BorderPane pane = new BorderPane();
-            pane.setLeft(control.left);
-            FXUtils.setLimitWidth(control.left, 200);
+            // Only show the left sidebar if it has content; otherwise hide it
+            // so the center can use the full width.
+            Runnable updateLeft = () -> {
+                if (control.left.getChildren().isEmpty()) {
+                    pane.setLeft(null);
+                } else {
+                    pane.setLeft(control.left);
+                    FXUtils.setLimitWidth(control.left, 200);
+                }
+            };
+            control.left.getChildren().addListener((javafx.collections.ListChangeListener<Node>) c -> updateLeft.run());
+            updateLeft.run();
             pane.setCenter(control.center);
             getChildren().setAll(pane);
         }

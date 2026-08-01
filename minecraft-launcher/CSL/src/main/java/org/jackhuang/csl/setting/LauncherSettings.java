@@ -97,6 +97,9 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
     /// Theme appearance override key for background opacity.
     public static final String THEME_APPEARANCE_BACKGROUND_OPACITY = "backgroundOpacity";
 
+    /// Theme appearance override key for sidebar opacity.
+    public static final String THEME_APPEARANCE_SIDEBAR_OPACITY = "sidebarOpacity";
+
     /// Gson instance used for launcher settings and related settings objects that depend on JavaFX properties.
     public static final Gson SETTINGS_GSON = new GsonBuilder()
             .registerTypeAdapter(Path.class, PathTypeAdapter.INSTANCE)
@@ -407,6 +410,17 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return backgroundOpacity;
     }
 
+    // Sidebar appearance
+
+    /// The sidebar background opacity value.
+    @SerializedName("sidebarOpacity")
+    private final DoubleProperty sidebarOpacity = new SimpleDoubleProperty(1.0);
+
+    /// Returns the sidebar background opacity value property.
+    public DoubleProperty sidebarOpacityProperty() {
+        return sidebarOpacity;
+    }
+
     // Background loading
 
     /// The URL image cache policy for network launcher backgrounds.
@@ -492,6 +506,15 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         // Avoid accessing FXUtils too early during startup
         return Objects.requireNonNullElseGet(animationDisabled.get(), () ->
                 FXUtils.REDUCED_MOTION == Boolean.TRUE || !JavaRuntime.CURRENT_JIT_ENABLED || !FXUtils.GPU_ACCELERATION_ENABLED);
+    }
+
+    /// The selected mouse cursor style key, or `null` for the default cursor.
+    @SerializedName("cursorStyle")
+    private final StringProperty cursorStyle = new SimpleStringProperty();
+
+    /// Returns the mouse cursor style property.
+    public StringProperty cursorStyleProperty() {
+        return cursorStyle;
     }
 
     // Networks

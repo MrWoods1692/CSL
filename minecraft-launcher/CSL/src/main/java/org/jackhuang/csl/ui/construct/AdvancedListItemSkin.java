@@ -17,10 +17,16 @@
  */
 package org.jackhuang.csl.ui.construct;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.css.PseudoClass;
 import javafx.scene.control.SkinBase;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Duration;
 import org.jackhuang.csl.ui.FXUtils;
+import org.jackhuang.csl.ui.animation.AnimationUtils;
+import org.jackhuang.csl.ui.animation.Motion;
 
 public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
     private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("selected");
@@ -49,18 +55,54 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
             return;
         }
 
-        // Collapsible sidebar item: the icon is always pinned to the same left
-        // position (BorderPane left + the CSS padding of `.compact`); expanding
-        // the sidebar only reveals the text label next to it. A single
-        // container is used for both states, so the left graphic can be safely
-        // bound - the previous "BorderPane.left : A bound value cannot be set."
-        // crash happened because the icon was moved between two containers.
+        // Collapsible sidebar item: when collapsed the icon is centered;
+        // when expanded the icon is pinned to the left and the text label
+        // is revealed next to it.
         skinnable.getStyleClass().add("compact");
 
-        item.visibleProperty().bind(skinnable.expandedProperty());
-        item.managedProperty().bind(skinnable.expandedProperty());
+        // Use opacity instead of visibility for smooth transitions.
+        // The text label starts hidden (collapsed by default).
+        item.setOpacity(0);
+        item.setManaged(false);
 
-        horizontal.leftProperty().bind(skinnable.leftGraphicProperty());
+        // Dynamically switch the icon between center (collapsed) and left (expanded),
+        // and animate the text label opacity in sync.
+        FXUtils.onChangeAndOperate(skinnable.expandedProperty(), expanded -> {
+            if (AnimationUtils.isAnimationEnabled()) {
+                Timeline timeline = new Timeline();
+                if (expanded) {
+                    // Expanding: move icon to left, make text visible and managed.
+                    horizontal.setCenter(item);
+                    horizontal.setLeft(skinnable.getLeftGraphic());
+                    item.setManaged(true);
+                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(200),
+                            new KeyValue(item.opacityProperty(), 1, Motion.STANDARD)));
+                } else {
+                    // Collapsing: fade text out, then move icon to center.
+                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(150),
+                            new KeyValue(item.opacityProperty(), 0, Motion.STANDARD)));
+                    timeline.setOnFinished(e -> {
+                        item.setManaged(false);
+                        horizontal.setLeft(null);
+                        horizontal.setCenter(skinnable.getLeftGraphic());
+                    });
+                }
+                timeline.play();
+            } else {
+                if (expanded) {
+                    horizontal.setCenter(item);
+                    horizontal.setLeft(skinnable.getLeftGraphic());
+                    item.setManaged(true);
+                    item.setOpacity(1);
+                } else {
+                    item.setManaged(false);
+                    horizontal.setLeft(null);
+                    horizontal.setCenter(skinnable.getLeftGraphic());
+                    item.setOpacity(0);
+                }
+            }
+        });
+
         getChildren().setAll(new RipplerContainer(horizontal));
     }
 }

@@ -18,11 +18,13 @@
 package org.jackhuang.csl.ui.construct;
 
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXProgressBar;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.*;
 import org.jackhuang.csl.task.FetchTask;
 import org.jackhuang.csl.task.TaskExecutor;
@@ -48,6 +50,11 @@ public class TaskExecutorDialogPane extends BorderPane {
     private final Label lblProgress;
     private final JFXButton btnCancel;
     private final TaskListPane taskListPane;
+    private final LoadingOverlay loadingOverlay;
+    private final JFXProgressBar singleProgressBar;
+    private final Label singleProgressLabel;
+    private final VBox singleProgressBox;
+    private boolean forceLoadingMode = false;
 
     public TaskExecutorDialogPane(@NotNull TaskCancellationAction cancel) {
         this.getStyleClass().add("task-executor-dialog-layout");
@@ -65,7 +72,26 @@ public class TaskExecutorDialogPane extends BorderPane {
             taskListPane = new TaskListPane();
             VBox.setVgrow(taskListPane, Priority.ALWAYS);
 
-            center.getChildren().setAll(lblTitle, taskListPane);
+            // Single progress view: loading animation above, progress bar below
+            loadingOverlay = new LoadingOverlay();
+            loadingOverlay.setStyle("-fx-background-color: transparent;");
+            loadingOverlay.setMouseTransparent(true);
+            loadingOverlay.setPickOnBounds(false);
+
+            singleProgressBar = new JFXProgressBar();
+            singleProgressBar.getStyleClass().add("single-download-progress");
+            singleProgressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+
+            singleProgressLabel = new Label();
+            singleProgressLabel.getStyleClass().add("single-download-label");
+
+            singleProgressBox = new VBox(16, loadingOverlay, singleProgressBar, singleProgressLabel);
+            singleProgressBox.setAlignment(Pos.CENTER);
+            singleProgressBox.setPadding(new Insets(24, 32, 24, 32));
+            singleProgressBox.setVisible(false);
+            singleProgressBox.setManaged(false);
+
+            center.getChildren().setAll(lblTitle, taskListPane, singleProgressBox);
         }
 
         HBox bottom = new HBox();
@@ -109,6 +135,45 @@ public class TaskExecutorDialogPane extends BorderPane {
         if (executor != null) {
             taskListPane.setExecutor(executor);
 
+            if (forceLoadingMode) {
+                // Force loading animation mode: always show LoadingOverlay + progress bar
+                taskListPane.setVisible(false);
+                taskListPane.setManaged(false);
+                singleProgressBox.setVisible(true);
+                singleProgressBox.setManaged(true);
+                VBox.setVgrow(singleProgressBox, Priority.ALWAYS);
+                singleProgressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+            }
+
+            // When there's only one significant task, show the beautified single-progress view
+            executor.addTaskListener(new TaskListener() {
+                private boolean singleTaskMode = false;
+
+                @Override
+                public void onRunning(org.jackhuang.csl.task.Task<?> task) {
+                    if (!task.getSignificance().shouldShow() || task.getName() == null)
+                        return;
+
+                    Platform.runLater(() -> {
+                        if (!singleTaskMode && !forceLoadingMode) {
+                            singleTaskMode = true;
+                            taskListPane.setVisible(false);
+                            taskListPane.setManaged(false);
+                            singleProgressBox.setVisible(true);
+                            singleProgressBox.setManaged(true);
+                            VBox.setVgrow(singleProgressBox, Priority.ALWAYS);
+                        }
+                        singleProgressLabel.setText(task.getName());
+                        singleProgressBar.progressProperty().bind(task.progressProperty());
+                    });
+                }
+
+                @Override
+                public void onStop(boolean success, TaskExecutor executor) {
+                    Platform.runLater(() -> fireEvent(new DialogCloseEvent()));
+                }
+            });
+
             if (autoClose)
                 executor.addTaskListener(new TaskListener() {
                     @Override
@@ -117,6 +182,15 @@ public class TaskExecutorDialogPane extends BorderPane {
                     }
                 });
         }
+    }
+
+    /**
+     * When set to true, the dialog always shows the loading animation + progress bar
+     * instead of the task list, regardless of how many tasks are running.
+     * Useful for launch pages where a clean loading UI is preferred.
+     */
+    public void setForceLoadingMode(boolean forceLoadingMode) {
+        this.forceLoadingMode = forceLoadingMode;
     }
 
     public StringProperty titleProperty() {

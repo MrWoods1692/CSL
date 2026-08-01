@@ -1162,6 +1162,85 @@ public class PersonalizationPage extends StackPane {
                 });
         themeAppearanceList.getContent().add(windowTransparentButton);
 
+        LinePane sidebarOpacityPane = new LinePane();
+        {
+            sidebarOpacityPane.setTitle(i18n("settings.launcher.sidebar_opacity"));
+
+            HBox sliderBox = new HBox(8);
+            sliderBox.setAlignment(Pos.CENTER);
+
+            JFXSlider slider = new JFXSlider(0, 100, settings().sidebarOpacityProperty().get() * 100);
+            slider.setPrefWidth(220);
+            slider.setShowTickMarks(true);
+            slider.setMajorTickUnit(10);
+            slider.setMinorTickCount(1);
+            slider.setBlockIncrement(5);
+            slider.setSnapToTicks(true);
+            slider.setPadding(new Insets(9, 0, 0, 0));
+            HBox.setHgrow(slider, Priority.ALWAYS);
+
+            Label textOpacity = new Label();
+            FXUtils.setLimitWidth(textOpacity, 50);
+            textOpacity.setAlignment(Pos.CENTER);
+
+            StringBinding valueBinding = Bindings.createStringBinding(() -> ((int) slider.getValue()) + "%", slider.valueProperty());
+            textOpacity.textProperty().bind(valueBinding);
+            slider.setValueFactory(s -> valueBinding);
+            sliderBox.getChildren().setAll(slider, textOpacity);
+
+            JFXButton inheritButton = createThemeAppearanceOverrideButton();
+            sidebarOpacityPane.setTitleTrailing(inheritButton);
+            Holder<Boolean> updatingOpacity = new Holder<>(false);
+            InvalidationListener refreshOpacity = ignored -> {
+                if (updatingOpacity.value) {
+                    return;
+                }
+                updatingOpacity.value = true;
+                try {
+                    boolean overridden = settings().getThemeAppearanceOverrides().contains(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY);
+                    double opacity = overridden
+                            ? settings().sidebarOpacityProperty().get()
+                            : 1.0;
+                    slider.setValue(Math.round(Math.max(0., Math.min(opacity, 1.)) * 100.));
+                    updateThemeAppearanceOverrideButton(inheritButton, !overridden);
+                } finally {
+                    updatingOpacity.value = false;
+                }
+            };
+            settings().sidebarOpacityProperty().addListener(refreshOpacity);
+            addThemeAppearanceRefreshListener(refreshOpacity);
+            slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+                if (updatingOpacity.value) {
+                    return;
+                }
+                double opacity = snapOpacity(newValue.doubleValue());
+                updatingOpacity.value = true;
+                try {
+                    settings().getThemeAppearanceOverrides().add(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY);
+                    updateThemeAppearanceOverrideButton(inheritButton, false);
+                } finally {
+                    updatingOpacity.value = false;
+                }
+                if (Double.compare(settings().sidebarOpacityProperty().get(), opacity) != 0) {
+                    settings().sidebarOpacityProperty().set(opacity);
+                }
+            });
+            inheritButton.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+                if (!settings().getThemeAppearanceOverrides().contains(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY)) {
+                    settings().sidebarOpacityProperty().set(1.0);
+                    settings().getThemeAppearanceOverrides().add(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY);
+                } else {
+                    settings().getThemeAppearanceOverrides().remove(LauncherSettings.THEME_APPEARANCE_SIDEBAR_OPACITY);
+                }
+                refreshOpacity.invalidated(null);
+                event.consume();
+            });
+
+            sidebarOpacityPane.setRight(sliderBox);
+            refreshOpacity.invalidated(null);
+        }
+        themeAppearanceList.getContent().add(sidebarOpacityPane);
+
         content.getChildren().addAll(
                 ComponentList.createComponentListTitle(i18n("settings.launcher.appearance")),
                 themeAppearanceList,
@@ -1179,6 +1258,20 @@ public class PersonalizationPage extends StackPane {
             animationButton.setSubtitle(i18n("settings.take_effect_after_restart"));
 
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.animation")), appearanceList);
+        }
+
+        {
+            ComponentList cursorList = new ComponentList();
+
+            LineSelectButton<String> cursorPane = new LineSelectButton<>();
+            cursorPane.setTitle(i18n("settings.launcher.cursor_style"));
+            cursorPane.setItems(Arrays.asList("", "cursor_1", "cursor_2", "cursor_3", "cursor_4", "cursor_5", "cursor_6", "cursor_7", "cursor_8", "cursor_9", "cursor_10", "cursor_11", "cursor_12"));
+            cursorPane.setConverter(style -> style == null || style.isEmpty() ? i18n("settings.launcher.cursor_style.default") : i18n("settings.launcher.cursor_style." + style));
+            cursorPane.setValue(settings().cursorStyleProperty().get());
+            FXUtils.onChange(cursorPane.valueProperty(), value -> settings().cursorStyleProperty().set(value));
+
+            cursorList.getContent().add(cursorPane);
+            content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.cursor_style")), cursorList);
         }
 
         {

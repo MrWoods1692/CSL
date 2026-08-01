@@ -136,14 +136,26 @@ public class RipplerContainer extends StackPane {
         addEventHandler(MouseEvent.MOUSE_EXITED, mouseEventHandler);
     }
 
+    // Cached objects to avoid per-frame allocation in interpolateBackground
+    private Color cachedOnSurface;
+    private double cachedFrac = -1;
+    private Background cachedBackground;
+
     private void interpolateBackground(double frac) {
         if (frac < 0.01) {
             setBackground(null);
+            cachedFrac = -1;
         } else {
             Color onSurface = Themes.getColorScheme().getOnSurface();
-            setBackground(new Background(new BackgroundFill(
-                    Color.color(onSurface.getRed(), onSurface.getGreen(), onSurface.getBlue(), frac * 0.04),
-                    CornerRadii.EMPTY, Insets.EMPTY)));
+            // Only create new Background when color or fraction actually changes
+            if (cachedFrac != frac || !onSurface.equals(cachedOnSurface)) {
+                cachedOnSurface = onSurface;
+                cachedFrac = frac;
+                cachedBackground = new Background(new BackgroundFill(
+                        Color.color(onSurface.getRed(), onSurface.getGreen(), onSurface.getBlue(), frac * 0.04),
+                        CornerRadii.EMPTY, Insets.EMPTY));
+            }
+            setBackground(cachedBackground);
         }
     }
 

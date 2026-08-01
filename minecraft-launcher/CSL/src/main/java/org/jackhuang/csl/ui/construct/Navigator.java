@@ -18,6 +18,7 @@
 package org.jackhuang.csl.ui.construct;
 
 import javafx.animation.Interpolator;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -82,15 +83,31 @@ public class Navigator extends TransitionPane {
         node.fireEvent(navigating);
 
         node.getProperties().put("csl.navigator.animation", animationProducer);
-        setContent(node, animationProducer, duration, interpolator);
 
-        NavigationEvent navigated = new NavigationEvent(this, node, Navigation.NavigationDirection.NEXT, NavigationEvent.NAVIGATED);
-        node.fireEvent(navigated);
-        if (node instanceof PageAware) ((PageAware) node).onPageShown();
+        // Show a loading overlay during page transition to avoid UI freeze.
+        LoadingOverlay loadingOverlay = new LoadingOverlay();
+        getChildren().add(loadingOverlay);
 
-        EventHandler<PageCloseEvent> handler = event -> close(node);
-        node.getProperties().put(PROPERTY_DIALOG_CLOSE_HANDLER, handler);
-        node.addEventHandler(PageCloseEvent.CLOSE, handler);
+        // Defer the actual page transition so the loading overlay renders first.
+        javafx.application.Platform.runLater(() -> {
+            setContent(node, animationProducer, duration, interpolator);
+
+            // Remove the loading overlay after the transition animation completes.
+            // The transition duration is the animation duration; we wait a bit longer
+            // to ensure the new page is fully rendered.
+            Duration removeDelay = duration.add(Duration.millis(50));
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(removeDelay);
+            pause.setOnFinished(e -> getChildren().remove(loadingOverlay));
+            pause.play();
+
+            NavigationEvent navigated = new NavigationEvent(this, node, Navigation.NavigationDirection.NEXT, NavigationEvent.NAVIGATED);
+            node.fireEvent(navigated);
+            if (node instanceof PageAware) ((PageAware) node).onPageShown();
+
+            EventHandler<PageCloseEvent> handler = event -> close(node);
+            node.getProperties().put(PROPERTY_DIALOG_CLOSE_HANDLER, handler);
+            node.addEventHandler(PageCloseEvent.CLOSE, handler);
+        });
     }
 
     public void close() {

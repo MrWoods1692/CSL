@@ -108,11 +108,50 @@ public final class ModpackInstallWizardProvider implements WizardProvider {
                 return null;
             }
             try {
+                Task<?> updateTask;
                 if (serverModpackManifest != null) {
-                    return ModpackHelper.getUpdateTask(repository, serverModpackManifest, modpack.getEncoding(), instanceId, ModpackHelper.readModpackConfiguration(repository.getModpackConfiguration(instanceId)));
+                    updateTask = ModpackHelper.getUpdateTask(repository, serverModpackManifest, modpack.getEncoding(), instanceId, ModpackHelper.readModpackConfiguration(repository.getModpackConfiguration(instanceId)));
                 } else {
-                    return ModpackHelper.getUpdateTask(repository, selected, modpack.getEncoding(), instanceId, ModpackHelper.readModpackConfiguration(repository.getModpackConfiguration(instanceId)));
+                    updateTask = ModpackHelper.getUpdateTask(repository, selected, modpack.getEncoding(), instanceId, ModpackHelper.readModpackConfiguration(repository.getModpackConfiguration(instanceId)));
                 }
+                // After update, check for mod updates
+                return updateTask.whenComplete(Schedulers.javafx(), (exception) -> {
+                    if (exception != null) return;
+                    var modManager = repository.getModManager(instanceId);
+                    if (modManager == null) return;
+                    try {
+                        modManager.refresh();
+                    } catch (IOException ignored) {
+                        return;
+                    }
+                    var mods = modManager.getLocalFiles();
+                    if (mods.isEmpty()) return;
+                    String gameVersion = repository.getGameVersion(instanceId).orElse(null);
+                    if (gameVersion == null) return;
+                    Controllers.confirm(
+                            i18n("mods.update_after_game_update"),
+                            i18n("mods.update"),
+                            MessageType.QUESTION,
+                            () -> {
+                                Controllers.taskDialog(
+                                        new org.jackhuang.csl.ui.instances.AddonCheckUpdatesTask<>(
+                                                org.jackhuang.csl.setting.DownloadProviders.getDownloadProvider(),
+                                                gameVersion, mods)
+                                                .whenComplete(Schedulers.javafx(), (result, ex) -> {
+                                                    if (ex != null || result == null || result.isEmpty()) {
+                                                        if (result != null && result.isEmpty()) {
+                                                            Controllers.dialog(i18n("addon.check_update.empty"));
+                                                        }
+                                                        return;
+                                                    }
+                                                    Controllers.navigateForward(
+                                                            new org.jackhuang.csl.ui.instances.AddonUpdatesPage<>(modManager, result));
+                                                }),
+                                        i18n("addon.check_update"),
+                                        org.jackhuang.csl.util.TaskCancellationAction.NORMAL);
+                            },
+                            null);
+                });
             } catch (UnsupportedModpackException | ManuallyCreatedModpackException e) {
                 Controllers.dialog(i18n("modpack.unsupported"), i18n("message.error"), MessageType.ERROR);
             } catch (MismatchedModpackTypeException e) {

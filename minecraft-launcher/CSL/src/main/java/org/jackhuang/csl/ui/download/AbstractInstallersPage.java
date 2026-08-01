@@ -49,6 +49,7 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
     public static final SettingsMap.Key<GameInstanceID> INSTANCE_ID = new SettingsMap.Key<>("instanceId");
 
     public static final String FABRIC_QUILT_API_TIP = "fabricQuiltApi";
+    public static final String MOD_LOADER_RECOMMEND_TIP = "modLoaderRecommend";
     protected final WizardController controller;
 
     protected InstallerItem.InstallerItemGroup group;
@@ -76,22 +77,52 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
                 }
 
                 if (!(library.resolvedStateProperty().get() instanceof InstallerItem.IncompatibleState))
-                    controller.onNext(
-                            new VersionsPage(
-                                    controller,
-                                    i18n("install.installer.choose", i18n("install.installer." + libraryId)),
-                                    gameVersion,
-                                    downloadProvider,
-                                    libraryId,
-                                    () -> controller.onPrev(false, Navigation.NavigationDirection.PREVIOUS)
-                            ), Navigation.NavigationDirection.NEXT
-                    );
+                    navigateToVersionPage(library, libraryId, gameVersion, downloadProvider);
             });
             library.setOnRemove(() -> {
                 controller.getSettings().remove(libraryId);
                 reload();
             });
         }
+    }
+
+    private void navigateToVersionPage(InstallerItem library, String libraryId, String gameVersion, DownloadProvider downloadProvider) {
+        Runnable doNavigate = () -> controller.onNext(
+                new VersionsPage(
+                        controller,
+                        i18n("install.installer.choose", i18n("install.installer." + libraryId)),
+                        gameVersion,
+                        downloadProvider,
+                        libraryId,
+                        () -> controller.onPrev(false, Navigation.NavigationDirection.PREVIOUS)
+                ), Navigation.NavigationDirection.NEXT);
+
+        // Show mod loader recommendation for Forge, Fabric, and NeoForge
+        if (!Boolean.TRUE.equals(state().getShownTips().get(MOD_LOADER_RECOMMEND_TIP))) {
+            String recommendationKey = null;
+            if (LibraryAnalyzer.LibraryType.FORGE.getPatchId().equals(libraryId)) {
+                recommendationKey = "install.installer.forge.recommend";
+            } else if (LibraryAnalyzer.LibraryType.FABRIC.getPatchId().equals(libraryId)) {
+                recommendationKey = "install.installer.fabric.recommend";
+            } else if (LibraryAnalyzer.LibraryType.NEO_FORGE.getPatchId().equals(libraryId)) {
+                recommendationKey = "install.installer.neoforge.recommend";
+            }
+
+            if (recommendationKey != null) {
+                Controllers.dialog(new MessageDialogPane.Builder(
+                        i18n(recommendationKey),
+                        i18n("message.info"),
+                        MessageDialogPane.MessageType.INFO
+                ).addAction(i18n("button.install"), doNavigate)
+                 .addCancel(i18n("button.do_not_show_again"), () -> {
+                    state().getShownTips().put(MOD_LOADER_RECOMMEND_TIP, true);
+                    doNavigate.run();
+                }).build());
+                return;
+            }
+        }
+
+        doNavigate.run();
     }
 
     protected InstallerItem.Style getInstallerItemStyle() {
@@ -136,7 +167,7 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
             super(control);
 
             BorderPane root = new BorderPane();
-            root.setPadding(new Insets(16));
+            root.setPadding(new Insets(20));
 
             {
                 HBox versionNamePane = new HBox(8);
@@ -146,7 +177,9 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
 
                 HBox.setHgrow(control.txtName, Priority.ALWAYS);
 
-                versionNamePane.getChildren().addAll(new Label(i18n("instance.name")), control.txtName);
+                Label nameLabel = new Label(i18n("instance.name"));
+                nameLabel.getStyleClass().add("input-label");
+                versionNamePane.getChildren().addAll(nameLabel, control.txtName);
 
                 if (control.showExtendPane()) {
                     JFXButton clearButton = FXUtils.newToggleButton4(SVG.CLOSE);
@@ -169,9 +202,11 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
                 InstallerItem[] libraries = control.group.getLibraries();
 
                 FlowPane libraryPane = new FlowPane(16, 16, libraries);
+                libraryPane.getStyleClass().add("installer-card-pane");
                 ScrollPane scrollPane = new ScrollPane(libraryPane);
                 scrollPane.setFitToWidth(true);
                 scrollPane.setFitToHeight(true);
+                scrollPane.getStyleClass().add("edge-to-edge");
                 BorderPane.setMargin(scrollPane, new Insets(16, 0, 16, 0));
                 root.setCenter(scrollPane);
 
@@ -182,8 +217,9 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
             {
                 JFXButton installButton = FXUtils.newRaisedButton(i18n("button.install"));
                 installButton.disableProperty().bind(control.installable.not());
-                installButton.setPrefWidth(100);
-                installButton.setPrefHeight(40);
+                installButton.setPrefWidth(120);
+                installButton.setPrefHeight(44);
+                installButton.getStyleClass().add("install-action-button");
                 installButton.setOnAction(e -> control.onInstall());
                 BorderPane.setAlignment(installButton, Pos.CENTER_RIGHT);
                 root.setBottom(installButton);

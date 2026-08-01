@@ -31,8 +31,8 @@ CSL 拥有出色的跨平台能力：不仅支持 Windows、Linux、macOS、Free
 
 ## 功能特性
 
-- 🧩 **Mod 管理** — 一键安装、更新、禁用/启用 Mod，支持 Fabric、Quilt、Forge、NeoForge 等主流加载器生态
-- ⚙️ **ModLoader 安装** — Forge / NeoForge / Cleanroom / Fabric / Legacy Fabric / Quilt / LiteLoader / OptiFine
+- 🧩 **Mod 管理** — 一键安装、更新、禁用/启用 Mod，支持 Fabric、Quilt、Forge、NeoForge 等主流加载器生态；更新游戏版本时自动提示更新 Mod 至适配版本
+- ⚙️ **ModLoader 安装** — Forge / NeoForge / Cleanroom / Fabric / Legacy Fabric / Quilt / LiteLoader / OptiFine，安装时智能推荐合适的加载器
 - 📦 **整合包** — 创建与导入整合包，支持 Terracotta 等格式，方便分享与备份
 - 🎨 **UI 自定义** — 内置主题（`csl.default`、`csl.classic`），支持自定义主题包与动态换肤
 - 🌍 **多语言** — 内置中文、英文、日文、西班牙语、俄语、乌克兰语、阿拉伯语、文言文等语言

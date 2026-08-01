@@ -119,6 +119,7 @@ final class DataPackListPageSkin extends SkinBase<DataPackListPage> {
         {
             toolbarPane = new TransitionPane();
             searchBar = new HBox();
+            searchBar.getStyleClass().add("search-bar");
             normalToolbar = new HBox();
             selectingToolbar = new HBox();
 
