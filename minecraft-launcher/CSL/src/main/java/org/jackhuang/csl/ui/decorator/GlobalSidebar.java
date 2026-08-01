@@ -77,6 +77,7 @@ public final class GlobalSidebar extends VBox {
     public GlobalSidebar(RootPage rootPage) {
         this.rootPage = rootPage;
         getStyleClass().add("global-sidebar");
+        setPadding(new javafx.geometry.Insets(8, 0, 8, 0));
 
         // Home button at the top
         AdvancedListItem homeItem = new AdvancedListItem();

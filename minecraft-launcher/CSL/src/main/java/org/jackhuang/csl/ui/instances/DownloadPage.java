@@ -474,6 +474,9 @@ public class DownloadPage extends Control implements DecoratorPage {
                             case LEGACY_FABRIC:
                                 content.addTag(i18n("install.installer.legacyfabric"));
                                 break;
+                            // UNKNOWN carries no installer label.
+                            case UNKNOWN:
+                                break;
                         }
                     }
 

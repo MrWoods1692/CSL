@@ -641,6 +641,8 @@ final class ModListPageSkin extends SkinBase<ModListPage> {
                     case FABRIC -> content.addTagWarning(i18n("install.installer.fabric"));
                     case LITE_LOADER -> content.addTagWarning(i18n("install.installer.liteloader"));
                     case QUILT -> content.addTagWarning(i18n("install.installer.quilt"));
+                    // UNKNOWN is filtered out by the enclosing condition; no warning tag.
+                    case UNKNOWN -> { }
                 }
             }
 

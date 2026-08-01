@@ -172,12 +172,10 @@ public final class FXUtils {
             try {
                 MethodHandles.Lookup lookup = MethodHandles.publicLookup();
                 Class<?> preferencesClass = Class.forName("javafx.application.Platform$Preferences");
-                @SuppressWarnings("unchecked")
                 var preferences0 = (ObservableMap<String, Object>) lookup.findStatic(Platform.class, "getPreferences", MethodType.methodType(preferencesClass))
                         .invoke();
                 preferences = preferences0;
 
-                @SuppressWarnings("unchecked")
                 var colorSchemeProperty = (ReadOnlyObjectProperty<? extends Enum<?>>)
                         lookup.findVirtual(preferencesClass, "colorSchemeProperty", MethodType.methodType(ReadOnlyObjectProperty.class))
                                 .invoke(preferences);
@@ -185,7 +183,6 @@ public final class FXUtils {
                 darkMode = Bindings.createBooleanBinding(() ->
                         "DARK".equals(colorSchemeProperty.get().name()), colorSchemeProperty);
 
-                @SuppressWarnings("unchecked")
                 var accentColorProperty0 = (ReadOnlyObjectProperty<Color>)
                         lookup.findVirtual(preferencesClass, "accentColorProperty", MethodType.methodType(ReadOnlyObjectProperty.class))
                                 .invoke(preferences);

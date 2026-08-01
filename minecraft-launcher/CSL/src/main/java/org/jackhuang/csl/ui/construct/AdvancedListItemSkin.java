@@ -75,11 +75,11 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
                     horizontal.setCenter(item);
                     horizontal.setLeft(skinnable.getLeftGraphic());
                     item.setManaged(true);
-                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(200),
+                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
                             new KeyValue(item.opacityProperty(), 1, Motion.STANDARD)));
                 } else {
                     // Collapsing: fade text out, then move icon to center.
-                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(150),
+                    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(180),
                             new KeyValue(item.opacityProperty(), 0, Motion.STANDARD)));
                     timeline.setOnFinished(e -> {
                         item.setManaged(false);

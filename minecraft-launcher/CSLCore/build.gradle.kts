@@ -14,7 +14,7 @@ tasks.compileJava {
 dependencies {
     api(libs.kala.compress.zip)
     api(libs.kala.compress.tar)
-    api(libs.kala.encoding.detctor)
+    api(libs.kala.encoding.detector)
     api(libs.simple.png.javafx)
     api(libs.gson)
     api(libs.tomlj)

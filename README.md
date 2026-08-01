@@ -2,10 +2,10 @@
   <img src="csl.png" alt="CSL" width="256"/>
 </p>
 
-<h1 align="center">CSL · Craft Something Launcher</h1>
+<h1 align="center">CSL · Craft Spirit Launcher</h1>
 
 <p align="center">
-  <b>开源、跨平台的 Minecraft Java 版启动器</b>
+  <b>开源、跨平台、优秀的 Minecraft Java 版启动器</b>
 </p>
 
 <p align="center">
@@ -19,15 +19,14 @@
 
 ## 简介
 
-**CSL（Craft Something Launcher）** 是一个开源、跨平台的 Minecraft Java 版启动器，支持
+**CSL（Craft Spirit Launcher）** 是一个开源、跨平台的 Minecraft Java 版启动器，支持
 Mod 管理、游戏定制、ModLoader 安装（Forge、NeoForge、Cleanroom、Fabric、Legacy Fabric、
 Quilt、LiteLoader、OptiFine）、整合包创建、UI 自定义等多种功能。
 
 CSL 拥有出色的跨平台能力：不仅支持 Windows、Linux、macOS、FreeBSD 等操作系统，
 还支持 x86、ARM、RISC-V、MIPS、LoongArch 等多种 CPU 架构，让玩家在不同平台上都能轻松享受 Minecraft。
 
-> **说明**：CSL 源自开源项目 Hello Minecraft! Launcher（HMCL），并在其基础上持续演进。
-> 上游版权声明保留在所有源码文件头中，详见[许可证](#许可证)一节。
+> **说明**：CSL 大量参考HMCL、PCL以及其他启动器制成。
 
 ## 功能特性
 
@@ -119,12 +118,3 @@ CSL 是一个社区驱动的开源项目，欢迎任何形式的贡献：
 
 贡献前请阅读[贡献指南](./minecraft-launcher/docs/Contributing.md)。
 
-## 许可证
-
-本项目基于 **GPLv3** 协议分发，并附加以下条款（GPLv3 第 7 节）：
-
-1. 分发修改版本时，必须以合理方式修改软件名称或版本号，以区别于原始版本。
-2. 不得移除软件中展示的版权声明。
-
-源码文件头保留上游项目（Hello Minecraft! Launcher，作者 huangyuhui）的版权声明。
-完整的 GPLv3 许可文本请参见 [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)。

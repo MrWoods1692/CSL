@@ -154,6 +154,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
 
         HBox launchPane = new HBox();
         launchPane.getStyleClass().add("launch-pane");
+        launchPane.setEffect(new javafx.scene.effect.DropShadow(8, 2, 2, javafx.scene.paint.Color.rgb(0, 0, 0, 0.15)));
         FXUtils.onScroll(launchPane, versions, list -> {
             GameInstanceID currentId = getCurrentGame();
             return Lang.indexWhere(list, instance -> instance.id().equals(currentId));

@@ -228,6 +228,13 @@ public class OfflineAccountSkinPane extends StackPane {
                             cslApiField
                         );
                         break;
+
+                    // ARI, EFE, KAI, MAKENA, NOOR, SUNNY, ZURI and YGGDRASIL_API are not
+                    // offered as selectable options in skinItem (see loadChildren above),
+                    // so they never reach this switch at runtime. Keep an explicit default
+                    // so the compiler stays satisfied and future additions are deliberate.
+                    default:
+                        break;
                 }
             }
 

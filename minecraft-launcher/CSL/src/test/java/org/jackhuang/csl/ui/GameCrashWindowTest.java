@@ -22,7 +22,7 @@ import org.jackhuang.csl.game.GameInstanceID;
 import org.jackhuang.csl.game.GameInstanceManifest;
 import org.jackhuang.csl.game.LaunchOptions;
 import org.jackhuang.csl.java.JavaInfo;
-import org.jackhuang.csl.game.Log;
+import org.jackhuang.csl.game.GameLog;
 import org.jackhuang.csl.launch.ProcessListener;
 import org.jackhuang.csl.java.JavaRuntime;
 import org.jackhuang.csl.util.platform.ManagedProcess;
@@ -59,7 +59,7 @@ public class GameCrashWindowTest {
                             .setGameDir(workingPath)
                             .create(),
                     Arrays.stream(logs.split("\\n"))
-                            .map(Log::new)
+                            .map(GameLog::new)
                             .collect(Collectors.toList()));
 
             window.showAndWait();

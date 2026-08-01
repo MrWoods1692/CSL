@@ -22,7 +22,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -32,7 +31,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
@@ -93,9 +91,9 @@ public class GameCrashWindow extends Stage {
     private final View view;
     private final StackPane stackPane;
 
-    private final List<Log> logs;
+    private final List<GameLog> logs;
 
-    public GameCrashWindow(ManagedProcess managedProcess, ProcessListener.ExitType exitType, DefaultGameRepository repository, GameInstanceManifest manifest, LaunchOptions launchOptions, List<Log> logs) {
+    public GameCrashWindow(ManagedProcess managedProcess, ProcessListener.ExitType exitType, DefaultGameRepository repository, GameInstanceManifest manifest, LaunchOptions launchOptions, List<GameLog> logs) {
         Themes.applyNativeDarkMode(this);
 
         this.managedProcess = managedProcess;
@@ -175,6 +173,9 @@ JFXButton btnClose = createWindowControlButton("window-control-close", () -> clo
             case SIGKILL:
                 titleLabel.setText(i18n("launch.failed.sigkill"));
                 break;
+            // NORMAL and INTERRUPTED should not reach a crash window; fall back to
+            // the generic abnormal-exit title if they ever do.
+            case NORMAL, INTERRUPTED -> titleLabel.setText(i18n("launch.failed.exited_abnormally"));
         }
 
         titleBar.getChildren().setAll(buttonsContainer, titleLabel);
@@ -205,7 +206,7 @@ JFXButton btnClose = createWindowControlButton("window-control-close", () -> clo
     private void analyzeCrashReport() {
         loading.set(true);
         Task.allOf(Task.supplyAsync(() -> {
-            String rawLog = logs.stream().map(Log::getLog).collect(Collectors.joining("\n"));
+            String rawLog = logs.stream().map(GameLog::getLog).collect(Collectors.joining("\n"));
 
             // Get the crash-report from the crash-reports/xxx, or the output of console.
             String crashReport = null;
@@ -345,9 +346,9 @@ JFXButton btnClose = createWindowControlButton("window-control-close", () -> clo
     private void showLogWindow() {
         LogWindow logWindow = new LogWindow(managedProcess);
 
-        logWindow.logLine(new Log(Logger.filterForbiddenToken("Command: " + new CommandBuilder().addAll(managedProcess.getCommands())), Log4jLevel.INFO));
+        logWindow.logLine(new GameLog(Logger.filterForbiddenToken("Command: " + new CommandBuilder().addAll(managedProcess.getCommands())), Log4jLevel.INFO));
         if (managedProcess.getClasspath() != null)
-            logWindow.logLine(new Log("ClassPath: " + managedProcess.getClasspath(), Log4jLevel.INFO));
+            logWindow.logLine(new GameLog("ClassPath: " + managedProcess.getClasspath(), Log4jLevel.INFO));
         logWindow.logLines(logs);
         logWindow.show();
     }
@@ -356,7 +357,7 @@ JFXButton btnClose = createWindowControlButton("window-control-close", () -> clo
         Path logFile = Paths.get("minecraft-exported-crash-info-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")) + ".zip").toAbsolutePath();
 
         return CompletableFuture.supplyAsync(() ->
-                        logs.stream().map(Log::getLog).collect(Collectors.joining("\n")))
+                        logs.stream().map(GameLog::getLog).collect(Collectors.joining("\n")))
                 .thenComposeAsync(logs -> {
                     long processStartTime = managedProcess.getProcess().info()
                             .startInstant()

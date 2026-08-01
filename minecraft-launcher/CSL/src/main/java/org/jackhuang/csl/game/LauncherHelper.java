@@ -814,11 +814,11 @@ public final class LauncherHelper {
         private volatile boolean lwjgl;
         private LogWindow logWindow;
         private final boolean detectWindow;
-        private final CircularArrayList<Log> logs;
+        private final CircularArrayList<GameLog> logs;
         private final CountDownLatch launchingLatch;
         private final String forbiddenAccessToken;
         private Thread submitLogThread;
-        private LinkedBlockingQueue<Log> logBuffer;
+        private LinkedBlockingQueue<GameLog> logBuffer;
 
         public CSLProcessListener(CSLGameRepository repository, GameInstanceManifest manifest, AuthInfo authInfo, LaunchOptions launchOptions, CountDownLatch launchingLatch, boolean detectWindow) {
             this.repository = repository;
@@ -827,7 +827,7 @@ public final class LauncherHelper {
             this.launchingLatch = launchingLatch;
             this.detectWindow = detectWindow;
             this.forbiddenAccessToken = authInfo != null ? authInfo.getAccessToken() : null;
-            this.logs = new CircularArrayList<>(Log.getLogLines() + 1);
+            this.logs = new CircularArrayList<>(GameLog.getLogLines() + 1);
         }
 
         @Override
@@ -853,12 +853,12 @@ public final class LauncherHelper {
 
                 logBuffer = new LinkedBlockingQueue<>();
                 submitLogThread = Lang.thread(new Runnable() {
-                    private final ArrayList<Log> currentLogs = new ArrayList<>();
+                    private final ArrayList<GameLog> currentLogs = new ArrayList<>();
                     private final Semaphore semaphore = new Semaphore(0);
 
                     private void submitLogs() {
                         if (currentLogs.size() == 1) {
-                            Log log = currentLogs.get(0);
+                            GameLog log = currentLogs.get(0);
                             runLater(() -> logWindow.logLine(log));
                         } else {
                             runLater(() -> {
@@ -950,12 +950,12 @@ public final class LauncherHelper {
             if (showLogs) {
                 if (level == null)
                     level = Lang.requireNonNullElse(Log4jLevel.guessLevel(log), Log4jLevel.INFO);
-                logBuffer.add(new Log(log, level));
+                logBuffer.add(new GameLog(log, level));
             } else {
                 lock.lock();
                 try {
-                    logs.addLast(new Log(log, level));
-                    if (logs.size() > Log.getLogLines())
+                    logs.addLast(new GameLog(log, level));
+                    if (logs.size() > GameLog.getLogLines())
                         logs.removeFirst();
                 } finally {
                     lock.unlock();
@@ -981,7 +981,7 @@ public final class LauncherHelper {
         @Override
         public void onExit(int exitCode, ExitType exitType) {
             if (showLogs) {
-                logBuffer.add(new Log(String.format("[%s] [CSL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));
+                logBuffer.add(new GameLog(String.format("[%s] [CSL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));
                 submitLogThread.interrupt();
                 try {
                     submitLogThread.join();

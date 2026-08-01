@@ -35,7 +35,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.jackhuang.csl.game.GameDumpGenerator;
-import org.jackhuang.csl.game.Log;
+import org.jackhuang.csl.game.GameLog;
 import org.jackhuang.csl.setting.StyleSheets;
 import org.jackhuang.csl.task.Schedulers;
 import org.jackhuang.csl.theme.Themes;
@@ -73,7 +73,7 @@ public final class LogWindow extends Stage {
 
     private static final Log4jLevel[] LEVELS = {Log4jLevel.FATAL, Log4jLevel.ERROR, Log4jLevel.WARN, Log4jLevel.INFO, Log4jLevel.DEBUG};
 
-    private final CircularArrayList<Log> logs;
+    private final CircularArrayList<GameLog> logs;
     private final Map<Log4jLevel, SimpleIntegerProperty> levelCountMap = new EnumMap<>(Log4jLevel.class);
     private final Map<Log4jLevel, SimpleBooleanProperty> levelShownMap = new EnumMap<>(Log4jLevel.class);
 
@@ -91,7 +91,7 @@ public final class LogWindow extends Stage {
         this(gameProcess, new CircularArrayList<>());
     }
 
-    public LogWindow(ManagedProcess gameProcess, CircularArrayList<Log> logs) {
+    public LogWindow(ManagedProcess gameProcess, CircularArrayList<GameLog> logs) {
         Themes.applyNativeDarkMode(this);
 
         this.logs = logs;
@@ -171,7 +171,7 @@ public final class LogWindow extends Stage {
         return btn;
     }
 
-    public void logLine(Log log) {
+    public void logLine(GameLog log) {
         Log4jLevel level = log.getLevel();
         logs.add(log);
         if (levelShownMap.get(level).get())
@@ -183,8 +183,8 @@ public final class LogWindow extends Stage {
         autoScroll();
     }
 
-    public void logLines(List<Log> logs) {
-        for (Log log : logs) {
+    public void logLines(List<GameLog> logs) {
+        for (GameLog log : logs) {
             Log4jLevel level = log.getLevel();
             this.logs.add(log);
             if (levelShownMap.get(level).get())
@@ -203,16 +203,16 @@ public final class LogWindow extends Stage {
     }
 
     private void checkLogCount() {
-        int nRemove = logs.size() - Log.getLogLines();
+        int nRemove = logs.size() - GameLog.getLogLines();
         if (nRemove <= 0)
             return;
 
-        ObservableList<Log> items = impl.listView.getItems();
+        ObservableList<GameLog> items = impl.listView.getItems();
         int itemsSize = items.size();
         int count = 0;
 
         for (int i = 0; i < nRemove; i++) {
-            Log removedLog = logs.removeFirst();
+            GameLog removedLog = logs.removeFirst();
             if (itemsSize > count && items.get(count) == removedLog)
                 count++;
         }
@@ -227,7 +227,7 @@ public final class LogWindow extends Stage {
 
     private final class LogWindowImpl extends Control {
 
-        private final ListView<Log> listView = new JFXListView<>();
+        private final ListView<GameLog> listView = new JFXListView<>();
         private final BooleanProperty autoScroll = new SimpleBooleanProperty();
         private final BooleanProperty wrapText = new SimpleBooleanProperty(true);
         private final StringProperty[] buttonText = new StringProperty[LEVELS.length];
@@ -255,7 +255,7 @@ public final class LogWindow extends Stage {
             });
 
             cboLines.getItems().setAll(500, 2000, 5000, 10000);
-            cboLines.setValue(Log.getLogLines());
+            cboLines.setValue(GameLog.getLogLines());
             cboLines.getSelectionModel().selectedItemProperty().addListener((a, b, newValue) -> settings().logLinesProperty().set(newValue));
 
             for (int i = 0; i < LEVELS.length; ++i) {
@@ -277,7 +277,7 @@ public final class LogWindow extends Stage {
             thread(() -> {
                 Path logFile = Paths.get("minecraft-exported-logs-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")) + ".log").toAbsolutePath();
                 try {
-                    Files.write(logFile, logs.stream().map(Log::getLog).collect(Collectors.toList()));
+                    Files.write(logFile, logs.stream().map(GameLog::getLog).collect(Collectors.toList()));
                 } catch (IOException e) {
                     LOG.warning("Failed to export logs", e);
                     return;
@@ -382,7 +382,7 @@ public final class LogWindow extends Stage {
             }
 
             {
-                ListView<Log> listView = control.listView;
+                ListView<GameLog> listView = control.listView;
                 listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
                 listView.getItems().addListener((InvalidationListener) observable -> {
                     if (!listView.getItems().isEmpty() && control.autoScroll.get())
@@ -420,7 +420,7 @@ public final class LogWindow extends Stage {
                     }
 
                     @Override
-                    protected void updateItem(Log item, boolean empty) {
+                    protected void updateItem(GameLog item, boolean empty) {
                         super.updateItem(item, empty);
 
                         pseudoClassStateChanged(EMPTY, empty);
@@ -446,7 +446,7 @@ public final class LogWindow extends Stage {
 
                         StringBuilder stringBuilder = new StringBuilder();
 
-                        for (Log item : listView.getSelectionModel().getSelectedItems()) {
+                        for (GameLog item : listView.getSelectionModel().getSelectedItems()) {
                             if (item != null) {
                                 if (item.getLog() != null)
                                     stringBuilder.append(item.getLog());

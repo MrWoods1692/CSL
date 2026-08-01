@@ -1,0 +1,25 @@
+{
+  "name": "csl-web-runner",
+  "version": "0.2.0",
+  "description": "CSL Web Runner - Minecraft Web Edition Launcher",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run build:wasm && next build",
+    "build:wasm": "cd ../wasm-versions/mc1_21_4 && wasm-pack build --release --target web --out-dir ../../csl-web-runner/public/wasm/mc1_21_4 && cd ../mc1_20_4 && wasm-pack build --release --target web --out-dir ../../csl-web-runner/public/wasm/mc1_20_4 && cd ../mc1_19_4 && wasm-pack build --release --target web --out-dir ../../csl-web-runner/public/wasm/mc1_19_4",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lottie-react": "^2.4.1",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.0"
+  }
+}
