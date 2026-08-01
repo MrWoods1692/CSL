@@ -12,6 +12,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import PageMeta from '@/components/common/PageMeta';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
@@ -109,9 +110,7 @@ const GuidePage: React.FC = () => {
               <StaggerItem key={item.title}>
                 <div className="sticker-card sticker-card-hover sticker-card-interactive h-full">
                   <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center border-2 border-foreground bg-primary shadow-[var(--shadow-solid-sm)]">
-                      <item.icon className="sticker-card-icon h-5 w-5" />
-                    </div>
+                    <IconBox icon={item.icon} color="bg-primary" size="sm" />
                     <span className="font-display text-2xl font-bold text-muted-foreground">
                       0{index + 1}
                     </span>

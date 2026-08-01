@@ -86,6 +86,7 @@ public final class TaskListPane extends StackPane {
     private static final Insets DEFAULT_PROGRESS_NODE_PADDING = new Insets(0, 0, 4, 0);
     private static final Insets STAGED_PROGRESS_NODE_PADDING = new Insets(0, 0, 4, 26);
 
+    @SuppressWarnings("FieldCanBeLocal")
     private TaskExecutor executor;
     private final JFXListView<Node> listView = new JFXListView<>();
     private final Map<Task<?>, ProgressListNode> nodes = new HashMap<>();

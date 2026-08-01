@@ -24,10 +24,8 @@ import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.validation.base.ValidatorBase;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
@@ -63,7 +61,6 @@ import static org.jackhuang.csl.util.i18n.I18n.i18n;
 
 public final class ModpackInfoPage extends Control implements WizardPage {
     private final WizardController controller;
-    private final CSLGameRepository repository;
     private final ModpackExportInfo.Options options;
     private final GameInstanceID instanceId;
     private final boolean canIncludeLauncher;
@@ -87,7 +84,6 @@ public final class ModpackInfoPage extends Control implements WizardPage {
 
     public ModpackInfoPage(WizardController controller, CSLGameRepository repository, GameInstanceID instanceId) {
         this.controller = controller;
-        this.repository = repository;
         this.options = controller.getSettings().get(MODPACK_INFO_OPTION);
         this.instanceId = instanceId;
 
@@ -97,7 +93,7 @@ public final class ModpackInfoPage extends Control implements WizardPage {
         name.set(instanceId.toString());
         author.set(Optional.ofNullable(Accounts.getSelectedAccount()).map(Account::getProfileName).orElse(""));
 
-        GameSettings.Effective versionSetting = repository.getEffectiveGameSettings(this.instanceId);
+        GameSettings.Effective versionSetting = repository.getEffectiveGameSettings(instanceId);
         minMemory.set(Optional.ofNullable(versionSetting.getInheritable(GameSettings::minMemoryProperty)).orElse(0));
         launchArguments.set(versionSetting.getInheritable(GameSettings::gameArgumentsProperty));
         javaArguments.set(versionSetting.getInheritable(GameSettings::jvmOptionsProperty));
@@ -166,8 +162,6 @@ public final class ModpackInfoPage extends Control implements WizardPage {
     public static final SettingsMap.Key<ModpackExportInfo.Options> MODPACK_INFO_OPTION = new SettingsMap.Key<>("modpack.info.option");
 
     public static class ModpackInfoPageSkin extends SkinBase<ModpackInfoPage> {
-        private ObservableList<Node> originList;
-
         private final List<JFXTextField> validatingFields = new ArrayList<>();
 
         public ModpackInfoPageSkin(ModpackInfoPage skinnable) {

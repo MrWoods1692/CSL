@@ -105,6 +105,8 @@ public final class AccountListPage extends DecoratorAnimatedPage implements Deco
 
     private static class AccountListPageSkin extends DecoratorAnimatedPageSkin<AccountListPage> {
 
+        // Keeps the strong reference returned by FXUtils.onWeakChange alive so the
+        // underlying WeakChangeListener is not garbage-collected prematurely.
         private ChangeListener<Boolean> holder;
 
         public AccountListPageSkin(AccountListPage skinnable) {

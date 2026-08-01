@@ -245,7 +245,6 @@ public class DefaultPngChunkReader<ResultT> implements PngChunkReader<ResultT> {
     public void readFrameImageDataChunk(PngSource source, int dataLength) throws IOException, PngException {
         // Note that once the sequence number is confirmed as being correct that there
         // is no need to retain it in subsequent data.
-        int position = source.tell();
         int sequence = source.readInt();
         dataLength -= 4; // After reading the sequence number the data is just like IDAT.
 

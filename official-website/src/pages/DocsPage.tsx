@@ -15,6 +15,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import PageMeta from '@/components/common/PageMeta';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 import RippleCard from '@/components/common/RippleCard';
@@ -128,9 +129,7 @@ const DocsPage: React.FC = () => {
                   className="group block h-full"
                 >
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center border-2 border-foreground bg-secondary text-secondary-foreground shadow-[var(--shadow-solid-sm)]">
-                      <doc.icon className="sticker-card-icon h-6 w-6" />
-                    </div>
+                    <IconBox icon={doc.icon} color="bg-secondary" iconClassName="text-secondary-foreground" />
                     <Badge className="border-2 border-foreground bg-primary text-xs font-bold text-primary-foreground">
                       {doc.category}
                     </Badge>
@@ -168,7 +167,7 @@ const DocsPage: React.FC = () => {
             </p>
             <RippleButton
               asChild
-              className="h-14 border-2 border-foreground bg-secondary px-8 text-lg font-bold text-secondary-foreground shadow-[var(--shadow-solid)] transition-transform hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[var(--shadow-solid-lg)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+              className="btn-sticker btn-sticker-lg h-14 bg-secondary px-8 text-lg text-secondary-foreground"
             >
               <a
                 href="https://github.com"

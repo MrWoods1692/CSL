@@ -33,7 +33,7 @@ const BackToTop: React.FC = () => {
           <Button
             onClick={scrollToTop}
             size="icon"
-            className="h-12 w-12 border-2 border-foreground bg-accent text-accent-foreground shadow-[var(--shadow-solid)] transition-transform hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[var(--shadow-solid-lg)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+            className="btn-sticker h-12 w-12 bg-accent text-accent-foreground"
             aria-label="回到顶部"
           >
             <ArrowUp className="h-5 w-5" />

@@ -7,6 +7,8 @@ import PageMeta from '@/components/common/PageMeta';
 import Marquee from '@/components/common/Marquee';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
+import DecorativeShape from '@/components/common/DecorativeShape';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 
 const highlights = [
@@ -93,6 +95,13 @@ const HomePage: React.FC = () => {
           className="absolute bottom-10 left-10 h-24 w-24 -rotate-12 border-4 border-primary bg-accent opacity-40 animate-float-rotate md:h-40 md:w-40"
           style={{ '--start-rotation': '-12deg' } as React.CSSProperties}
         />
+        {/* diamond 装饰预览 */}
+        <DecorativeShape
+          shape="diamond"
+          className="absolute right-1/4 top-1/3 h-20 w-20 text-accent opacity-50 md:h-32 md:w-32"
+          startRotation={0}
+          slow
+        />
 
         <div className="relative mx-auto max-w-5xl text-center">
           <AnimatedSection direction="down" delay={0}>
@@ -121,7 +130,7 @@ const HomePage: React.FC = () => {
                 asChild
                 size="lg"
                 rippleColor="dark"
-                className="h-14 border-2 border-foreground bg-primary px-8 text-lg font-bold text-primary-foreground shadow-[var(--shadow-solid)] transition-transform hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[var(--shadow-solid-lg)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                className="btn-sticker btn-sticker-lg h-14 bg-primary px-8 text-lg text-primary-foreground"
               >
                 <Link to="/download">
                   <Download className="mr-2 h-5 w-5" />
@@ -132,7 +141,7 @@ const HomePage: React.FC = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-14 border-2 border-foreground bg-background px-8 text-lg font-bold shadow-[var(--shadow-solid-sm)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[var(--shadow-solid)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="btn-sticker h-14 bg-background px-8 text-lg"
               >
                 <Link to="/features">
                   了解更多
@@ -191,9 +200,12 @@ const HomePage: React.FC = () => {
             {stats.map((stat) => (
               <StaggerItem key={stat.label} direction="scale">
                 <div className="sticker-card sticker-card-hover sticker-card-accent-top flex flex-col items-center p-6 text-center">
-                  <div className={`mb-3 flex h-12 w-12 items-center justify-center border-2 border-foreground bg-background ${stat.color}`}>
-                    <stat.icon className="sticker-card-icon h-6 w-6" />
-                  </div>
+                  <IconBox
+                    icon={stat.icon}
+                    color="bg-background"
+                    iconClassName={stat.color}
+                    className="mb-3"
+                  />
                   <div className="font-display text-4xl font-bold tracking-tight md:text-5xl">
                     {stat.value}
                   </div>
@@ -219,12 +231,8 @@ const HomePage: React.FC = () => {
           <StaggerContainer className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" stagger={0.1}>
             {highlights.map((item) => (
               <StaggerItem key={item.title}>
-                <div className="sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt h-full">
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center border-2 border-foreground ${item.color} text-foreground shadow-[var(--shadow-solid-sm)]`}
-                  >
-                    <item.icon className="sticker-card-icon h-6 w-6" />
-                  </div>
+                <div className="sticker-card-interactive-full h-full">
+                  <IconBox icon={item.icon} color={item.color} className="mb-4" />
                   <h3 className="mb-2 font-display text-xl font-bold">{item.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
@@ -246,12 +254,8 @@ const HomePage: React.FC = () => {
           <StaggerContainer className="grid gap-6 md:grid-cols-3" stagger={0.12}>
             {previewFeatures.map((item) => (
               <StaggerItem key={item.title}>
-                <div className="sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt h-full">
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center border-2 border-foreground ${item.color} text-foreground shadow-[var(--shadow-solid-sm)]`}
-                  >
-                    <item.icon className="sticker-card-icon h-6 w-6" />
-                  </div>
+                <div className="sticker-card-interactive-full h-full">
+                  <IconBox icon={item.icon} color={item.color} className="mb-4" />
                   <h3 className="mb-2 font-display text-xl font-bold">{item.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
@@ -263,7 +267,7 @@ const HomePage: React.FC = () => {
               <RippleButton
                 asChild
                 variant="outline"
-                className="h-12 border-2 border-foreground bg-background px-6 font-bold shadow-[var(--shadow-solid-sm)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[var(--shadow-solid)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="btn-sticker h-12 bg-background px-6"
               >
                 <Link to="/features">
                   查看全部功能
@@ -304,7 +308,7 @@ const HomePage: React.FC = () => {
               <RippleButton
                 asChild
                 size="lg"
-                className="h-14 border-2 border-foreground bg-secondary px-8 text-lg font-bold text-secondary-foreground shadow-[var(--shadow-solid)] transition-transform hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[var(--shadow-solid-lg)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                className="btn-sticker btn-sticker-lg h-14 bg-secondary px-8 text-lg text-secondary-foreground"
               >
                 <Link to="/download">免费下载</Link>
               </RippleButton>
@@ -312,7 +316,7 @@ const HomePage: React.FC = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-14 border-2 border-foreground bg-primary-foreground px-8 text-lg font-bold text-primary shadow-[var(--shadow-solid-sm)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                className="btn-sticker h-14 bg-primary-foreground px-8 text-lg text-primary"
               >
                 <Link to="/community">加入社区</Link>
               </RippleButton>

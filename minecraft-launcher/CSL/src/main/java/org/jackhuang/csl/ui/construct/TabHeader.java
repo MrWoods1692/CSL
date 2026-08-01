@@ -241,6 +241,7 @@ public class TabHeader extends Control implements TabControl, PageAware {
                 }
             }
 
+            @SuppressWarnings("unused")
             private final class HeadersRegion extends StackPane {
                 private SideAction action;
                 private final ObjectProperty<Side> side = new SimpleObjectProperty<Side>() {
@@ -423,7 +424,6 @@ public class TabHeader extends Control implements TabControl, PageAware {
                     public void layoutChildren() {
                         super.layoutChildren();
 
-                        double headerHeight = snapSize(prefHeight(-1));
                         double tabStartX = 0;
                         for (Node node : getChildren()) {
                             if (!(node instanceof TabHeaderContainer)) continue;
@@ -561,7 +561,6 @@ public class TabHeader extends Control implements TabControl, PageAware {
                     public void layoutChildren() {
                         super.layoutChildren();
 
-                        double headerWidth = snapSize(prefWidth(-1));
                         double tabStartY = 0;
                         for (Node node : getChildren()) {
                             if (!(node instanceof TabHeaderContainer)) continue;

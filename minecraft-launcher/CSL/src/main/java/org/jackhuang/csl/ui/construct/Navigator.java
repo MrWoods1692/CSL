@@ -18,7 +18,6 @@
 package org.jackhuang.csl.ui.construct;
 
 import javafx.animation.Interpolator;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;

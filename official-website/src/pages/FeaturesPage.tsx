@@ -13,6 +13,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import PageMeta from '@/components/common/PageMeta';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
@@ -90,13 +91,9 @@ const FeaturesPage: React.FC = () => {
           <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" stagger={0.08}>
             {features.map((item) => (
               <StaggerItem key={item.title}>
-                <div className="sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt h-full">
+                <div className="sticker-card-interactive-full h-full">
                   <div className="tape" />
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center border-2 border-foreground ${item.color} text-foreground shadow-[var(--shadow-solid-sm)]`}
-                  >
-                    <item.icon className="sticker-card-icon h-6 w-6" />
-                  </div>
+                  <IconBox icon={item.icon} color={item.color} className="mb-4" />
                   <h3 className="mb-2 font-display text-xl font-bold">{item.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
@@ -127,14 +124,10 @@ const FeaturesPage: React.FC = () => {
             {advantages.map((item, index) => (
               <StaggerItem key={item.title}>
                 <div
-                  className={`sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt h-full ${index % 2 === 1 ? 'md:translate-y-6' : ''}`}
+                  className={`sticker-card-interactive-full h-full ${index % 2 === 1 ? 'md:translate-y-6' : ''}`}
                 >
                   <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center border-2 border-foreground ${item.color} shadow-[var(--shadow-solid-sm)]`}
-                    >
-                      <Heart className="sticker-card-icon h-6 w-6" />
-                    </div>
+                    <IconBox icon={Heart} color={item.color} className="shrink-0" />
                     <div>
                       <h3 className="mb-1 font-display text-xl font-bold">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.desc}</p>

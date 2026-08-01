@@ -123,6 +123,11 @@
     box-shadow: var(--shadow-solid);
   }
 
+  /* 组合：可交互卡片（悬停抬升 + 点击按压 + 可选倾斜） */
+  .sticker-card-interactive-full {
+    @apply sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt;
+  }
+
   .sticker-card-hover {
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -231,6 +236,33 @@
 
   .hard-shadow-secondary {
     box-shadow: var(--shadow-solid-secondary);
+  }
+
+  /* 按钮交互：悬停抬升 + 按压下沉，配合 shadow-solid 变量 */
+  .btn-sticker {
+    @apply border-2 border-foreground font-bold transition-transform;
+    box-shadow: var(--shadow-solid-sm);
+  }
+  .btn-sticker:hover {
+    transform: translate(-0.125rem, -0.125rem);
+    box-shadow: var(--shadow-solid);
+  }
+  .btn-sticker:active {
+    transform: translate(0.125rem, 0.125rem);
+    box-shadow: none;
+  }
+
+  /* 大号按钮：更大的位移幅度 */
+  .btn-sticker-lg {
+    box-shadow: var(--shadow-solid);
+  }
+  .btn-sticker-lg:hover {
+    transform: translate(-0.25rem, -0.25rem);
+    box-shadow: var(--shadow-solid-lg);
+  }
+  .btn-sticker-lg:active {
+    transform: translate(0.25rem, 0.25rem);
+    box-shadow: none;
   }
 
   .text-stroke {

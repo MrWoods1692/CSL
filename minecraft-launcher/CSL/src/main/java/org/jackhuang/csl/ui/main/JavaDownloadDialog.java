@@ -480,14 +480,11 @@ public final class JavaDownloadDialog extends StackPane {
             LOADING, SUCCESS, FAILED
         }
 
-        final DiscoJavaDistribution distribution;
-
         Status status = Status.LOADING;
         EnumMap<JavaPackageType, ObservableList<DiscoJavaRemoteVersion>> versions;
         Consumer<DiscoJavaVersionList> listener;
 
         DiscoJavaVersionList(DiscoJavaDistribution distribution) {
-            this.distribution = distribution;
         }
 
         void invalidate() {

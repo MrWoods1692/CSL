@@ -6,6 +6,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import PageMeta from '@/components/common/PageMeta';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
@@ -128,11 +129,7 @@ const InstallPage: React.FC = () => {
           <AnimatedSection key={activeTab} delay={0.2} direction="up">
             <div className="sticker-card sticker-card-hover sticker-card-tilt">
               <div className="mb-6 flex items-center gap-3">
-                <div
-                  className={`flex h-12 w-12 items-center justify-center border-2 border-foreground ${activeGuide.color} shadow-[var(--shadow-solid-sm)]`}
-                >
-                  <activeGuide.icon className="sticker-card-icon h-6 w-6" />
-                </div>
+                <IconBox icon={activeGuide.icon} color={activeGuide.color} />
                 <h2 className="font-display text-2xl font-bold md:text-3xl">
                   {activeGuide.name} 安装步骤
                 </h2>

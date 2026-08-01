@@ -2572,6 +2572,7 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
     }
 
     /// Returns the setting object that provides the effective inheritable value.
+    @SuppressWarnings("unused")
     private <T> GameSettings getEffectiveInheritableSource(
             GameSettings setting,
             Function<GameSettings, InheritableProperty<T>> propertyGetter) {

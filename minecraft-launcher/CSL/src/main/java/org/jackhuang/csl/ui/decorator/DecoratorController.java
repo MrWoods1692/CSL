@@ -221,10 +221,6 @@ public class DecoratorController {
         DialogUtils.show(decorator, node);
     }
 
-    private void closeDialog(Node node) {
-        DialogUtils.close(node);
-    }
-
     public void showDialogLater(Node node) {
         DialogUtils.showLater(decorator, node);
     }

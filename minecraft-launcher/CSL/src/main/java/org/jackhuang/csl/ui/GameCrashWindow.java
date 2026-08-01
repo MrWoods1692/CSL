@@ -175,7 +175,10 @@ JFXButton btnClose = createWindowControlButton("window-control-close", () -> clo
                 break;
             // NORMAL and INTERRUPTED should not reach a crash window; fall back to
             // the generic abnormal-exit title if they ever do.
-            case NORMAL, INTERRUPTED -> titleLabel.setText(i18n("launch.failed.exited_abnormally"));
+            case NORMAL:
+            case INTERRUPTED:
+                titleLabel.setText(i18n("launch.failed.exited_abnormally"));
+                break;
         }
 
         titleBar.getChildren().setAll(buttonsContainer, titleLabel);

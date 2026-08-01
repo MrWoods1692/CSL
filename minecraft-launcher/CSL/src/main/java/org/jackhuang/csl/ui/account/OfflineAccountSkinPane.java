@@ -61,6 +61,8 @@ public class OfflineAccountSkinPane extends StackPane {
     private final FileSelector skinSelector = new FileSelector();
     private final FileSelector capeSelector = new FileSelector();
 
+    // Keeps the strong reference returned by FXUtils.observeWeak alive so the
+    // underlying WeakInvalidationListener is not garbage-collected prematurely.
     private final InvalidationListener skinBinding;
 
     public OfflineAccountSkinPane(OfflineAccount account) {

@@ -53,6 +53,7 @@ import static org.jackhuang.csl.util.i18n.I18n.i18n;
  */
 public final class NBTEditorPage extends SpinnerPane implements DecoratorPage {
     private final ReadOnlyObjectWrapper<State> state;
+    // Retained for the not-yet-implemented save() method.
     private final Path file;
     private final NBTFileType type;
 

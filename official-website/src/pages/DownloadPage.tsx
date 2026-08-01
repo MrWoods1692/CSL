@@ -6,6 +6,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import PageMeta from '@/components/common/PageMeta';
 import SectionHeader from '@/components/common/SectionHeader';
 import AnimatedSection from '@/components/common/AnimatedSection';
+import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
@@ -136,11 +137,7 @@ const DownloadPage: React.FC = () => {
                   )}
                   <div className="tape" />
                   <div className="mb-6 flex items-center gap-4">
-                    <div
-                      className={`flex h-14 w-14 items-center justify-center border-2 border-foreground ${platform.color} shadow-[var(--shadow-solid-sm)]`}
-                    >
-                      <platform.icon className="sticker-card-icon h-7 w-7" />
-                    </div>
+                    <IconBox icon={platform.icon} color={platform.color} size="lg" />
                     <div>
                       <h3 className="font-display text-2xl font-bold">{platform.name}</h3>
                       <p className="text-sm text-muted-foreground">{platform.arch}</p>
@@ -163,7 +160,7 @@ const DownloadPage: React.FC = () => {
                       <RippleButton
                         key={dl.format}
                         onClick={() => handleDownload(`${platform.name} ${dl.format}`)}
-                        className="h-11 w-full border-2 border-foreground bg-foreground px-3 text-sm font-bold text-background shadow-[var(--shadow-solid-sm)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[var(--shadow-solid)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                        className="btn-sticker h-11 w-full bg-foreground px-3 text-sm text-background"
                       >
                         <Download className="mr-2 h-4 w-4 shrink-0" />
                         <span className="truncate">{dl.label}</span>
@@ -202,7 +199,7 @@ const DownloadPage: React.FC = () => {
           <StaggerContainer className="space-y-4" stagger={0.08}>
             {(showHistory ? versionHistory : versionHistory.slice(0, 2)).map((version) => (
               <StaggerItem key={version.version}>
-                <div className="sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt">
+                <div className="sticker-card-interactive-full">
                   <div className="mb-3 flex flex-wrap items-center gap-3">
                     <h3 className="font-display text-xl font-bold">v{version.version}</h3>
                     <Badge

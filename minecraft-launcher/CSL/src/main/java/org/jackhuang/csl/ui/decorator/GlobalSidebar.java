@@ -46,7 +46,6 @@ import org.jackhuang.csl.ui.instances.GameAdvancedListItem;
 import org.jackhuang.csl.ui.instances.GameListPopupMenu;
 import org.jackhuang.csl.ui.instances.Instances;
 import org.jackhuang.csl.ui.main.RootPage;
-import org.jackhuang.csl.game.CSLGameRepository;
 import org.jackhuang.csl.game.GameInstanceID;
 import org.jackhuang.csl.setting.Accounts;
 import org.jackhuang.csl.setting.GameDirectoryManager;

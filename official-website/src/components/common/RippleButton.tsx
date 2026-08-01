@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useRipple } from '@/hooks/useRipple';
 
 interface RippleButtonProps extends ButtonProps {
   children: React.ReactNode;
@@ -15,26 +16,10 @@ const RippleButton: React.FC<RippleButtonProps> = ({
   ...props
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const createRipple = useRipple(buttonRef, rippleColor);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const button = buttonRef.current;
-    if (!button) return;
-
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
-
-    const ripple = document.createElement('span');
-    ripple.className = `ripple ripple-${rippleColor}`;
-    ripple.style.width = `${size}px`;
-    ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-
-    button.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 500);
-
+    createRipple(e);
     onClick?.(e);
   };
 

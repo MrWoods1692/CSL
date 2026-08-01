@@ -191,6 +191,7 @@ public class AddonUpdatesPage<F extends LocalAddonFile> extends BorderPane imple
         return state;
     }
 
+    @SuppressWarnings("unused")
     private static final class AddonUpdateObject {
         final LocalAddonFile.AddonUpdate data;
         final BooleanProperty enabled = new SimpleBooleanProperty();

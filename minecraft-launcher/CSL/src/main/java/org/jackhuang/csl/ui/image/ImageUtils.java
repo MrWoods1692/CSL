@@ -452,6 +452,7 @@ public final class ImageUtils {
             return new AnimationImageImpl(width, height, framePixels, durations, cycleCount);
     }
 
+    @SuppressWarnings("unused")
     private static int[] rgbaToArgb(ByteBuffer rgba) {
         int pixelCount = rgba.remaining() / 4;
         int[] argb = new int[pixelCount];

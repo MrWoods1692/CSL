@@ -102,7 +102,7 @@ public interface TabControl {
             ((Node) tabHeader).notifyAccessibleAttributeChanged(AccessibleAttribute.FOCUS_ITEM);
         }
 
-        @Override public void select(Tab tab) {
+        @Override public void select(Tab<?> tab) {
             final int itemCount = getItemCount();
 
             for (int i = 0; i < itemCount; i++) {

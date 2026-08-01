@@ -80,7 +80,6 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
     private final String libraryId;
     private final String title;
     private final Navigation navigation;
-    private final DownloadProvider downloadProvider;
     private final VersionList<?> versionList;
     private final Runnable callback;
 
@@ -96,7 +95,6 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
         this.gameVersion = gameVersion;
         this.libraryId = libraryId;
         this.navigation = navigation;
-        this.downloadProvider = downloadProvider;
         this.versionList = downloadProvider.getVersionListById(libraryId);
         this.callback = callback;
 
@@ -261,6 +259,8 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
                 switch (NativePatcher.checkSupportedStatus(gameVersion, Platform.SYSTEM_PLATFORM, OperatingSystem.SYSTEM_VERSION)) {
                     case UNTESTED -> twoLineListItem.addTagWarning(i18n("instance.game.support_status.untested"));
                     case UNSUPPORTED -> twoLineListItem.addTagWarning(i18n("instance.game.support_status.unsupported"));
+                    // Supported statuses need no warning tag.
+                    case OFFICIAL_SUPPORTED, LAUNCHER_SUPPORTED, TRANSLATION_SUPPORTED -> { }
                 }
             } else {
                 GameInstanceIconType iconType;

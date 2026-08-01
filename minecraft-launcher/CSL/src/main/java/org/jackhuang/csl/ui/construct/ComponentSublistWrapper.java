@@ -275,9 +275,5 @@ final class ComponentSublistWrapper extends VBox implements NoPaddingComponent {
         private void setExtraTrailing(Node node) {
             setNode(EXTRA_TRAILING_INDEX, node);
         }
-
-        private void setTitleContent(Node node) {
-            setNode(IDX_TITLE, node);
-        }
     }
 }

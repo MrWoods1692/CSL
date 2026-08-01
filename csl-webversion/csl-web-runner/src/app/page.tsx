@@ -4,9 +4,8 @@ import { useState, useCallback } from 'react';
 import Launcher from '@/components/Launcher/Launcher';
 import GameCanvas from '@/components/Game/GameCanvas';
 import EaglercraftFrame from '@/components/Game/EaglercraftFrame';
-import ModManager from '@/components/Mods/ModManager';
 
-type PageState = 'launcher' | 'game' | 'mods';
+type PageState = 'launcher' | 'game';
 
 function isEaglercraft(version: string): boolean {
   return version.startsWith('eaglercraft_');
@@ -29,16 +28,11 @@ export default function Home() {
     setPageState('launcher');
   }, []);
 
-  const handleOpenMods = useCallback(() => {
-    setPageState('mods');
-  }, []);
-
   return (
     <div style={{ width: '100%', height: '100%' }}>
       {pageState === 'launcher' && (
         <Launcher
           onLaunch={handleLaunch}
-          onOpenMods={handleOpenMods}
         />
       )}
       {pageState === 'game' && isEaglercraft(selectedVersion) && (
@@ -53,11 +47,6 @@ export default function Home() {
           serverAddress={serverAddress}
           seed={singleplayerSeed}
           onBack={handleBackToLauncher}
-        />
-      )}
-      {pageState === 'mods' && (
-        <ModManager
-          onBack={() => setPageState('launcher')}
         />
       )}
     </div>

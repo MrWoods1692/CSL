@@ -1,37 +1,38 @@
 import { Link } from "react-router-dom";
+import { Home } from "lucide-react";
 import PageMeta from "@/components/common/PageMeta";
 
 export default function NotFound() {
   return (
     <>
       <PageMeta title="页面未找到" description="" />
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">
-        <div className="mx-auto w-full max-w-[242px] text-center sm:max-w-[472px]">
-          <h1 className="mb-8 font-bold text-gray-800 text-title-md dark:text-white/90 xl:text-title-2xl">
-            错误
-          </h1>
+      <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background p-6">
+        {/* 背景网格 */}
+        <div className="bg-grid-bold absolute inset-0 opacity-50" />
+        {/* 径向光晕 */}
+        <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 bg-radial-fade" />
 
-          <img src="/images/error/404.svg" alt="404" className="dark:hidden" />
-          <img
-            src="/images/error/404-dark.svg"
-            alt="404"
-            className="hidden dark:block"
-          />
-
-          <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-            页面可能已被删除或不存在，请检查网址是否正确。
-          </p>
-
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
-          >
-            返回首页
-          </Link>
+        <div className="relative mx-auto w-full max-w-md text-center">
+          <div className="sticker-card sticker-card-hover mb-8 p-10">
+            <h1 className="mb-2 font-display text-7xl font-bold text-gradient-vibrant text-stroke">
+              404
+            </h1>
+            <p className="mb-6 font-display text-xl font-bold">页面未找到</p>
+            <p className="mb-8 text-sm text-muted-foreground">
+              页面可能已被删除或不存在，请检查网址是否正确。
+            </p>
+            <Link
+              to="/"
+              className="btn-sticker btn-sticker-lg inline-flex h-12 items-center justify-center bg-primary px-6 text-base text-primary-foreground"
+            >
+              <Home className="mr-2 h-5 w-5" />
+              返回首页
+            </Link>
+          </div>
         </div>
-        {/* <!-- Footer --> */}
-        <p className="absolute text-sm text-center text-gray-500 -translate-x-1/2 bottom-6 left-1/2 dark:text-gray-400">
-          &copy; {new Date().getFullYear()}
+
+        <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} CSL 启动器
         </p>
       </div>
     </>

@@ -113,7 +113,7 @@ public class SkinMultipleCubes extends Group {
         getChildren().clear();
         int start_x = (int) (startX * skin.getWidth()), start_y = (int) (startY * skin.getHeight()),
                 interval = (int) Math.max(skin.getWidth() / 64, 1),
-                width_interval = width * interval, height_interval = height * interval, depth_interval = depth * interval;
+                width_interval = width * interval, depth_interval = depth * interval;
         // FRONT
         getChildren().add(new Face(skin, start_x + depth_interval, start_y + depth_interval, width, height, interval, false, false,
                 () -> new Box(length, length, thick), (b, p) -> {

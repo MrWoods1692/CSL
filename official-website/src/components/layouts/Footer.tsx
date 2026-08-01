@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 border-2 border-foreground bg-background px-3 py-2 text-sm font-bold shadow-[var(--shadow-solid-sm)] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[var(--shadow-solid)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                  className="btn-sticker flex items-center gap-2 bg-background px-3 py-2 text-sm"
                 >
                   <social.icon className="h-4 w-4" />
                   {social.name}
