@@ -49,6 +49,7 @@ public final class AccountListItemSkin extends SkinBase<AccountListItem> {
         super(skinnable);
 
         BorderPane root = new BorderPane();
+        root.getStyleClass().addAll("card", "account-list-card");
         root.setCursor(Cursor.HAND);
         FXUtils.onClicked(root, skinnable::fire);
 
@@ -59,6 +60,7 @@ public final class AccountListItemSkin extends SkinBase<AccountListItem> {
         root.setLeft(chkSelected);
 
         HBox center = new HBox();
+        center.getStyleClass().add("account-card-content");
         center.setSpacing(8);
         center.setAlignment(Pos.CENTER_LEFT);
 
@@ -80,6 +82,7 @@ public final class AccountListItemSkin extends SkinBase<AccountListItem> {
         BorderPane.setMargin(center, new Insets(0, 0, 0, 8));
 
         HBox right = new HBox();
+        right.getStyleClass().add("account-card-actions");
         right.setAlignment(Pos.CENTER_RIGHT);
 
         JFXButton btnMove = new JFXButton();
@@ -161,7 +164,6 @@ public final class AccountListItemSkin extends SkinBase<AccountListItem> {
         right.getChildren().add(btnRemove);
         root.setRight(right);
 
-        root.getStyleClass().add("card");
         root.setStyle("-fx-padding: 8 8 8 0;");
         JFXDepthManager.setDepth(root, 1);
 

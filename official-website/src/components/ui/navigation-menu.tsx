@@ -1,3 +1,10 @@
+/**
+ * NavigationMenu - 导航菜单
+ *
+ * 网站主导航菜单组件，支持下拉子菜单和响应式布局。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI 原语构建。
+ */
+
 import * as React from "react"
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"

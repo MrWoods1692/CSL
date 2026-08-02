@@ -82,7 +82,7 @@ public class OfflineAccount extends Account {
 
     public AuthInfo logInWithoutSkin() throws AuthenticationException {
         // Using "legacy" user type here because "mojang" user type may cause "invalid session token" or "disconnected" when connecting to a game server.
-        return new AuthInfo(profileName, profileID, UUIDs.toCompactString(UUID.randomUUID()), AuthInfo.USER_TYPE_MSA, "{}");
+        return new AuthInfo(profileName, profileID, UUIDs.toCompactString(UUID.randomUUID()), AuthInfo.USER_TYPE_LEGACY, "{}");
     }
 
     @Override

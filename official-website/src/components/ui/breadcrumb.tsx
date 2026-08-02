@@ -1,3 +1,10 @@
+/**
+ * Breadcrumb - 面包屑导航
+ *
+ * 显示当前页面在网站层级结构中的位置，帮助用户导航回上级页面。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI Slot 构建。
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "lucide-react"

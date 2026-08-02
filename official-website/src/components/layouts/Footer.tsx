@@ -1,7 +1,19 @@
+/**
+ * 全局页脚组件
+ *
+ * 包含：
+ * - 顶部彩色装饰条（primary / secondary / accent 三色）
+ * - 品牌信息 + 运营天数
+ * - 快速导航链接（双列网格）
+ * - 社交媒体链接
+ * - 版权声明 + 免责声明链接
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Github, MessageCircle, Gamepad2 } from 'lucide-react';
+import { Github, MessageCircle, Gamepad2, CalendarDays } from 'lucide-react';
 
+/** 页脚导航链接 */
 const footerLinks = [
   { name: '产品介绍', path: '/features' },
   { name: '软件下载', path: '/download' },
@@ -9,17 +21,30 @@ const footerLinks = [
   { name: '使用指南', path: '/guide' },
   { name: '开发文档', path: '/docs' },
   { name: '交流社区', path: '/community' },
+  { name: '用户协议与免责声明', path: '/policy' },
 ];
 
+/** 社交媒体链接 */
 const socialLinks = [
   { name: 'GitHub', href: 'https://github.com', icon: Github },
   { name: 'Telegram', href: 'https://telegram.org', icon: MessageCircle },
   { name: 'Discord', href: 'https://discord.com', icon: Gamepad2 },
 ];
 
+/** 项目起始日期：2026-08-01 */
+const PROJECT_START_DATE = new Date(2026, 7, 1);
+
+/** 计算项目已运营天数 */
+const getOperatingDays = () => {
+  const today = new Date();
+  const currentDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const elapsedDays = Math.floor((currentDay.getTime() - PROJECT_START_DATE.getTime()) / (24 * 60 * 60 * 1000));
+  return Math.max(1, elapsedDays + 1);
+};
+
 const Footer: React.FC = () => {
   return (
-    <footer className="relative border-t-2 border-foreground bg-muted">
+    <footer className="relative border-t-2 border-foreground bg-muted dark:border-border dark:bg-[hsl(222_31%_12%)]">
       {/* 顶部彩色装饰条 */}
       <div className="flex h-2">
         <div className="flex-1 bg-primary" />
@@ -42,6 +67,10 @@ const Footer: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <span className="border-2 border-foreground bg-card px-2 py-0.5 text-xs font-bold shadow-[var(--shadow-solid-sm)]">免费开源</span>
               <span className="border-2 border-foreground bg-card px-2 py-0.5 text-xs font-bold shadow-[var(--shadow-solid-sm)]">跨平台</span>
+            </div>
+            <div className="inline-flex items-center gap-2 border-2 border-foreground bg-primary px-3 py-2 text-sm font-bold shadow-[var(--shadow-solid-sm)]">
+              <CalendarDays className="h-4 w-4" />
+              已运营 {getOperatingDays()} 天
             </div>
           </div>
 
@@ -85,7 +114,7 @@ const Footer: React.FC = () => {
 
         <div className="mt-10 border-t-2 border-foreground pt-6 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} CSL 启动器. 基于开源协议发布.</p>
-          <p className="mt-1">本网站与 Mojang Studios 或 Microsoft 无关联。</p>
+          <p className="mt-1">项目自 2026 年 8 月 1 日开始运营 · 本网站与 Mojang Studios 或 Microsoft 无关联。<Link to="/policy" className="ml-2 font-bold underline hover:text-accent">用户协议与免责声明</Link></p>
         </div>
       </div>
     </footer>

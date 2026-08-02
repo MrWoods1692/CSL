@@ -17,9 +17,16 @@
  */
 package org.jackhuang.csl.util.i18n;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.PropertyResourceBundle;
 
 /// Overrides the default behavior of [ResourceBundle.Control], optimizing the candidate list generation logic.
 ///
@@ -51,5 +58,32 @@ public class DefaultResourceBundleControl extends ResourceBundle.Control {
         // By default, when only the base bundle is found, it will attempt to fall back to Locale.getDefault() for further lookup.
         // Since we always use the base bundle as the English resource file, we want to suppress this behavior.
         return null;
+    }
+
+    @Override
+    public ResourceBundle newBundle(
+            String baseName,
+            Locale locale,
+            String format,
+            ClassLoader loader,
+            boolean reload) throws IOException, IllegalAccessException, InstantiationException {
+        if (!"java.properties".equals(format)) {
+            return super.newBundle(baseName, locale, format, loader, reload);
+        }
+
+        String resourceName = toResourceName(toBundleName(baseName, locale), "properties");
+        URL resource = loader.getResource(resourceName);
+        if (resource == null) {
+            return null;
+        }
+
+        URLConnection connection = resource.openConnection();
+        if (reload) {
+            connection.setUseCaches(false);
+        }
+
+        try (InputStream input = connection.getInputStream()) {
+            return new PropertyResourceBundle(new InputStreamReader(input, StandardCharsets.UTF_8));
+        }
     }
 }

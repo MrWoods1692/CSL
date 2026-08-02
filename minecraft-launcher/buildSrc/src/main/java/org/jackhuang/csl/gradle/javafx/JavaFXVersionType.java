@@ -21,21 +21,25 @@ package org.jackhuang.csl.gradle.javafx;
  * @author Glavo
  */
 public enum JavaFXVersionType {
+    // 使用经典 JavaFX 版本，适用于 Java 17
     CLASSIC("classic", 17),
+    // 使用现代 JavaFX 版本，适用于 Java 23 及更高版本
     MODERN("modern", 23);
 
-    private final String name;
-    private final int javaVersion;
+    private final String name;  // 版本类别名称
+    private final int javaVersion;  // 对应的最低 Java 版本要求
 
     JavaFXVersionType(String name, int javaVersion) {
         this.name = name;
         this.javaVersion = javaVersion;
     }
 
+    // 返回版本类别名称
     public String getName() {
         return name;
     }
 
+    // 返回所需的 Java 版本
     public int getJavaVersion() {
         return javaVersion;
     }

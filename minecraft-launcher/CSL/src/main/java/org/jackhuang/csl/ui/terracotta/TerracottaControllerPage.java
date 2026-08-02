@@ -38,10 +38,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import org.jackhuang.csl.game.LauncherHelper;
 import org.jackhuang.csl.setting.GameDirectoryManager;
+import org.jackhuang.csl.terracotta.TerracottaMetadata;
 import org.jackhuang.csl.task.Schedulers;
 import org.jackhuang.csl.task.Task;
 import org.jackhuang.csl.terracotta.TerracottaManager;
-import org.jackhuang.csl.terracotta.TerracottaMetadata;
 import org.jackhuang.csl.terracotta.TerracottaState;
 import org.jackhuang.csl.terracotta.profile.TerracottaProfile;
 import org.jackhuang.csl.ui.Controllers;
@@ -52,7 +52,6 @@ import org.jackhuang.csl.ui.animation.ContainerAnimations;
 import org.jackhuang.csl.ui.animation.TransitionPane;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.ui.instances.Instances;
-import org.jackhuang.csl.util.i18n.I18n;
 import org.jackhuang.csl.util.i18n.LocaleUtils;
 import org.jackhuang.csl.util.io.FileUtils;
 import org.jackhuang.csl.util.io.Zipper;
@@ -67,14 +66,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
 
-import static org.jackhuang.csl.setting.SettingsManager.state;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 import static org.jackhuang.csl.util.logging.Logger.LOG;
 
 public class TerracottaControllerPage extends StackPane {
-    private static final String FEEDBACK_TIP = "terracotta-feedback";
     private static final ObjectProperty<TerracottaState> UI_STATE = new SimpleObjectProperty<>();
 
     static {
@@ -165,16 +161,6 @@ public class TerracottaControllerPage extends StackPane {
                         UI_STATE.set(s);
                     }
 
-                    if (uninitialized.hasLegacy() && I18n.isUseChinese()) {
-                        Object feedback = state().getShownTips().get(FEEDBACK_TIP);
-                        if (!(feedback instanceof Number number) || number.intValue() < 1) {
-                            Controllers.confirm(i18n("terracotta.feedback.desc.update"), i18n("terracotta.feedback.title"), () -> {
-                                FXUtils.openLink(TerracottaMetadata.FEEDBACK_LINK);
-                                state().getShownTips().put(FEEDBACK_TIP, 1);
-                            }, () -> {
-                            });
-                        }
-                    }
                 });
 
                 nodesProperty.setAll(download);
@@ -249,18 +235,7 @@ public class TerracottaControllerPage extends StackPane {
                     }, "", new RequiredValidator(i18n("input.not_empty")));
                 });
 
-                if (ThreadLocalRandom.current().nextDouble() < 0.02D) {
-                    var feedback = createLargeTitleLineButton();
-                    feedback.setLeading(SVG.FEEDBACK, ICON_SIZE);
-                    feedback.setTitle(i18n("terracotta.feedback.title"));
-                    feedback.setSubtitle(i18n("terracotta.feedback.desc"));
-                    feedback.setTrailingIcon(SVG.OPEN_IN_NEW, ICON_SIZE);
-                    FXUtils.onClicked(feedback, () -> FXUtils.openLink(TerracottaMetadata.FEEDBACK_LINK));
-
-                    nodesProperty.setAll(host, guest, feedback);
-                } else {
-                    nodesProperty.setAll(host, guest);
-                }
+                nodesProperty.setAll(host, guest);
             } else if (state instanceof TerracottaState.HostScanning) {
                 statusProperty.set(i18n("terracotta.status.scanning"));
                 progressProperty.set(-1);

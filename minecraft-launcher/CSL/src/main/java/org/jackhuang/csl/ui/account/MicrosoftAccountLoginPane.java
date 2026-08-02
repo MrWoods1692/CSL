@@ -49,14 +49,12 @@ import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.WeakListenerHolder;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.upgrade.IntegrityChecker;
-import org.jackhuang.csl.util.Lang;
 import org.jackhuang.csl.util.QrCodeUtils;
 import org.jackhuang.csl.util.StringUtils;
 
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
-import static org.jackhuang.csl.setting.SettingsManager.settings;
 import static org.jackhuang.csl.ui.FXUtils.onEscPressed;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 
@@ -217,7 +215,6 @@ public class MicrosoftAccountLoginPane extends JFXDialogLayout implements Dialog
 
             var lblCode = new Label(wait.userCode());
             lblCode.getStyleClass().add("code-label");
-            lblCode.setStyle("-fx-font-family: \"" + Lang.requireNonNullElse(settings().logFontFamilyProperty().get(), FXUtils.DEFAULT_MONOSPACE_FONT) + "\";");
 
             var codeBox = new StackPane(lblCode);
             codeBox.getStyleClass().add("code-box");

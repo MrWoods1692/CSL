@@ -1,3 +1,10 @@
+/**
+ * 图标容器组件
+ * 
+ * 统一的图标容器：硬边框 + 实心阴影 + 悬停放大。
+ * 用于卡片内的功能图标展示，支持三种尺寸和自定义颜色。
+ */
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +20,7 @@ interface IconBoxProps {
   className?: string;
 }
 
+/** 尺寸映射：容器大小 + 图标大小 */
 const SIZE_MAP = {
   sm: { box: 'h-10 w-10', icon: 'h-5 w-5' },
   md: { box: 'h-12 w-12', icon: 'h-6 w-6' },

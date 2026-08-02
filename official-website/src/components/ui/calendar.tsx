@@ -1,3 +1,10 @@
+/**
+ * Calendar - 日历
+ *
+ * 日期选择日历组件，支持单选、范围选择、月份导航和自定义渲染。
+ * 基于 shadcn/ui (new-york 风格) + react-day-picker 构建。
+ */
+
 import * as React from "react"
 import {
   ChevronDownIcon,

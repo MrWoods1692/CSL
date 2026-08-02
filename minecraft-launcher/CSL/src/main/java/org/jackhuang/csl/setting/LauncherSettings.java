@@ -213,6 +213,24 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return disableAutoShowUpdateDialog;
     }
 
+    /// Whether the default FRP multiplayer profile should start with the launcher.
+    @SerializedName("autoStartMultiplayer")
+    private final BooleanProperty autoStartMultiplayer = new SimpleBooleanProperty(false);
+
+    /// Returns the automatic multiplayer startup property.
+    public BooleanProperty autoStartMultiplayerProperty() {
+        return autoStartMultiplayer;
+    }
+
+    /// The saved multiplayer profile name selected for automatic startup.
+    @SerializedName("defaultMultiplayerProfile")
+    private final StringProperty defaultMultiplayerProfile = new SimpleStringProperty("");
+
+    /// Returns the default multiplayer profile property.
+    public StringProperty defaultMultiplayerProfileProperty() {
+        return defaultMultiplayerProfile;
+    }
+
     /// Whether April Fools features are disabled.
     @SerializedName("disableAprilFools")
     private final BooleanProperty disableAprilFools = new SimpleBooleanProperty(false);
@@ -460,35 +478,6 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
     /// Returns the launcher background loading policy property.
     public ObjectProperty<BackgroundLoadPolicy> backgroundLoadPolicyProperty() {
         return backgroundLoadPolicy;
-    }
-
-    // Fonts
-
-    /// The font family used by launcher log views.
-    @SerializedName("logFontFamily")
-    private final StringProperty logFontFamily = new SimpleStringProperty();
-
-    /// Returns the launcher log font family property.
-    public StringProperty logFontFamilyProperty() {
-        return logFontFamily;
-    }
-
-    /// The launcher log font size.
-    @SerializedName("logFontSize")
-    private final DoubleProperty logFontSize = new SimpleDoubleProperty(12);
-
-    /// Returns the launcher log font size property.
-    public DoubleProperty logFontSizeProperty() {
-        return logFontSize;
-    }
-
-    /// The font family used by launcher chrome.
-    @SerializedName("launcherFontFamily")
-    private final StringProperty launcherFontFamily = new SimpleStringProperty();
-
-    /// Returns the launcher chrome font family property.
-    public StringProperty launcherFontFamilyProperty() {
-        return launcherFontFamily;
     }
 
     // General UI

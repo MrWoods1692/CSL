@@ -57,6 +57,7 @@ import org.jackhuang.csl.ui.download.DownloadPage;
 import org.jackhuang.csl.ui.main.LauncherSettingsPage;
 import org.jackhuang.csl.ui.main.RootPage;
 import org.jackhuang.csl.ui.main.StatusPage;
+import org.jackhuang.csl.ui.multiplayer.MultiplayerPage;
 import org.jackhuang.csl.ui.terracotta.TerracottaPage;
 import org.jackhuang.csl.ui.instances.GameListPage;
 import org.jackhuang.csl.ui.instances.GameInstancePage;
@@ -118,6 +119,7 @@ public final class Controllers {
     });
     private static LauncherSettingsPage settingsPage;
     private static Lazy<TerracottaPage> terracottaPage = new Lazy<>(TerracottaPage::new);
+    private static Lazy<MultiplayerPage> multiplayerPage = new Lazy<>(MultiplayerPage::new);
     private static Lazy<StatusPage> statusPage = new Lazy<>(StatusPage::new);
 
     private Controllers() {
@@ -210,6 +212,12 @@ public final class Controllers {
     @FXThread
     public static Node getTerracottaPage() {
         return terracottaPage.get();
+    }
+
+    /// Returns the launcher-owned multiplayer page without starting a legacy core.
+    @FXThread
+    public static Node getMultiplayerPage() {
+        return multiplayerPage.get();
     }
 
     @FXThread
@@ -333,7 +341,10 @@ public final class Controllers {
         stage.heightProperty().addListener(weakListener);
         stage.widthProperty().addListener(weakListener);
 
-        stage.setOnCloseRequest(e -> Launcher.stopApplication());
+        stage.setOnCloseRequest(e -> {
+            e.consume();
+            Launcher.hideToTray(stage);
+        });
 
         decorator = new DecoratorController(stage, getRootPage());
         getRootPage().getMainPage().showUpdateProperty().bind(UpdateChecker.checkingUpdateProperty().not().and(UpdateChecker.outdatedProperty()));
@@ -447,6 +458,7 @@ public final class Controllers {
 
         if (SettingsManager.userState().agreementVersionProperty().get() < 1) {
             JFXDialogLayout agreementPane = new JFXDialogLayout();
+            agreementPane.getStyleClass().add("launcher-agreement-dialog");
             agreementPane.setHeading(new Label(i18n("launcher.agreement")));
             agreementPane.setBody(new Label(i18n("launcher.agreement.hint")));
             JFXHyperlink agreementLink = new JFXHyperlink(i18n("launcher.agreement"));

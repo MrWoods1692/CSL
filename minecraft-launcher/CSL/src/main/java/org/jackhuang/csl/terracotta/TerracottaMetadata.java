@@ -27,7 +27,6 @@ import org.jackhuang.csl.util.gson.JsonSerializable;
 import org.jackhuang.csl.util.gson.JsonUtils;
 import org.jackhuang.csl.util.i18n.LocaleUtils;
 import org.jackhuang.csl.util.io.FileUtils;
-import org.jackhuang.csl.util.io.NetworkUtils;
 import org.jackhuang.csl.util.platform.Architecture;
 import org.jackhuang.csl.util.platform.OSVersion;
 import org.jackhuang.csl.util.platform.OperatingSystem;
@@ -100,10 +99,6 @@ public final class TerracottaMetadata {
 
     public static final AbstractTerracottaProvider PROVIDER;
     public static final String PACKAGE_NAME;
-    public static final String FEEDBACK_LINK = NetworkUtils.withQuery("https://docs.csl.net/multiplayer/feedback.html", Map.of(
-            "v", "v1",
-            "launcher_version", Metadata.VERSION
-    ));
 
     private static final String LATEST;
 

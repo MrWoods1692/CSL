@@ -1,5 +1,19 @@
-import React, { useState } from 'react';
-import { Download, Calendar, FileText, History, Monitor, Apple, Laptop } from 'lucide-react';
+/**
+ * 下载页面
+ *
+ * 页面结构：
+ * 1. 版本信息栏：最新版本号、发布日期、自动检测平台
+ * 2. 平台下载卡片：Windows / macOS / Linux，自动高亮推荐平台
+ * 3. 版本历史：可展开的 changelog 列表
+ *
+ * 功能：
+ * - 自动检测用户操作系统并高亮推荐
+ * - 点击下载按钮触发下载（模拟）
+ * - 可查看历史版本更新日志
+ */
+
+import React, { useEffect, useState } from 'react';
+import { Download, Calendar, FileText, History, Monitor, Apple, Laptop, Check, ShieldCheck, Zap } from 'lucide-react';
 import RippleButton from '@/components/common/RippleButton';
 import { Badge } from '@/components/ui/badge';
 import MainLayout from '@/components/layouts/MainLayout';
@@ -16,49 +30,59 @@ interface Version {
   changelog: string[];
 }
 
-const latestVersion = '3.2.1';
+/** 下载选项 */
+interface DownloadOption {
+  label: string;
+  format: string;
+  size: string;
+  href?: string;
+}
+
+/** 当前最新版本号 */
+const latestVersion = '0.1.0';
+/** 发布日期 */
 const releaseDate = '2026-07-28';
 
+/** 平台下载数据 */
 const platforms = [
   {
     name: 'Windows',
     icon: Monitor,
     arch: '64-bit',
-    downloads: [{ label: '安装包', format: '.exe', size: '42 MB' }],
+    description: '适用于 Windows 10/11，双击安装即可使用。',
+    downloads: [{ label: '下载安装包', format: '.exe', size: '42 MB', href: '#' }],
     color: 'bg-primary',
   },
   {
     name: 'macOS',
     icon: Apple,
     arch: 'Intel / Apple Silicon',
-    downloads: [{ label: '安装包', format: '.dmg', size: '58 MB' }],
+    description: '支持 Intel 与 Apple Silicon 芯片。',
+    downloads: [{ label: '下载安装包', format: '.dmg', size: '58 MB', href: '#' }],
     color: 'bg-accent',
   },
   {
     name: 'Linux',
     icon: Laptop,
     arch: 'x64 / AppImage',
+    description: '提供主流发行版安装包与便携版本。',
     downloads: [
-      { label: 'Debian / Ubuntu', format: '.deb', size: '48 MB' },
-      { label: 'RedHat / Fedora', format: '.rpm', size: '48 MB' },
-      { label: 'AppImage', format: '.AppImage', size: '62 MB' },
-      { label: 'Docker 镜像', format: 'docker pull', size: '镜像' },
-      { label: '便携压缩包', format: '.tar.gz', size: '45 MB' },
+      { label: 'Debian / Ubuntu', format: '.deb', size: '48 MB', href: '#' },
+      { label: 'RedHat / Fedora', format: '.rpm', size: '48 MB', href: '#' },
+      { label: 'AppImage', format: '.AppImage', size: '62 MB', href: '#' },
+      { label: 'Docker 镜像', format: 'docker pull', size: '镜像', href: '#' },
+      { label: '便携压缩包', format: '.tar.gz', size: '45 MB', href: '#' },
     ],
     color: 'bg-secondary',
   },
 ];
 
+/** 版本历史数据 */
 const versionHistory: Version[] = [
   {
-    version: '3.2.1',
+    version: '0.1.0',
     date: '2026-07-28',
     changelog: ['修复部分模组加载器识别错误', '优化启动内存分配提示', '改进深色模式下的对比度'],
-  },
-  {
-    version: '3.2.0',
-    date: '2026-07-15',
-    changelog: ['新增整合包导出功能', '支持 Modrinth 直接搜索安装', '重写日志查看器'],
   },
   {
     version: '3.1.2',
@@ -79,9 +103,17 @@ const versionHistory: Version[] = [
 
 const DownloadPage: React.FC = () => {
   const [showHistory, setShowHistory] = useState(false);
+  const [downloaded, setDownloaded] = useState<string | null>(null);
+  const [detectedPlatform, setDetectedPlatform] = useState('');
 
-  const handleDownload = (platform: string) => {
-    alert(`开始下载 ${platform} 版本。实际项目中此处会触发真实下载链接。`);
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    setDetectedPlatform(userAgent.includes('mac') ? 'macOS' : userAgent.includes('linux') ? 'Linux' : 'Windows');
+  }, []);
+
+  const handleDownload = (platform: string, option: DownloadOption) => {
+    setDownloaded(`${platform} ${option.format}`);
+    if (option.href && option.href !== '#') window.location.href = option.href;
   };
 
   return (
@@ -121,28 +153,53 @@ const DownloadPage: React.FC = () => {
                 <Calendar className="mr-1 h-3 w-3" />
                 {releaseDate}
               </Badge>
+              {detectedPlatform && (
+                <Badge variant="outline" className="border-2 border-accent px-3 py-1 text-sm font-bold text-accent">
+                  <Zap className="mr-1 h-3 w-3" />
+                  已检测到 {detectedPlatform}
+                </Badge>
+              )}
             </div>
           </AnimatedSection>
 
-          <StaggerContainer className="grid gap-6 md:grid-cols-3" stagger={0.1} delay={0.2}>
-            {platforms.map((platform, idx) => (
-              <StaggerItem key={platform.name}>
+          <AnimatedSection delay={0.15}>
+            <div className="mx-auto mb-10 grid max-w-3xl gap-3 text-sm sm:grid-cols-3">
+              {[
+                { icon: ShieldCheck, text: '开源透明，安全可靠' },
+                { icon: Zap, text: '高速下载，断点续传' },
+                { icon: Check, text: '支持三大桌面平台' },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center justify-center gap-2 border-2 border-foreground/20 bg-card px-3 py-3 font-semibold shadow-[var(--shadow-solid-sm)]">
+                  <item.icon className="h-4 w-4 text-accent" />
+                  {item.text}
+                </div>
+              ))}
+            </div>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid items-start gap-6 md:grid-cols-3" stagger={0.1} delay={0.2}>
+            {platforms.map((platform) => {
+              const isRecommended = detectedPlatform === platform.name;
+
+              return (
+              <StaggerItem key={platform.name} className="self-start">
                 <div
-                  className={`sticker-card sticker-card-hover sticker-card-tilt flex h-full flex-col ${idx === 0 ? 'md:scale-105 md:border-accent' : ''}`}
+                  className={`sticker-card sticker-card-hover sticker-card-tilt flex flex-col overflow-visible ${isRecommended ? 'md:scale-105 md:border-accent' : ''}`}
                 >
-                  {idx === 0 && (
+                  {isRecommended && (
                     <span className="absolute -top-3 right-4 border-2 border-foreground bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground shadow-[var(--shadow-solid-sm)]">
-                      推荐
+                      推荐安装
                     </span>
                   )}
                   <div className="tape" />
-                  <div className="mb-6 flex items-center gap-4">
+                  <div className="mb-6 flex items-center gap-4 border-b-2 border-dashed border-foreground/20 pb-5">
                     <IconBox icon={platform.icon} color={platform.color} size="lg" />
                     <div>
                       <h3 className="font-display text-2xl font-bold">{platform.name}</h3>
-                      <p className="text-sm text-muted-foreground">{platform.arch}</p>
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{platform.arch}</p>
                     </div>
                   </div>
+                  <p className="mb-5 text-sm leading-relaxed text-muted-foreground">{platform.description}</p>
 
                   <div className="mb-4 space-y-2 border-b-2 border-dashed border-foreground/20 pb-4 text-sm">
                     <div className="flex justify-between">
@@ -155,11 +212,11 @@ const DownloadPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mt-auto space-y-2">
+                  <div className="space-y-2">
                     {platform.downloads.map((dl) => (
                       <RippleButton
                         key={dl.format}
-                        onClick={() => handleDownload(`${platform.name} ${dl.format}`)}
+                        onClick={() => handleDownload(platform.name, dl)}
                         className="btn-sticker h-11 w-full bg-foreground px-3 text-sm text-background"
                       >
                         <Download className="mr-2 h-4 w-4 shrink-0" />
@@ -167,10 +224,17 @@ const DownloadPage: React.FC = () => {
                         <span className="ml-auto shrink-0 text-xs opacity-75">{dl.size}</span>
                       </RippleButton>
                     ))}
+                    {downloaded?.startsWith(platform.name) && (
+                      <p className="flex items-center justify-center gap-1 text-xs font-semibold text-accent">
+                        <Check className="h-3.5 w-3.5" />
+                        已准备下载 {downloaded.replace(`${platform.name} `, '')}
+                      </p>
+                    )}
                   </div>
                 </div>
               </StaggerItem>
-            ))}
+              );
+            })}
           </StaggerContainer>
         </div>
       </section>

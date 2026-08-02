@@ -1,3 +1,10 @@
+/**
+ * Form - 表单
+ *
+ * 表单组件集合，集成 react-hook-form 提供表单验证、错误提示和受控字段管理。
+ * 基于 shadcn/ui (new-york 风格) + react-hook-form + Zod 构建。
+ */
+
 "use client"
 
 import * as React from "react"

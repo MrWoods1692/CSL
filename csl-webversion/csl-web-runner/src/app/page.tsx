@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Launcher from '@/components/Launcher/Launcher';
 import GameCanvas from '@/components/Game/GameCanvas';
 import EaglercraftFrame from '@/components/Game/EaglercraftFrame';
+import { MultiplayerMode } from '@/lib/multiplayer-core';
 
 type PageState = 'launcher' | 'game';
 
@@ -16,11 +17,15 @@ export default function Home() {
   const [selectedVersion, setSelectedVersion] = useState('eaglercraft_1_12');
   const [serverAddress, setServerAddress] = useState('');
   const [singleplayerSeed, setSingleplayerSeed] = useState('');
+  const [networkMode, setNetworkMode] = useState<MultiplayerMode>('relay');
+  const [frpIni, setFrpIni] = useState('');
 
-  const handleLaunch = useCallback((version: string, server?: string, seed?: string) => {
+  const handleLaunch = useCallback((version: string, server?: string, seed?: string, mode?: MultiplayerMode, ini?: string) => {
     setSelectedVersion(version);
     setServerAddress(server || '');
     setSingleplayerSeed(seed || '');
+    setNetworkMode(mode || 'relay');
+    setFrpIni(ini || '');
     setPageState('game');
   }, []);
 
@@ -38,6 +43,8 @@ export default function Home() {
       {pageState === 'game' && isEaglercraft(selectedVersion) && (
         <EaglercraftFrame
           version={selectedVersion}
+          serverAddress={serverAddress}
+          networkMode={networkMode}
           onBack={handleBackToLauncher}
         />
       )}
@@ -46,6 +53,8 @@ export default function Home() {
           version={selectedVersion}
           serverAddress={serverAddress}
           seed={singleplayerSeed}
+          networkMode={networkMode}
+          frpIni={frpIni}
           onBack={handleBackToLauncher}
         />
       )}

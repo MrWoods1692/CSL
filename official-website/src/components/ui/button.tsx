@@ -1,3 +1,10 @@
+/**
+ * Button - 按钮
+ *
+ * 可交互的按钮组件，支持多种变体（默认、破坏性、轮廓、次要、幽灵、链接）和尺寸。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI Slot + class-variance-authority 构建。
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"

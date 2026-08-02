@@ -43,6 +43,7 @@ import org.jackhuang.csl.ui.account.CreateAccountPane;
 import org.jackhuang.csl.ui.construct.DialogCloseEvent;
 import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jackhuang.csl.ui.construct.PromptDialogPane;
+import org.jackhuang.csl.ui.multiplayer.MinecraftServerManager;
 import org.jackhuang.csl.ui.construct.Validator;
 import org.jackhuang.csl.ui.download.ModpackInstallWizardProvider;
 import org.jackhuang.csl.ui.export.ExportWizardProvider;
@@ -61,6 +62,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.jackhuang.csl.setting.UsageStatsHelper.recordDelete;
+import static org.jackhuang.csl.setting.UsageStatsHelper.recordInstanceCreate;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 import static org.jackhuang.csl.util.logging.Logger.LOG;
 
@@ -127,6 +130,7 @@ public final class Instances {
         JFXButton deleteButton = new JFXButton(i18n("button.delete"));
         deleteButton.getStyleClass().add("dialog-error");
         deleteButton.setOnAction(e -> {
+            UsageStatsHelper.recordDelete();
             Task.supplyAsync(Schedulers.io(), () -> repository.removeInstanceFromDisk(instanceId))
                     .whenComplete(Schedulers.javafx(), (result, exception) -> {
                         if (exception != null || !Boolean.TRUE.equals(result)) {
@@ -221,6 +225,7 @@ public final class Instances {
                             .thenComposeAsync(repository.refreshAsync())
                             .whenComplete(Schedulers.javafx(), (result, exception) -> {
                                 if (exception == null) {
+                                    UsageStatsHelper.recordInstanceCreate();
                                     handler.resolve();
                                 } else {
                                     handler.reject(StringUtils.getStackTrace(exception));
@@ -311,6 +316,9 @@ public final class Instances {
             return;
         ensureSelectedAccount(account -> {
             LauncherHelper launcherHelper = new LauncherHelper(repository, account, instanceId);
+            if (MinecraftServerManager.isServerRunning()) {
+                launcherHelper.setKeep();
+            }
             for (Consumer<LauncherHelper> injecter : injecters) {
                 injecter.accept(launcherHelper);
             }
@@ -350,7 +358,24 @@ public final class Instances {
                     gotoDownload,
                     null);
             return false;
+        } else if (isMinecraftJarMissing(repository, instanceId)) {
+            JFXButton gotoDownload = new JFXButton("前往下载");
+            gotoDownload.getStyleClass().add("dialog-accept");
+            gotoDownload.setOnAction(e -> Controllers.navigate(Controllers.getDownloadPage()));
+            Controllers.confirmAction("当前配置缺少 Minecraft 客户端文件，请先下载后再启动。",
+                    "需要下载 Minecraft", MessageDialogPane.MessageType.WARNING, gotoDownload, null);
+            return false;
         } else {
+            return true;
+        }
+    }
+
+    private static boolean isMinecraftJarMissing(CSLGameRepository repository, GameInstanceID instanceId) {
+        try {
+            Path jar = repository.getInstanceJar(instanceId);
+            return Files.notExists(jar) || Files.size(jar) == 0L;
+        } catch (Exception exception) {
+            LOG.warning("Unable to check Minecraft client jar", exception);
             return true;
         }
     }
@@ -371,11 +396,6 @@ public final class Instances {
         } else {
             action.accept(account);
         }
-    }
-
-    public static void modifyGlobalSettings(CSLGameRepository repository) {
-        Controllers.getSettingsPage().showGameSettings(repository);
-        Controllers.navigate(Controllers.getSettingsPage());
     }
 
     public static void modifyGameSettings(CSLGameRepository repository, GameInstanceID instanceId) {

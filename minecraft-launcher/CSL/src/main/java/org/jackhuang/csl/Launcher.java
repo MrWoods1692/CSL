@@ -41,6 +41,7 @@ import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.animation.AnimationUtils;
+import org.jackhuang.csl.ui.multiplayer.MultiplayerPage;
 import org.jackhuang.csl.upgrade.UpdateChecker;
 import org.jackhuang.csl.upgrade.UpdateHandler;
 import org.jackhuang.csl.util.*;
@@ -56,6 +57,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.net.CookieHandler;
@@ -70,6 +72,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.jackhuang.csl.setting.SettingsManager.settings;
+import static org.jackhuang.csl.setting.UsageStatsHelper.startLauncherTimer;
+import static org.jackhuang.csl.setting.UsageStatsHelper.stopLauncherTimer;
 import static org.jackhuang.csl.ui.FXUtils.runInFX;
 import static org.jackhuang.csl.util.DataSizeUnit.MEGABYTES;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
@@ -77,10 +81,13 @@ import static org.jackhuang.csl.util.logging.Logger.LOG;
 
 public final class Launcher extends Application {
     public static final CookieManager COOKIE_MANAGER = new CookieManager();
+    private static volatile boolean exitRequested;
+    private static TrayIcon trayIcon;
 
     @Override
     public void start(Stage primaryStage) {
         Thread.currentThread().setUncaughtExceptionHandler(CRASH_REPORTER);
+        UsageStatsHelper.startLauncherTimer();
 
         CookieHandler.setDefault(COOKIE_MANAGER);
 
@@ -133,6 +140,8 @@ public final class Launcher extends Application {
                 // Stage.show() cannot work again because JavaFX Toolkit have already shut down.
                 Platform.setImplicitExit(false);
                 Controllers.initialize(primaryStage);
+                installSystemTray(primaryStage);
+                MultiplayerPage.autoStartDefaultProfile();
 
                 if (OperatingSystem.CURRENT_OS == OperatingSystem.MACOS)
                     Themes.applyNativeDarkMode(primaryStage);
@@ -268,6 +277,8 @@ public final class Launcher extends Application {
 
     @Override
     public void stop() throws Exception {
+        UsageStatsHelper.stopLauncherTimer();
+        MultiplayerPage.stopAutomaticDefaultProfile();
         Controllers.onApplicationStop();
         SettingsManager.shutdown();
         LOG.shutdown();
@@ -346,6 +357,7 @@ public final class Launcher extends Application {
     }
 
     public static void stopApplication() {
+        exitRequested = true;
         LOG.info("Stopping application.\n" + StringUtils.getStackTrace(Thread.currentThread().getStackTrace()));
 
         runInFX(() -> {
@@ -356,6 +368,52 @@ public final class Launcher extends Application {
             Controllers.shutdown();
             Platform.exit();
         });
+    }
+
+    /// Hides the launcher window while keeping the application and background services alive.
+    public static void hideToTray(Stage stage) {
+        if (!exitRequested) {
+            stage.hide();
+        }
+    }
+
+    /// Installs the system-tray menu used to restore or exit the launcher.
+    private static void installSystemTray(Stage stage) {
+        if (!SystemTray.isSupported() || trayIcon != null)
+            return;
+
+        try (InputStream stream = Launcher.class.getResourceAsStream("/assets/img/icon-title.png")) {
+            if (stream == null)
+                return;
+
+            Image image = Toolkit.getDefaultToolkit().createImage(stream.readAllBytes());
+            PopupMenu menu = new PopupMenu();
+            MenuItem restore = new MenuItem("显示启动器");
+            restore.addActionListener(event -> runInFX(() -> {
+                stage.show();
+                stage.toFront();
+            }));
+            MenuItem exit = new MenuItem("退出启动器");
+            exit.addActionListener(event -> {
+                if (trayIcon != null)
+                    SystemTray.getSystemTray().remove(trayIcon);
+                trayIcon = null;
+                stopApplication();
+            });
+            menu.add(restore);
+            menu.addSeparator();
+            menu.add(exit);
+
+            trayIcon = new TrayIcon(image, "CSL", menu);
+            trayIcon.setImageAutoSize(true);
+            trayIcon.addActionListener(event -> runInFX(() -> {
+                stage.show();
+                stage.toFront();
+            }));
+            SystemTray.getSystemTray().add(trayIcon);
+        } catch (AWTException | IOException e) {
+            LOG.warning("Failed to install system tray icon", e);
+        }
     }
 
     public static void stopWithoutPlatform() {

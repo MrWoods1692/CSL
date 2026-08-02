@@ -30,7 +30,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
-import org.jackhuang.csl.terracotta.TerracottaMetadata;
 import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
@@ -41,7 +40,6 @@ import org.jackhuang.csl.ui.animation.AnimationUtils;
 import org.jackhuang.csl.ui.animation.Motion;
 import org.jackhuang.csl.ui.construct.AdvancedListBox;
 import org.jackhuang.csl.ui.construct.AdvancedListItem;
-import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jackhuang.csl.ui.instances.GameAdvancedListItem;
 import org.jackhuang.csl.ui.instances.GameListPopupMenu;
 import org.jackhuang.csl.ui.instances.Instances;
@@ -50,11 +48,6 @@ import org.jackhuang.csl.game.GameInstanceID;
 import org.jackhuang.csl.setting.Accounts;
 import org.jackhuang.csl.setting.GameDirectoryManager;
 import org.jackhuang.csl.util.Lang;
-import org.jackhuang.csl.util.platform.Architecture;
-import org.jackhuang.csl.util.platform.Bits;
-import org.jackhuang.csl.util.platform.OperatingSystem;
-import org.jackhuang.csl.util.platform.OSVersion;
-import org.jackhuang.csl.util.platform.Platform;
 import org.jetbrains.annotations.NotNullByDefault;
 
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
@@ -136,35 +129,17 @@ public final class GlobalSidebar extends VBox {
         launcherSettingsItem.setLeftIcon(SVG.SETTINGS);
         launcherSettingsItem.setTitle(i18n("settings"));
         launcherSettingsItem.setOnAction(e -> {
-            Controllers.getSettingsPage().showGameSettings(GameDirectoryManager.getSelectedRepository());
             Controllers.navigate(Controllers.getSettingsPage());
         });
         if (AnimationUtils.isAnimationEnabled()) {
             FXUtils.prepareOnMouseEnter(launcherSettingsItem, Controllers::prepareSettingsPage);
         }
 
-        // Terracotta item
-        AdvancedListItem terracottaItem = new AdvancedListItem();
-        terracottaItem.setLeftIcon(SVG.GRAPH2);
-        terracottaItem.setTitle(i18n("terracotta"));
-        terracottaItem.setOnAction(e -> {
-            if (TerracottaMetadata.PROVIDER != null) {
-                Controllers.navigate(Controllers.getTerracottaPage());
-            } else {
-                String message;
-                if (Architecture.SYSTEM_ARCH.getBits() == Bits.BIT_32)
-                    message = i18n("terracotta.unsupported.arch.32bit");
-                else if (OperatingSystem.CURRENT_OS == OperatingSystem.WINDOWS
-                        && !OperatingSystem.SYSTEM_VERSION.isAtLeast(OSVersion.WINDOWS_10))
-                    message = i18n("terracotta.unsupported.os.windows.old");
-                else if (Platform.SYSTEM_PLATFORM.equals(OperatingSystem.LINUX, Architecture.LOONGARCH64_OW))
-                    message = i18n("terracotta.unsupported.arch.loongarch64_ow");
-                else
-                    message = i18n("terracotta.unsupported");
-
-                Controllers.dialog(message, null, MessageDialogPane.MessageType.WARNING);
-            }
-        });
+        // Launcher-owned multiplayer item. It must not initialize Terracotta.
+        AdvancedListItem multiplayerItem = new AdvancedListItem();
+        multiplayerItem.setLeftIcon(SVG.GRAPH2);
+        multiplayerItem.setTitle(i18n("multiplayer"));
+        multiplayerItem.setOnAction(e -> Controllers.navigate(Controllers.getMultiplayerPage()));
 
         // System status item
         AdvancedListItem statusItem = new AdvancedListItem();
@@ -180,7 +155,7 @@ public final class GlobalSidebar extends VBox {
                 .add(gameItem)
                 .add(downloadItem)
                 .add(launcherSettingsItem)
-                .add(terracottaItem)
+                .add(multiplayerItem)
                 .add(statusItem)
                 .addNavigationDrawerItem(i18n("contact.chat"), SVG.CHAT, () -> {
                     Controllers.getSettingsPage().showFeedback();
@@ -195,7 +170,9 @@ public final class GlobalSidebar extends VBox {
         sidebarToggleButton.setAlignment(Pos.CENTER_LEFT);
         SVGPath sidebarToggleIcon = new SVGPath();
         sidebarToggleIcon.getStyleClass().add("svg");
-        sidebarToggleIcon.fillProperty().bind(Themes.titleFillProperty());
+        // Use the theme primary color so the toggle remains visible against
+        // both light and dark, translucent sidebar backgrounds.
+        sidebarToggleIcon.fillProperty().bind(Themes.colorSchemeProperty().getPrimary());
         sidebarToggleButton.setGraphic(sidebarToggleIcon);
         sidebarToggleButton.setOnAction(e -> sidebarCollapsed.set(!sidebarCollapsed.get()));
         FXUtils.onChangeAndOperate(sidebarCollapsed, collapsed -> {

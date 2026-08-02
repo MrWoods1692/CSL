@@ -56,8 +56,8 @@ public final class GameListCell extends ListCell<GameListItem> {
 
     public GameListCell() {
         BorderPane root = new BorderPane();
-        root.getStyleClass().add("md-list-cell");
-        root.setPadding(new Insets(8, 8, 8, 0));
+        root.getStyleClass().addAll("md-list-cell", "game-instance-card");
+        root.setPadding(new Insets(10, 14, 10, 8));
 
         RipplerContainer container = new RipplerContainer(root);
         this.graphic = container;

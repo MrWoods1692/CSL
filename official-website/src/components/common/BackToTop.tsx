@@ -1,3 +1,10 @@
+/**
+ * 回到顶部按钮
+ * 
+ * 固定在页面右下角的浮动按钮，滚动超过 400px 后显示。
+ * 点击后平滑滚动到页面顶部。尊重"减少动画"偏好。
+ */
+
 import React, { useEffect, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -10,17 +17,21 @@ const BackToTop: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
+      // 滚动超过 400px 时显示按钮
       setVisible(window.scrollY > 400);
     };
+    // passive: true 提升滚动性能
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToTop = () => {
+    // 减少动画模式下使用 instant 滚动
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   };
 
   return (
+    // AnimatePresence：在元素从 DOM 移除时播放退出动画
     <AnimatePresence>
       {visible && (
         <motion.div

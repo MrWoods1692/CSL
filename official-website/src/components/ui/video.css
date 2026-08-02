@@ -1,3 +1,9 @@
+/**
+ * Video 组件样式
+ *
+ * video-react 播放器的自定义样式覆盖，用于隐藏暂停时的大播放按钮。
+ */
+
 .video-react-paused .video-react-big-play-button.big-play-button-hide {
     display: block;
 }

@@ -1,3 +1,10 @@
+/**
+ * Chart - 图表
+ *
+ * 数据可视化图表组件，封装 Recharts 提供声明式图表配置和主题色支持。
+ * 基于 shadcn/ui (new-york 风格) + Recharts 构建。
+ */
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 

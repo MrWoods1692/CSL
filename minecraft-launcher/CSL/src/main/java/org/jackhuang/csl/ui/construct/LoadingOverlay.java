@@ -33,9 +33,9 @@ import javafx.scene.shape.Rectangle;
 /// multiple {@code Timeline} objects to reduce CPU overhead.
 public final class LoadingOverlay extends StackPane {
 
-    private static final double BLOCK_SIZE = 16;
-    private static final double BLOCK_RADIUS = 4;
-    private static final double BLOCK_SPACING = 8;
+    private static final double BLOCK_SIZE = 14;
+    private static final double BLOCK_RADIUS = 7;
+    private static final double BLOCK_SPACING = 9;
     private static final int BLOCK_COUNT = 5;
 
     // Fixed colors for each block
@@ -51,7 +51,6 @@ public final class LoadingOverlay extends StackPane {
 
     public LoadingOverlay() {
         getStyleClass().add("loading-overlay");
-        setStyle("-fx-background-color: rgba(0,0,0,0.15);");
         setMouseTransparent(false);
         setPickOnBounds(true);
 
@@ -66,6 +65,7 @@ public final class LoadingOverlay extends StackPane {
         Rectangle[] blocks = new Rectangle[BLOCK_COUNT];
         for (int i = 0; i < BLOCK_COUNT; i++) {
             Rectangle rect = new Rectangle(BLOCK_SIZE, BLOCK_SIZE);
+            rect.getStyleClass().add("loading-block");
             rect.setArcWidth(BLOCK_RADIUS);
             rect.setArcHeight(BLOCK_RADIUS);
             rect.setFill(BLOCK_COLORS[i]);
@@ -116,6 +116,10 @@ public final class LoadingOverlay extends StackPane {
 
                     blocks[i].setTranslateY(ty);
                     blocks[i].setTranslateX(tx);
+                    double pulse = 1 + 0.16 * Math.sin(Math.PI * Math.min(1, t / phaseMs));
+                    blocks[i].setScaleX(pulse);
+                    blocks[i].setScaleY(pulse);
+                    blocks[i].setOpacity(0.64 + 0.28 * Math.min(1, pulse - 1) / 0.16);
                 }
             }
         };

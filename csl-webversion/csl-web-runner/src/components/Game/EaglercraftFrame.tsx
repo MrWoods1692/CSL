@@ -2,9 +2,12 @@
 
 import { useRef, useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
+import { MultiplayerMode } from '@/lib/multiplayer-core';
 
 interface EaglercraftFrameProps {
   version: string;
+  serverAddress?: string;
+  networkMode?: MultiplayerMode;
   onBack: () => void;
 }
 
@@ -30,14 +33,20 @@ const LOADING_PARTICLES = Array.from({ length: 20 }, () => ({
   size: 2 + Math.random() * 3,
 }));
 
-export default function EaglercraftFrame({ version, onBack }: EaglercraftFrameProps) {
+export default function EaglercraftFrame({ version, serverAddress, networkMode, onBack }: EaglercraftFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [animationData, setAnimationData] = useState<any>(null);
   const [progress, setProgress] = useState(0);
 
-  const url = getEaglercraftUrl(version);
+  const url = (() => {
+    const base = getEaglercraftUrl(version);
+    const params = new URLSearchParams();
+    if (serverAddress) params.set('server', serverAddress);
+    if (networkMode) params.set('transport', networkMode);
+    return params.size ? `${base}?${params}` : base;
+  })();
   const label = getVersionLabel(version);
 
   useEffect(() => {
@@ -67,19 +76,21 @@ export default function EaglercraftFrame({ version, onBack }: EaglercraftFramePr
 
   return (
     <div style={styles.wrapper}>
-      {/* 顶栏 */}
-      <div style={styles.topBar}>
-        <div style={styles.topBarLeft}>
-          <button onClick={onBack} style={styles.backButton}>
-            <span style={styles.backArrow}>←</span>
-            返回启动器
-          </button>
-          <div style={styles.topBarDivider} />
-          <span style={styles.topBarTitle}>{label}</span>
-          <span style={styles.topBarBadge}>Eaglercraft</span>
+      {/* 顶栏 - 仅在加载/错误时显示，游戏启动后隐藏 */}
+      {(loading || error) && (
+        <div style={styles.topBar}>
+          <div style={styles.topBarLeft}>
+            <button onClick={onBack} style={styles.backButton}>
+              <span style={styles.backArrow}>←</span>
+              返回启动器
+            </button>
+            <div style={styles.topBarDivider} />
+            <span style={styles.topBarTitle}>{label}</span>
+            <span style={styles.topBarBadge}>Eaglercraft</span>
+          </div>
+          <span style={styles.topBarHint}>{networkMode === 'p2p' ? 'P2P 低延迟连接' : networkMode === 'frp' ? 'FRP 稳定转发' : 'Relay 中继连接'}</span>
         </div>
-        <span style={styles.topBarHint}>纯静态 · 无服务器 · 单人游戏</span>
-      </div>
+      )}
 
       {/* 加载覆盖层 */}
       {loading && (
@@ -187,6 +198,16 @@ export default function EaglercraftFrame({ version, onBack }: EaglercraftFramePr
           setError('无法加载游戏文件，请检查网络连接后重试');
         }}
       />
+
+      {/* 游戏运行时的悬浮退出按钮（鼠标移到左上角触发） */}
+      {!loading && !error && (
+        <div className="csl-exit-zone" style={styles.exitHoverZone}>
+          <button onClick={onBack} className="csl-exit-btn" style={styles.exitBtn} title="返回启动器">
+            <span style={styles.exitArrow}>←</span>
+            <span style={styles.exitText}>返回启动器</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -211,9 +232,9 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '10px 20px',
-    background: 'rgba(10, 10, 20, 0.88)',
+    background: 'var(--bg-overlay-strong)',
     backdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    borderBottom: `1px solid var(--border-overlay)`,
   },
   topBarLeft: {
     display: 'flex',
@@ -225,10 +246,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 6,
     padding: '8px 16px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--bg-overlay)',
+    border: `1px solid var(--border-overlay-strong)`,
     borderRadius: 10,
-    color: '#bbb',
+    color: 'var(--text-overlay)',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
@@ -242,11 +263,11 @@ const styles: Record<string, React.CSSProperties> = {
   topBarDivider: {
     width: 1,
     height: 20,
-    background: 'rgba(255,255,255,0.1)',
+    background: 'var(--border-overlay-strong)',
     borderRadius: 1,
   },
   topBarTitle: {
-    color: '#fff',
+    color: 'var(--text-overlay)',
     fontSize: 14,
     fontWeight: 700,
     letterSpacing: '-0.2px',
@@ -256,13 +277,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     padding: '3px 10px',
     borderRadius: 8,
-    background: 'rgba(68,255,136,0.15)',
-    color: '#4f8',
+    background: 'var(--accent-soft)',
+    color: 'var(--accent)',
     letterSpacing: '0.5px',
     textTransform: 'uppercase',
+    border: '1px solid var(--accent-border)',
   },
   topBarHint: {
-    color: '#555',
+    color: 'var(--text-overlay-faint)',
     fontSize: 12,
   },
 
@@ -285,7 +307,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#080812',
+    background: 'var(--bg-base)',
     overflow: 'hidden',
   },
   loadingBgGrid: {
@@ -295,8 +317,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: 0,
     bottom: 0,
     backgroundImage: `
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
+      linear-gradient(var(--border-overlay) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-overlay) 1px, transparent 1px)
     `,
     backgroundSize: '50px 50px',
     pointerEvents: 'none',
@@ -306,22 +328,24 @@ const styles: Record<string, React.CSSProperties> = {
     width: 500,
     height: 500,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(102,126,234,0.12) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
     top: '30%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
     pointerEvents: 'none',
+    animation: 'pulse 4s ease-in-out infinite',
   },
   loadingGlow2: {
     position: 'absolute',
     width: 350,
     height: 350,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(118,75,162,0.1) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, var(--secondary-soft) 0%, transparent 70%)',
     bottom: '20%',
     left: '50%',
     transform: 'translate(-50%, 50%)',
     pointerEvents: 'none',
+    animation: 'pulse 5s ease-in-out infinite',
   },
   loadingParticles: {
     position: 'absolute',
@@ -336,9 +360,10 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'absolute',
     bottom: '-10px',
     borderRadius: '50%',
-    background: 'rgba(255,255,255,0.5)',
-    animation: 'float 3s ease-in-out infinite',
-    boxShadow: '0 0 4px rgba(102,126,234,0.4)',
+    background: 'var(--accent)',
+    animation: 'floatUp 3s ease-in-out infinite',
+    boxShadow: '0 0 6px var(--accent-glow)',
+    opacity: 0.6,
   },
   loadingContent: {
     position: 'relative',
@@ -361,7 +386,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 140,
     height: 140,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(102,126,234,0.2) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, var(--accent-glow) 0%, transparent 70%)',
     animation: 'pulse 2s ease-in-out infinite',
   },
   lottieAnimation: {
@@ -382,8 +407,8 @@ const styles: Record<string, React.CSSProperties> = {
   spinner: {
     width: 44,
     height: 44,
-    border: '3px solid rgba(255,255,255,0.08)',
-    borderTopColor: '#667eea',
+    border: '3px solid var(--border-soft)',
+    borderTopColor: 'var(--accent)',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
   },
@@ -391,7 +416,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 24,
     fontWeight: 800,
     margin: 0,
-    background: 'linear-gradient(135deg, #667eea, #a78bfa, #764ba2)',
+    background: 'var(--accent-gradient)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
@@ -399,7 +424,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   loadingSubtitle: {
     fontSize: 14,
-    color: '#777',
+    color: 'var(--text-tertiary)',
     margin: 0,
   },
   progressWrap: {
@@ -411,20 +436,20 @@ const styles: Record<string, React.CSSProperties> = {
   progressTrack: {
     flex: 1,
     height: 4,
-    background: 'rgba(255,255,255,0.06)',
+    background: 'var(--border-soft)',
     borderRadius: 2,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    background: 'linear-gradient(90deg, #667eea, #764ba2, #f093fb)',
+    background: 'var(--accent-gradient)',
     borderRadius: 2,
     transition: 'width 0.3s ease-out',
-    boxShadow: '0 0 8px rgba(102,126,234,0.4)',
+    boxShadow: '0 0 8px var(--accent-glow)',
   },
   progressText: {
     fontSize: 12,
-    color: '#667eea',
+    color: 'var(--accent)',
     fontWeight: 700,
     fontFamily: '"SF Mono", "Fira Code", monospace',
     minWidth: 36,
@@ -432,7 +457,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   loadingHint: {
     fontSize: 12,
-    color: '#444',
+    color: 'var(--text-tertiary)',
     margin: 0,
   },
   loadingTags: {
@@ -442,11 +467,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   loadingTag: {
     fontSize: 11,
-    padding: '4px 12px',
-    background: 'rgba(255,255,255,0.03)',
+    padding: '5px 12px',
+    background: 'var(--bg-elevated)',
     borderRadius: 8,
-    color: '#555',
-    border: '1px solid rgba(255,255,255,0.04)',
+    color: 'var(--text-secondary)',
+    border: '1px solid var(--border-subtle)',
+    transition: 'all 0.2s ease',
   },
 
   // ===== 错误覆盖层 =====
@@ -460,7 +486,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#080812',
+    background: 'var(--bg-base)',
   },
   errorGlow: {
     position: 'absolute',
@@ -499,7 +525,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   errorText: {
     fontSize: 14,
-    color: '#888',
+    color: 'var(--text-secondary)',
     textAlign: 'center',
     margin: 0,
     maxWidth: 380,
@@ -512,24 +538,64 @@ const styles: Record<string, React.CSSProperties> = {
   },
   errorPrimaryBtn: {
     padding: '12px 28px',
-    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    background: 'var(--accent-gradient)',
     border: 'none',
     borderRadius: 12,
-    color: '#fff',
+    color: 'var(--text-on-accent)',
     fontSize: 15,
     fontWeight: 700,
     cursor: 'pointer',
     transition: 'all 0.2s',
+    boxShadow: 'var(--shadow-accent)',
   },
   errorRetryBtn: {
     padding: '12px 28px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-soft)',
     borderRadius: 12,
-    color: '#aaa',
+    color: 'var(--text-secondary)',
     fontSize: 15,
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+
+  // ===== 游戏运行时悬浮退出按钮 =====
+  exitHoverZone: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 200,
+    height: 80,
+    zIndex: 90,
+    // 鼠标移入此区域时显示按钮（通过 CSS hover 实现）
+  },
+  exitBtn: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 14px',
+    background: 'rgba(10, 10, 20, 0.75)',
+    backdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    color: '#ccc',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    opacity: 0,
+    transform: 'translateY(-4px)',
+    transition: 'opacity 0.25s ease, transform 0.25s ease',
+    // hover 时显示
+  },
+  exitArrow: {
+    fontSize: 15,
+  },
+  exitText: {
+    fontSize: 13,
   },
 };

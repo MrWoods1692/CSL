@@ -164,15 +164,20 @@ public class DecoratorSkin extends SkinBase<Decorator> {
         Region backgroundNode = new Region();
         backgroundNode.setMouseTransparent(true);
         backgroundNode.backgroundProperty().bind(Bindings.createObjectBinding(
-                () -> skinnable.getContentBackground() == null
+            () -> Themes.windowTransparentProperty().get()
+                || skinnable.getContentBackground() == null
                         ? null
                         : skinnable.getContentBackground().background(),
-                skinnable.contentBackgroundProperty()));
+            skinnable.contentBackgroundProperty(),
+            Themes.windowTransparentProperty()));
         backgroundNode.opacityProperty().bind(Bindings.createDoubleBinding(
-                () -> skinnable.getContentBackground() == null
+            () -> Themes.windowTransparentProperty().get()
+                ? 0.0
+                : skinnable.getContentBackground() == null
                         ? 1.0
                         : skinnable.getContentBackground().opacity(),
-                skinnable.contentBackgroundProperty()));
+            skinnable.contentBackgroundProperty(),
+            Themes.windowTransparentProperty()));
         StackPane.setAlignment(backgroundNode, Pos.BOTTOM_CENTER);
 
         // Looping bundled video rendered behind the launcher content.

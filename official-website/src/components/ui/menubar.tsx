@@ -1,3 +1,10 @@
+/**
+ * Menubar - 菜单栏
+ *
+ * 桌面应用风格的顶部菜单栏，支持子菜单、快捷键和分隔线。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI 原语构建。
+ */
+
 import * as React from "react"
 import * as MenubarPrimitive from "@radix-ui/react-menubar"
 import { Check, ChevronRight, Circle } from "lucide-react"

@@ -1,6 +1,10 @@
+# CSL 启动器官方网站
+
+> **项目简介**：CSL 启动器的官方门户站点，基于 Vite + React + TypeScript + Tailwind CSS 构建的单页应用（SPA），采用 Supabase 作为后端服务。
+
 ## 介绍
 
-项目介绍
+CSL 启动器官方网站 - 面向《Minecraft》玩家群体的启动器产品门户，提供产品介绍、多平台分发、安装教程、使用指南、开发文档及社区入口。
 
 ## 目录结构
 
@@ -35,7 +39,19 @@
 
 ## 技术栈
 
-Vite、TypeScript、React、Supabase
+| 技术 | 用途 |
+|------|------|
+| Vite 5 | 构建工具，提供极速 HMR 与生产构建 |
+| TypeScript | 类型安全的 JavaScript 超集 |
+| React 18 | UI 框架，基于函数组件与 Hooks |
+| Tailwind CSS 3.4 | 原子化 CSS 框架 |
+| shadcn/ui (new-york) | 无头组件库，基于 Radix UI |
+| motion/react | Framer Motion 的继任者，用于声明式动画 |
+| react-helmet-async | SEO 元数据管理 |
+| react-router-dom | 客户端路由（HashRouter） |
+| Supabase | 后端即服务（BaaS），提供认证与存储 |
+| Biome | 代码格式化与 Lint 工具 |
+| PNPM | 高效的包管理器 |
 
 ## 本地开发
 

@@ -17,5 +17,5 @@
  */
 .root {
     /* https://github.com/MrWoods1692/CSL/pull/3423 */
-    -fx-font-family: -fx-base-font-family;
+    -fx-font-family: "Noto Sans CJK SC", "Noto Sans CJK TC", "WenQuanYi Micro Hei", "WenQuanYi Zen Hei", "SimHei", "Microsoft YaHei", sans-serif;
 }

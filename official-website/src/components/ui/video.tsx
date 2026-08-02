@@ -1,4 +1,11 @@
 /**
+ * Video - 视频播放器
+ *
+ * 基于 video-react 的视频播放器组件，支持播放/暂停、进度条、音量控制等功能。
+ * 基于 shadcn/ui (new-york 风格) + video-react 构建。
+ */
+
+/**
  * Video Player Component
  *
  * Video player based on video-react wrapper, supports custom poster, autoplay, mute and other features

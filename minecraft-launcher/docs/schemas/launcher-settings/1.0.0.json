@@ -129,15 +129,6 @@
         "SHOW_FALLBACK_WHILE_LOADING"
       ]
     },
-    "logFontFamily": {
-      "type": "string"
-    },
-    "logFontSize": {
-      "type": "number"
-    },
-    "launcherFontFamily": {
-      "type": "string"
-    },
     "windowTransparent": {
       "type": "boolean"
     },

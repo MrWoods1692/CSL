@@ -1,3 +1,10 @@
+/**
+ * Sonner - Toast 通知
+ *
+ * 基于 sonner 库的 Toast 通知组件，支持多种类型、位置和主题。
+ * 基于 shadcn/ui (new-york 风格) + next-themes 构建。
+ */
+
 "use client"
 
 import { useTheme } from "next-themes"

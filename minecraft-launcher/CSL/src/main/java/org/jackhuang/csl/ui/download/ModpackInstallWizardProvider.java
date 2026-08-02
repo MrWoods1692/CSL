@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 
+import static org.jackhuang.csl.setting.UsageStatsHelper.recordModpackInstall;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 
 public final class ModpackInstallWizardProvider implements WizardProvider {
@@ -181,6 +182,7 @@ public final class ModpackInstallWizardProvider implements WizardProvider {
                     Controllers.dialog(i18n("modpack.type.curse.not_found"), i18n("install.failed"), MessageType.ERROR, next);
                 } else {
                     Controllers.dialog(i18n("install.success"), i18n("install.success"), MessageType.SUCCESS, next);
+                    recordModpackInstall();
                 }
             } else {
                 UpdateInstallerWizardProvider.alertFailureMessage(exception, next);

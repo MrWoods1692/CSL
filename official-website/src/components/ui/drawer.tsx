@@ -1,8 +1,42 @@
+/**
+ * Drawer - 抽屉面板组件
+ *
+ * 从屏幕底部滑出的面板，适用于移动端的对话框替代方案。
+ * 基于 shadcn/ui (new-york 风格) + Vaul 构建。
+ *
+ * @remarks
+ * 导出七个子组件：
+ * - Drawer: 根容器，shouldScaleBackground 控制背景缩放效果
+ * - DrawerTrigger: 触发器
+ * - DrawerPortal: Portal 渲染
+ * - DrawerClose: 关闭按钮
+ * - DrawerOverlay: 半透明遮罩层
+ * - DrawerContent: 抽屉内容，底部滑入，顶部圆角，带拖拽手柄
+ * - DrawerHeader/Footer: 头部和底部布局
+ * 顶部有拖拽手柄（bg-muted 圆角条）
+ *
+ * @example
+ * // 基本用法
+ * <Drawer>
+ *   <DrawerTrigger>打开抽屉</DrawerTrigger>
+ *   <DrawerContent>
+ *     <DrawerHeader>
+ *       <DrawerTitle>抽屉标题</DrawerTitle>
+ *     </DrawerHeader>
+ *   </DrawerContent>
+ * </Drawer>
+ */
+
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Drawer - 抽屉根容器
+ *
+ * @param shouldScaleBackground - 是否缩放背景，默认 true
+ */
 const Drawer = ({
   shouldScaleBackground = true,
   ...props
@@ -14,12 +48,18 @@ const Drawer = ({
 )
 Drawer.displayName = "Drawer"
 
+/** DrawerTrigger - 抽屉触发器 */
 const DrawerTrigger = DrawerPrimitive.Trigger
 
+/** DrawerPortal - 将抽屉渲染到 body */
 const DrawerPortal = DrawerPrimitive.Portal
 
+/** DrawerClose - 抽屉关闭按钮 */
 const DrawerClose = DrawerPrimitive.Close
 
+/**
+ * DrawerOverlay - 抽屉遮罩层
+ */
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
@@ -32,6 +72,11 @@ const DrawerOverlay = React.forwardRef<
 ))
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
+/**
+ * DrawerContent - 抽屉内容
+ *
+ * 底部滑入，顶部圆角，带拖拽手柄。
+ */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
@@ -53,6 +98,9 @@ const DrawerContent = React.forwardRef<
 ))
 DrawerContent.displayName = "DrawerContent"
 
+/**
+ * DrawerHeader - 抽屉头部
+ */
 const DrawerHeader = ({
   className,
   ...props
@@ -64,6 +112,9 @@ const DrawerHeader = ({
 )
 DrawerHeader.displayName = "DrawerHeader"
 
+/**
+ * DrawerFooter - 抽屉底部
+ */
 const DrawerFooter = ({
   className,
   ...props

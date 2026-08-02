@@ -84,8 +84,8 @@ export default function HUD({ fps, position, version, onBack }: HUDProps) {
       </div>
 
       {/* 退出按钮 */}
-      <button onClick={onBack} style={styles.backBtn}>
-        <span style={styles.backBtnIcon}>✕</span>
+      <button onClick={onBack} className="csl-hud-back-btn" style={styles.backBtn}>
+        <span style={styles.backBtnIcon} className="csl-hud-back-icon">✕</span>
         <span style={styles.backBtnText}>退出</span>
       </button>
     </>
@@ -146,11 +146,11 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 10,
   },
   topLeftInner: {
-    background: 'rgba(10, 10, 20, 0.75)',
+    background: 'var(--bg-overlay)',
     backdropFilter: 'blur(16px)',
     borderRadius: 14,
     padding: '12px 18px',
-    border: '1px solid rgba(255,255,255,0.06)',
+    border: '1px solid var(--border-overlay)',
     display: 'flex',
     flexDirection: 'column',
     gap: 10,
@@ -164,7 +164,7 @@ const styles: Record<string, React.CSSProperties> = {
   brandName: {
     fontSize: 14,
     fontWeight: 800,
-    background: 'linear-gradient(135deg, #667eea, #a78bfa)',
+    background: 'var(--accent-gradient)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
@@ -172,10 +172,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   brandVersion: {
     fontSize: 10,
-    color: '#666',
+    color: 'var(--text-overlay-muted)',
     fontWeight: 500,
     padding: '2px 8px',
-    background: 'rgba(255,255,255,0.04)',
+    background: 'var(--border-overlay)',
     borderRadius: 6,
   },
   fpsRow: {
@@ -185,7 +185,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   fpsLabel: {
     fontSize: 10,
-    color: '#666',
+    color: 'var(--text-overlay-muted)',
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '1px',
@@ -200,7 +200,7 @@ const styles: Record<string, React.CSSProperties> = {
   fpsBar: {
     flex: 1,
     height: 3,
-    background: 'rgba(255,255,255,0.06)',
+    background: 'var(--border-overlay)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -219,11 +219,11 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 10,
   },
   posPanel: {
-    background: 'rgba(10, 10, 20, 0.75)',
+    background: 'var(--bg-overlay)',
     backdropFilter: 'blur(16px)',
     borderRadius: 14,
     padding: '12px 16px',
-    border: '1px solid rgba(255,255,255,0.06)',
+    border: '1px solid var(--border-overlay)',
   },
   posHeader: {
     display: 'flex',
@@ -231,14 +231,14 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
     marginBottom: 8,
     paddingBottom: 8,
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    borderBottom: '1px solid var(--border-overlay)',
   },
   posIcon: {
     fontSize: 12,
   },
   posLabel: {
     fontSize: 10,
-    color: '#666',
+    color: 'var(--text-overlay-muted)',
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '1px',
@@ -256,13 +256,13 @@ const styles: Record<string, React.CSSProperties> = {
   posAxis: {
     fontSize: 11,
     fontWeight: 800,
-    color: '#667eea',
+    color: 'var(--accent)',
     fontFamily: '"SF Mono", "Fira Code", monospace',
     width: 14,
   },
   posNum: {
     fontSize: 12,
-    color: '#aaa',
+    color: 'var(--text-overlay-muted)',
     fontFamily: '"SF Mono", "Fira Code", monospace',
   },
 
@@ -278,34 +278,34 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    background: 'rgba(10, 10, 20, 0.7)',
+    background: 'var(--bg-overlay)',
     backdropFilter: 'blur(12px)',
     borderRadius: 12,
     padding: '10px 20px',
-    border: '1px solid rgba(255,255,255,0.05)',
+    border: '1px solid var(--border-overlay)',
     whiteSpace: 'nowrap',
   },
   controlKey: {
     fontSize: 10,
     fontWeight: 700,
-    color: '#ccc',
+    color: 'var(--text-overlay)',
     padding: '3px 7px',
-    background: 'rgba(255,255,255,0.08)',
+    background: 'var(--border-overlay-strong)',
     borderRadius: 5,
     fontFamily: '"SF Mono", "Fira Code", monospace',
     letterSpacing: '0.3px',
   },
   controlSep: {
-    color: '#444',
+    color: 'var(--text-overlay-faint)',
     fontSize: 10,
   },
   controlLabel: {
     fontSize: 11,
-    color: '#777',
+    color: 'var(--text-overlay-muted)',
     fontWeight: 500,
   },
   controlDivider: {
-    color: 'rgba(255,255,255,0.08)',
+    color: 'var(--border-overlay-strong)',
     fontSize: 12,
   },
   controlIcon: {
@@ -322,19 +322,20 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 6,
     padding: '8px 16px',
-    background: 'rgba(10, 10, 20, 0.75)',
+    background: 'var(--bg-overlay)',
     backdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid var(--border-overlay-strong)',
     borderRadius: 10,
-    color: '#ccc',
+    color: 'var(--text-overlay)',
     fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   backBtnIcon: {
     fontSize: 11,
-    color: '#888',
+    color: 'var(--text-overlay-muted)',
+    transition: 'transform 0.2s ease',
   },
   backBtnText: {
     fontSize: 13,

@@ -1,8 +1,35 @@
+/**
+ * Switch - 开关组件
+ *
+ * 布尔值切换组件，用于开启/关闭状态的可视化切换，比 Checkbox 更适合即时生效的设置。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI Switch 原语构建。
+ *
+ * @remarks
+ * 由两个子元素组成：
+ * - Root: 开关轨道，checked 状态为主色，unchecked 为输入色
+ * - Thumb: 开关滑块，checked 时向右平移 16px
+ * 支持键盘聚焦环（focus-visible:ring）
+ *
+ * @example
+ * // 受控模式
+ * <Switch checked={enabled} onCheckedChange={setEnabled} />
+ * // 带标签
+ * <Label htmlFor="airplane-mode">飞行模式</Label>
+ * <Switch id="airplane-mode" />
+ */
+
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Switch - 开关渲染组件
+ *
+ * @param className - 额外的 CSS 类名
+ * @param props - 其他 Radix Switch 属性（如 checked, onCheckedChange）
+ * @param ref - 引用到 Radix Switch Root
+ */
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>

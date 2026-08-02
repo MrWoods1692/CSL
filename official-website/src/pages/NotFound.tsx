@@ -1,3 +1,11 @@
+/**
+ * 404 页面
+ * 
+ * 当用户访问不存在的路由时显示。
+ * 包含：大号 404 标题、说明文字、返回首页按钮。
+ * 使用贴纸卡片样式 + 背景网格 + 径向光晕装饰。
+ */
+
 import { Link } from "react-router-dom";
 import { Home } from "lucide-react";
 import PageMeta from "@/components/common/PageMeta";

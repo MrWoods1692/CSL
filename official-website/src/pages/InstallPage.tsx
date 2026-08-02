@@ -1,3 +1,14 @@
+/**
+ * 安装教程页面
+ *
+ * 页面结构：
+ * 1. 平台 Tab 切换：Windows / macOS / Linux
+ * 2. 安装步骤：编号步骤列表（带进度指示器）
+ * 3. 安装小贴士：平台特定的注意事项
+ *
+ * 每个平台的教程包含 4 个步骤 + 2 条小贴士。
+ */
+
 import React, { useState } from 'react';
 import { Monitor, Apple, Laptop, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,11 +21,13 @@ import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
+/** 安装步骤 */
 interface Step {
   title: string;
   desc: string;
 }
 
+/** 安装指南（按平台） */
 interface InstallGuide {
   id: string;
   name: string;
@@ -24,6 +37,7 @@ interface InstallGuide {
   color: string;
 }
 
+/** 各平台安装指南数据 */
 const guides: InstallGuide[] = [
   {
     id: 'windows',

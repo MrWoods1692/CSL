@@ -38,21 +38,13 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.css.PseudoClass;
-import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
-import javafx.stage.FileChooser;
 import org.glavo.monetfx.Brightness;
 import org.glavo.monetfx.ColorStyle;
-import org.glavo.uuid.UUIDs;
-import org.jackhuang.csl.Metadata;
 import org.jackhuang.csl.setting.*;
-import org.jackhuang.csl.theme.BackgroundLoadPolicy;
-import org.jackhuang.csl.theme.BuiltinBackground;
-import org.jackhuang.csl.theme.NetworkBackgroundImageCachePolicy;
 import org.jackhuang.csl.theme.Theme;
 import org.jackhuang.csl.theme.ThemeColor;
 import org.jackhuang.csl.theme.ThemeColorSource;
-import org.jackhuang.csl.theme.ThemePackExporter;
 import org.jackhuang.csl.theme.ThemePackManifest;
 import org.jackhuang.csl.theme.ThemePackManager;
 import org.jackhuang.csl.theme.ThemeReference;
@@ -62,20 +54,11 @@ import org.jackhuang.csl.ui.SVG;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.ui.construct.MessageDialogPane.MessageType;
 import org.jackhuang.csl.util.Holder;
-import org.jackhuang.csl.util.Lang;
 import org.jackhuang.csl.util.StringUtils;
-import org.jackhuang.csl.util.io.FileUtils;
-import org.jackhuang.csl.util.javafx.SafeStringConverter;
-import org.jackhuang.csl.util.platform.OperatingSystem;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
@@ -101,10 +84,6 @@ public class PersonalizationPage extends StackPane {
 
     /// Size of compact setting-state icons.
     private static final int INHERIT_BUTTON_ICON_SIZE = 12;
-
-    /// Time format used by default exported theme names.
-    private static final DateTimeFormatter EXPORTED_THEME_NAME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ROOT);
 
     /// Snaps a percent value to the nearest 5% opacity tick.
     private static double snapOpacity(double val) {
@@ -337,7 +316,7 @@ public class PersonalizationPage extends StackPane {
                 MessageType.ERROR);
     }
 
-    /// Asks for theme-pack metadata and then saves the current launcher appearance as a theme-pack file.
+    /*
     private void exportCurrentThemePack() {
         Instant exportTimestamp = Instant.now();
         String defaultPackId = "com.example.csl.theme-pack." + UUIDs.toCompactString(UUIDs.generateV7(exportTimestamp));
@@ -376,7 +355,6 @@ public class PersonalizationPage extends StackPane {
                 StringUtils.isBlank(authorNameQuestion.getValue()) ? defaultAuthorName : authorNameQuestion.getValue().trim()));
     }
 
-    /// Saves current launcher appearance as a theme-pack file with the given package metadata.
     private void exportCurrentThemePack(String packId, String version, String packName, String authorName) {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(i18n("theme_pack.export.title"));
@@ -412,6 +390,7 @@ public class PersonalizationPage extends StackPane {
             showThemePackError(i18n("theme_pack.export.failed"), e);
         }
     }
+    */
 
     /// Creates the launcher appearance settings page.
     public PersonalizationPage() {
@@ -423,28 +402,7 @@ public class PersonalizationPage extends StackPane {
         scrollPane.setFitToWidth(true);
         getChildren().setAll(scrollPane);
 
-        ComponentList themeList = new ComponentList();
-        {
-            LineButton currentThemeButton = LineButton.createNavigationButton();
-            currentThemeButton.setTitle(i18n("theme_pack.theme"));
-            Runnable updateCurrentThemeButton = () -> currentThemeButton.setSubtitle(getSelectedThemeTitle());
-            FXUtils.onChange(settings().selectedThemeProperty(), ignored -> updateCurrentThemeButton.run());
-            updateCurrentThemeButton.run();
-            currentThemeButton.setOnAction(event ->
-                    Controllers.navigateForward(new ThemePackManagementPage(updateCurrentThemeButton)));
-            themeList.getContent().add(currentThemeButton);
-
-            LineButton exportThemeButton = new LineButton();
-            exportThemeButton.setTitle(i18n("theme_pack.export"));
-            exportThemeButton.setSubtitle(i18n("theme_pack.export.subtitle"));
-            exportThemeButton.setTrailingIcon(SVG.ARCHIVE);
-            exportThemeButton.setOnAction(event -> exportCurrentThemePack());
-            themeList.getContent().add(exportThemeButton);
-        }
-        content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.theme")), themeList);
-
         ComponentList themeAppearanceList = new ComponentList();
-        ComponentList backgroundLoadingList = new ComponentList();
 
         {
             LineSelectButton<String> brightnessPane = new LineSelectButton<>();
@@ -497,14 +455,6 @@ public class PersonalizationPage extends StackPane {
             picker.getCustomColors().setAll(ThemeColor.STANDARD_COLORS.stream().map(ThemeColor::color).toList());
             Platform.runLater(() -> JFXDepthManager.setDepth(picker, 0));
 
-            var defaultColorChoice = new RadioChoiceList.Choice<ThemeColorType>(
-                    i18n("settings.launcher.theme_color_type.default"),
-                    ThemeColorType.DEFAULT);
-
-            var systemColorChoice = new RadioChoiceList.Choice<ThemeColorType>(
-                    i18n("settings.launcher.theme_color_type.system"),
-                    ThemeColorType.SYSTEM);
-
             var customColorChoice = new RadioChoiceList.Choice<ThemeColorType>(
                     i18n("settings.launcher.theme_color_type.custom"),
                     ThemeColorType.CUSTOM) {
@@ -515,17 +465,9 @@ public class PersonalizationPage extends StackPane {
             };
             customColorChoice.setSubtitle(i18n("settings.launcher.theme_color_type.custom.description"));
 
-            var backgroundColorChoice = new RadioChoiceList.Choice<ThemeColorType>(
-                    i18n("settings.launcher.theme_color_type.background"),
-                    ThemeColorType.BACKGROUND);
-
             RadioChoiceList<ThemeColorType> themeColorChoiceList = new RadioChoiceList<>();
-            themeColorChoiceList.setFallbackValue(ThemeColorType.DEFAULT);
-            themeColorChoiceList.setChoices(Arrays.asList(
-                    defaultColorChoice,
-                    systemColorChoice,
-                    customColorChoice,
-                    backgroundColorChoice));
+                themeColorChoiceList.setFallbackValue(ThemeColorType.CUSTOM);
+                themeColorChoiceList.setChoices(Arrays.asList(customColorChoice));
 
             JFXButton themeColorOverrideButton = createThemeAppearanceOverrideButton();
             themeColorSublist.setTitleRight(themeColorOverrideButton);
@@ -563,13 +505,11 @@ public class PersonalizationPage extends StackPane {
                 }
                 updatingThemeColor.value = true;
                 try {
-                    ThemeColorType type = Objects.requireNonNullElse(newValue, ThemeColorType.DEFAULT);
-                    settings().themeColorTypeProperty().set(type);
-                    if (type == ThemeColorType.CUSTOM) {
+                        ThemeColorType type = ThemeColorType.CUSTOM;
+                        settings().themeColorTypeProperty().set(type);
                         @Nullable Color color = picker.getValue();
                         settings().customThemeColorProperty().set(
-                                color != null ? ThemeColor.of(color) : ThemeColor.DEFAULT);
-                    }
+                            color != null ? ThemeColor.of(color) : ThemeColor.DEFAULT);
                     settings().getThemeAppearanceOverrides().add(LauncherSettings.THEME_APPEARANCE_COLOR);
                     updateThemeAppearanceOverrideButton(themeColorOverrideButton, false);
                 } finally {
@@ -666,102 +606,8 @@ public class PersonalizationPage extends StackPane {
             themeAppearanceList.getContent().add(colorStylePane);
         }
 
-        {
-            RadioChoiceList<BackgroundType> backgroundItem = new RadioChoiceList<>();
-            backgroundItem.setFallbackValue(BackgroundType.DEFAULT);
-            ComponentSublist backgroundSublist = new ComponentSublist();
-            backgroundSublist.setTitle(i18n("launcher.background"));
-            backgroundSublist.setHasSubtitle(true);
-
-            JFXComboBox<String> builtinBackgroundComboBox = new JFXComboBox<>();
-            builtinBackgroundComboBox.getItems().setAll(BuiltinBackground.BUILTIN_BACKGROUND_IDS);
-            FXUtils.setLimitWidth(builtinBackgroundComboBox, 160);
-
-            RadioChoiceList.Choice<BackgroundType> builtinBackgroundOption =
-                    new RadioChoiceList.Choice<>(i18n("launcher.background.builtin"), BackgroundType.BUILTIN) {
-                        @Override
-                        protected Node createRightNode() {
-                            return builtinBackgroundComboBox;
-                        }
-                    };
-
-            RadioChoiceList.FileChoice<BackgroundType> customBackgroundOption =
-                    new RadioChoiceList.FileChoice<>(i18n("settings.custom"), BackgroundType.CUSTOM)
-                            .setChooserTitle(i18n("launcher.background.choose"))
-                            .addExtensionFilter(FXUtils.getImageExtensionFilter())
-                            .setSelectionMode(FileSelector.SelectionMode.FILE_OR_DIRECTORY);
-            RadioChoiceList.TextChoice<BackgroundType> networkBackgroundOption =
-                    new RadioChoiceList.TextChoice<>(i18n("launcher.background.network"), BackgroundType.NETWORK)
-                            .setValidators(new URLValidator(true));
-            PaintChoice paintBackgroundOption =
-                    new PaintChoice(i18n("launcher.background.paint"), BackgroundType.PAINT);
-
-            backgroundItem.setChoices(Arrays.asList(
-                    new RadioChoiceList.Choice<>(i18n("message.default"), BackgroundType.DEFAULT)
-                            .setTooltip(i18n("launcher.background.default.tooltip")),
-                    builtinBackgroundOption,
-                    new RadioChoiceList.Choice<>(i18n("launcher.background.theme_color"), BackgroundType.THEME_COLOR),
-                    customBackgroundOption,
-                    networkBackgroundOption,
-                    paintBackgroundOption
-            ));
-            JFXButton backgroundOverrideButton = createThemeAppearanceOverrideButton();
-            backgroundSublist.setTitleRight(backgroundOverrideButton);
-            Holder<Boolean> updatingBackground = new Holder<>(false);
-            InvalidationListener refreshBackground = ignored -> {
-                if (updatingBackground.value) {
-                    return;
-                }
-                updatingBackground.value = true;
-                try {
-                    boolean overridden = settings().getThemeAppearanceOverrides().contains(
-                            LauncherSettings.THEME_APPEARANCE_BACKGROUND);
-                    ThemePackManager.ResolvedBackground background;
-                    try {
-                        background = overridden
-                                ? ThemePackManager.resolveCustomBackground()
-                                : ThemePackManager.resolveCurrentBackground(ThemePackManager.currentResolveContext());
-                    } catch (IOException | RuntimeException e) {
-                        background = new ThemePackManager.ResolvedBackground(
-                                BackgroundType.DEFAULT,
-                                null,
-                                null,
-                                null,
-                                null,
-                                1.0);
-                    }
-
-                    if (background.type() == BackgroundType.CUSTOM && background.imageResource() != null) {
-                        backgroundItem.clearSelection();
-                    } else {
-                        backgroundItem.selectedValueProperty().set(background.type());
-                    }
-                    switch (background.type()) {
-                        case BUILTIN -> builtinBackgroundComboBox.setValue(Objects.requireNonNullElse(
-                                background.builtinBackgroundId(),
-                                BuiltinBackground.FALLBACK.id()));
-                        case CUSTOM -> {
-                            if (background.imageResource() != null) {
-                                customBackgroundOption.setPath(settings().customBackgroundImagePathProperty().get());
-                            } else {
-                                customBackgroundOption.setPath(background.imagePath() != null
-                                        ? background.imagePath().toString()
-                                        : "");
-                            }
-                        }
-                        case NETWORK -> networkBackgroundOption.setText(Objects.toString(
-                                background.networkImageUrl(),
-                                ""));
-                        case PAINT -> paintBackgroundOption.setPaint(background.paint());
-                        case DEFAULT, THEME_COLOR -> {
-                        }
-                    }
-                    updateThemeAppearanceOverrideButton(backgroundOverrideButton, !overridden);
-                } finally {
-                    updatingBackground.value = false;
-                }
-            };
-            backgroundItem.selectedValueProperty().addListener((observable, oldValue, newValue) -> {
+            /* background customization implementation removed */
+            /* backgroundItem.selectedValueProperty().addListener((observable, oldValue, newValue) -> {
                 if (updatingBackground.value) {
                     return;
                 }
@@ -1144,6 +990,7 @@ public class PersonalizationPage extends StackPane {
             themeAppearanceList.getContent().add(titleBarTransparentButton);
         }
 
+        */
         LineToggleButton windowTransparentButton = new LineToggleButton();
         windowTransparentButton.setTitle(i18n("settings.launcher.window_transparent"));
         bindThemeAppearanceToggleButton(
@@ -1243,22 +1090,7 @@ public class PersonalizationPage extends StackPane {
 
         content.getChildren().addAll(
                 ComponentList.createComponentListTitle(i18n("settings.launcher.appearance")),
-                themeAppearanceList,
-                ComponentList.createComponentListTitle(i18n("launcher.background.loading")),
-                backgroundLoadingList);
-
-        {
-            ComponentList appearanceList = new ComponentList();
-
-            LineToggleButton animationButton = new LineToggleButton();
-            appearanceList.getContent().add(animationButton);
-            animationButton.setSelected(settings().isAnimationDisabled());
-            FXUtils.onChange(animationButton.selectedProperty(), value -> settings().animationDisabledProperty().set(value));
-            animationButton.setTitle(i18n("settings.launcher.turn_off_animations"));
-            animationButton.setSubtitle(i18n("settings.take_effect_after_restart"));
-
-            content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.animation")), appearanceList);
-        }
+            themeAppearanceList);
 
         {
             ComponentList cursorList = new ComponentList();
@@ -1276,91 +1108,6 @@ public class PersonalizationPage extends StackPane {
 
         {
             ComponentList fontPane = new ComponentList();
-
-            {
-                VBox vbox = new VBox();
-                vbox.setSpacing(5);
-
-                {
-                    BorderPane borderPane = new BorderPane();
-                    vbox.getChildren().add(borderPane);
-                    {
-                        Label left = new Label(i18n("settings.launcher.font"));
-                        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
-                        borderPane.setLeft(left);
-                    }
-
-                    {
-                        HBox hBox = new HBox();
-                        hBox.setSpacing(8);
-
-                        FontComboBox cboFont = new FontComboBox();
-                        cboFont.setValue(settings().launcherFontFamilyProperty().get());
-                        FXUtils.onChange(cboFont.valueProperty(), FontManager::setFontFamily);
-
-                        JFXButton clearButton = FXUtils.newToggleButton4(SVG.RESTORE);
-                        clearButton.setOnAction(e -> cboFont.setValue(null));
-
-                        FXUtils.installFastTooltip(clearButton, i18n("button.reset"));
-
-                        hBox.getChildren().setAll(cboFont, clearButton);
-
-                        borderPane.setRight(hBox);
-                    }
-                }
-
-                vbox.getChildren().add(new Label(Metadata.FULL_NAME));
-
-                fontPane.getContent().add(vbox);
-            }
-
-            {
-                VBox logFontPane = new VBox();
-                logFontPane.setSpacing(5);
-
-                {
-                    BorderPane borderPane = new BorderPane();
-                    logFontPane.getChildren().add(borderPane);
-                    {
-                        Label left = new Label(i18n("settings.launcher.log.font"));
-                        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
-                        borderPane.setLeft(left);
-                    }
-
-                    {
-                        HBox hBox = new HBox();
-                        hBox.setSpacing(3);
-
-                        FontComboBox cboLogFont = new FontComboBox();
-                        cboLogFont.valueProperty().bindBidirectional(settings().logFontFamilyProperty());
-
-                        JFXTextField txtLogFontSize = new JFXTextField();
-                        FXUtils.setLimitWidth(txtLogFontSize, 50);
-                        FXUtils.bind(txtLogFontSize, settings().logFontSizeProperty(), SafeStringConverter.fromFiniteDouble()
-                                .restrict(it -> it > 0)
-                                .fallbackTo(12.0)
-                                .asPredicate(Validator.addTo(txtLogFontSize)));
-
-                        JFXButton clearButton = FXUtils.newToggleButton4(SVG.RESTORE);
-                        clearButton.setOnAction(e -> cboLogFont.setValue(null));
-
-                        FXUtils.installFastTooltip(clearButton, i18n("button.reset"));
-
-                        hBox.getChildren().setAll(cboLogFont, txtLogFontSize, clearButton);
-
-                        borderPane.setRight(hBox);
-                    }
-                }
-
-                Label lblLogFontDisplay = new Label("[23:33:33] [Client Thread/INFO] [WaterPower]: Loaded mod WaterPower.");
-                lblLogFontDisplay.fontProperty().bind(Bindings.createObjectBinding(
-                        () -> Font.font(Lang.requireNonNullElse(settings().logFontFamilyProperty().get(), FXUtils.DEFAULT_MONOSPACE_FONT), settings().logFontSizeProperty().get()),
-                        settings().logFontFamilyProperty(), settings().logFontSizeProperty()));
-
-                logFontPane.getChildren().add(lblLogFontDisplay);
-
-                fontPane.getContent().add(logFontPane);
-            }
 
             {
                 var fontAntiAliasingPane = new LineSelectButton<Optional<FontSmoothingType>>();

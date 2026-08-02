@@ -104,8 +104,7 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
             }
             FXUtils.smoothScrolling(pane);
 
-            AdvancedListBox bottomLeftCornerList = new AdvancedListBox()
-                    .addNavigationDrawerItem(i18n("settings.type.global.manage"), SVG.SETTINGS, this::modifyGlobalGameSettings);
+                AdvancedListBox bottomLeftCornerList = new AdvancedListBox();
             FXUtils.setLimitHeight(bottomLeftCornerList, 40 + 12 * 2);
             setLeft(pane, bottomLeftCornerList);
         }
@@ -121,10 +120,6 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
                 Instances.installFromJson(GameDirectoryManager.getSelectedRepository(), file);
             }
         });
-    }
-
-    public void modifyGlobalGameSettings() {
-        Instances.modifyGlobalSettings(GameDirectoryManager.getSelectedRepository());
     }
 
     @Override
@@ -202,18 +197,19 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
 
                 StackPane pane = new StackPane();
                 pane.setPadding(new Insets(10));
-                pane.getStyleClass().addAll("notice-pane");
+                pane.getStyleClass().addAll("notice-pane", "game-list-page");
 
                 ComponentList root = new ComponentList();
-                root.getStyleClass().add("no-padding");
+                root.getStyleClass().addAll("no-padding", "game-list-content");
                 JFXListView<GameListItem> listView = new JFXListView<>();
 
                 {
                     toolbarPane = new TransitionPane();
 
                     searchBar = new HBox();
-                    searchBar.getStyleClass().add("search-bar");
+                    searchBar.getStyleClass().addAll("search-bar", "game-list-search");
                     toolbarNormal = new HBox();
+                    toolbarNormal.getStyleClass().add("game-list-toolbar");
 
                     searchBar.setAlignment(Pos.CENTER);
                     searchBar.setPadding(new Insets(0, 5, 0, 5));

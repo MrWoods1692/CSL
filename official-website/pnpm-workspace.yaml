@@ -1,11 +1,32 @@
+# =============================================================================
+# PNPM 工作空间配置文件
+# 
+# PNPM 是一个快速、节省磁盘空间的包管理器。
+# 工作空间（Workspace）允许在单个仓库中管理多个包（monorepo）。
+# =============================================================================
+
+# 工作空间包含的包路径（glob 模式）
+# packages/* 表示 packages 目录下的所有子目录都是独立的包
 packages:
   - packages/*
+
+# 依赖版本目录（Catalog）
+# 统一管理多个包中相同依赖的版本，避免版本不一致
 catalog:
-  "@react-three/drei": 9.122.0
-  "@react-three/fiber": 8.18.0
-  three: 0.180.0
+  # React Three Fiber 相关库 - 用于 3D 渲染
+  "@react-three/drei": 9.122.0   # drei 提供常用的 3D 辅助组件
+  "@react-three/fiber": 8.18.0   # React Three Fiber 核心库
+  three: 0.180.0                  # Three.js 3D 引擎
+
+# 是否在 lockfile 中包含 tarball URL
+# false 表示不包含，减小 lockfile 体积
 lockfileIncludeTarballUrl: false
+
+# 包发布后至少等待 1440 分钟（24小时）才允许更新
+# 防止刚发布的包被立即使用（可能存在撤回风险）
 minimumReleaseAge: 1440
+
+# 排除以下包的最低发布时间限制
 minimumReleaseAgeExclude:
   - miaoda-sc-plugin
   - miaoda-react-devkit

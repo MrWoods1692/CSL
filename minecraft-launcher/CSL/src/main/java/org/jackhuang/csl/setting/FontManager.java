@@ -37,7 +37,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.jackhuang.csl.setting.SettingsManager.settings;
 import static org.jackhuang.csl.util.logging.Logger.LOG;
 
 /**
@@ -103,9 +102,7 @@ public final class FontManager {
     }
 
     private static void updateFont() {
-        String fontFamily = settings().launcherFontFamilyProperty().get();
-        if (fontFamily == null)
-            fontFamily = System.getProperty("csl.font.override");
+        String fontFamily = System.getProperty("csl.font.override");
         if (fontFamily == null)
             fontFamily = System.getenv("CSL_FONT");
 
@@ -220,6 +217,23 @@ public final class FontManager {
             }
 
             LOG.warning(String.format("Family '%s' not found in font file '%s'", family, path));
+
+            // Try to find a font whose family contains the expected family as a substring
+            for (Font font : fonts) {
+                if (font.getFamily().toLowerCase(Locale.ROOT).contains(family.toLowerCase(Locale.ROOT))) {
+                    LOG.info("Found font by substring match: " + font.getFamily());
+                    return font;
+                }
+            }
+
+            // Fallback: prefer fonts with "CJK" in the name for CJK locales
+            for (Font font : fonts) {
+                if (font.getFamily().contains("CJK")) {
+                    LOG.info("Fallback to CJK font: " + font.getFamily());
+                    return font;
+                }
+            }
+
             return fonts[0];
         } catch (Throwable e) {
             LOG.warning("Failed to get default font with fc-match", e);
@@ -233,11 +247,6 @@ public final class FontManager {
 
     public static FontReference getFont() {
         return font.get();
-    }
-
-    public static void setFontFamily(String fontFamily) {
-        settings().launcherFontFamilyProperty().set(fontFamily);
-        updateFont();
     }
 
     // https://github.com/MrWoods1692/CSL/issues/4072

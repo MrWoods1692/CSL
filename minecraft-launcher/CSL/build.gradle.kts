@@ -54,6 +54,17 @@ if (buildNumber != null) {
 
 val embedResources = configurations.register("embedResources")
 
+val bundledFrpArchives = listOf(
+    "frp_0.70.1_darwin_amd64.tar.gz",
+    "frp_0.70.1_freebsd_amd64.tar.gz",
+    "frp_0.70.1_linux_amd64.tar.gz",
+    "frp_0.70.1_linux_arm.tar.gz",
+    "frp_0.70.1_linux_arm64.tar.gz",
+    "frp_0.70.1_linux_loong64.tar.gz",
+    "frp_0.70.1_linux_mips.tar.gz",
+    "frp_0.70.1_windows_amd64.zip",
+)
+
 dependencies {
     implementation(project(":CSLCore"))
     implementation(project(":CSLBoot"))
@@ -151,6 +162,16 @@ tasks.compileJava {
     options.compilerArgs.addAll(addOpens.map { "--add-exports=$it=ALL-UNNAMED" })
 }
 
+tasks.processResources {
+    into("assets/frp") {
+        bundledFrpArchives.forEach { archive ->
+            val source = rootProject.file("../$archive")
+            if (!source.isFile) throw GradleException("Missing bundled FRP archive: $source")
+            from(source)
+        }
+    }
+}
+
 val cslProperties = buildList {
     add("csl.version" to project.version.toString())
     add("csl.add-opens" to addOpens.joinToString(" "))
@@ -207,6 +228,8 @@ tasks.shadowJar {
         exclude(dependency("net.java.dev.jna:jna:.*"))
         exclude(dependency("libs:JFoenix:.*"))
         exclude(project(":CSLBoot"))
+        // FrpcManager is also loaded by optional multiplayer integrations.
+        exclude(project(":CSLCore"))
     }
 
     manifest.attributes(
@@ -384,6 +407,8 @@ tasks.register<JavaExec>("run") {
     val vmOptions = parseToolOptions(System.getenv("CSL_JAVA_OPTS") ?: "-Xmx1g")
     if (vmOptions.none { it.startsWith("-Dcsl.offline.auth.restricted=") })
         vmOptions += "-Dcsl.offline.auth.restricted=false"
+    if (vmOptions.none { it.startsWith("-Dcsl.self_integrity_check.disable=") })
+        vmOptions += "-Dcsl.self_integrity_check.disable=true"
 
     jvmArgs(vmOptions)
 

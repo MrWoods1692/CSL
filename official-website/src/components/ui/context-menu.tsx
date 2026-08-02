@@ -1,3 +1,10 @@
+/**
+ * ContextMenu - 右键菜单
+ *
+ * 在元素上右键点击时显示的上下文菜单，支持子菜单、快捷键和分隔线。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI 原语构建。
+ */
+
 "use client"
 
 import * as React from "react"

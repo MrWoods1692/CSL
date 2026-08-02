@@ -42,7 +42,6 @@ import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jackhuang.csl.ui.construct.SpinnerPane;
 import org.jackhuang.csl.util.CircularArrayList;
-import org.jackhuang.csl.util.Lang;
 import org.jackhuang.csl.util.Log4jLevel;
 import org.jackhuang.csl.util.StringUtils;
 import org.jackhuang.csl.util.platform.ManagedProcess;
@@ -389,8 +388,6 @@ public final class LogWindow extends Stage {
                         listView.scrollTo(listView.getItems().size() - 1);
                 });
 
-                listView.setStyle("-fx-font-family: \"" + Lang.requireNonNullElse(settings().logFontFamilyProperty().get(), FXUtils.DEFAULT_MONOSPACE_FONT)
-                        + "\"; -fx-font-size: " + settings().logFontSizeProperty().get() + "px;");
                 listView.setCellFactory(x -> new ListCell<>() {
                     {
                         getStyleClass().add("log-window-list-cell");

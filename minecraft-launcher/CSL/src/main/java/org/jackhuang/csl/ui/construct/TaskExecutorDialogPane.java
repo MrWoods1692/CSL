@@ -26,15 +26,11 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.*;
-import org.jackhuang.csl.task.FetchTask;
 import org.jackhuang.csl.task.TaskExecutor;
 import org.jackhuang.csl.task.TaskListener;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.util.TaskCancellationAction;
-import org.jackhuang.csl.util.i18n.I18n;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 import static org.jackhuang.csl.ui.FXUtils.onEscPressed;
 import static org.jackhuang.csl.ui.FXUtils.runInFX;
@@ -43,11 +39,7 @@ import static org.jackhuang.csl.util.i18n.I18n.i18n;
 public class TaskExecutorDialogPane extends BorderPane {
     private TaskExecutor executor;
     private TaskCancellationAction onCancel;
-    @SuppressWarnings({"unused", "FieldCanBeLocal"})
-    private final Consumer<FetchTask.SpeedEvent> speedEventHandler;
-
     private final Label lblTitle;
-    private final Label lblProgress;
     private final JFXButton btnCancel;
     private final TaskListPane taskListPane;
     private final LoadingOverlay loadingOverlay;
@@ -100,12 +92,11 @@ public class TaskExecutorDialogPane extends BorderPane {
         bottom.setSpacing(8);
         this.setBottom(bottom);
         {
-            lblProgress = new Label();
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
             btnCancel = new JFXButton(i18n("button.cancel"));
             btnCancel.getStyleClass().add("dialog-cancel");
-            bottom.getChildren().setAll(lblProgress, spacer, btnCancel);
+            bottom.getChildren().setAll(spacer, btnCancel);
         }
 
         setCancel(cancel);
@@ -115,11 +106,6 @@ public class TaskExecutorDialogPane extends BorderPane {
             if (executor != null)
                 executor.cancel();
             onCancel.getCancellationAction().accept(this);
-        });
-
-        speedEventHandler = FetchTask.SPEED_EVENT.registerWeak(speedEvent -> {
-            String message = I18n.formatSpeed(speedEvent.getSpeed());
-            Platform.runLater(() -> lblProgress.setText(message));
         });
 
         onEscPressed(this, btnCancel::fire);

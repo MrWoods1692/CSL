@@ -22,15 +22,18 @@ package org.jackhuang.csl.gradle.pack;
 /// The package name, installed command, desktop file, and alternatives
 /// priority are intentionally centralized here so `CreateDeb` can stay focused
 /// on archive layout instead of duplicating channel-specific branching.
+/// Debian 打包的发布类型元数据
+///
+/// 包名、安装命令、桌面文件和 alternatives 优先级集中在此定义
 public enum ReleaseType {
-    STABLE("stable", "csl", "CSL", 100),
-    DEVELOPMENT("beta", "csl-beta", "CSL (Beta)", 200),
-    NIGHTLY("nightly", "csl-nightly", "CSL (Nightly)", 300);
+    STABLE("stable", "csl", "CSL", 100),  // 稳定版
+    DEVELOPMENT("beta", "csl-beta", "CSL (Beta)", 200),  // 开发版
+    NIGHTLY("nightly", "csl-nightly", "CSL (Nightly)", 300);  // 每夜构建版
 
-    private final String name;
-    private final String packageName;
-    private final String displayName;
-    private final int alternativesPriority;
+    private final String name;  // 发布类型名称
+    private final String packageName;  // Debian 包名
+    private final String displayName;  // 显示名称
+    private final int alternativesPriority;  // alternatives 优先级
 
     ReleaseType(String name, String packageName, String displayName, int alternativesPriority) {
         this.name = name;
@@ -39,21 +42,22 @@ public enum ReleaseType {
         this.alternativesPriority = alternativesPriority;
     }
 
-    ///
+    // 返回发布类型名称
     public String getName() {
         return name;
     }
 
-    /// Debian package name written into `control` and used in the output filename.
+    /// Debian 包名，写入 control 文件并用于输出文件名
     public String getPackageName() {
         return packageName;
     }
 
+    // 返回显示名称
     public String getDisplayName() {
         return displayName;
     }
 
-    /// Priority used when registering the generic `csl` alias.
+    /// 注册通用 csl 别名时使用的优先级
     public int getAlternativesPriority() {
         return alternativesPriority;
     }

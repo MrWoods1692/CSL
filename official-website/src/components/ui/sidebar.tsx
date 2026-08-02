@@ -1,3 +1,10 @@
+/**
+ * Sidebar - 侧边栏
+ *
+ * 应用级侧边导航栏，支持折叠/展开、分组菜单、子菜单和响应式布局。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI Slot + class-variance-authority 构建。
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"

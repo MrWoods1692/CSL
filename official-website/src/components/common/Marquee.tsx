@@ -1,10 +1,20 @@
+/**
+ * 跑马灯组件
+ * 
+ * 水平无限滚动的文字/内容条。
+ * 通过复制 children 实现无缝循环效果。
+ * 支持自定义速度、暂停悬停。
+ */
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface MarqueeProps {
   children: React.ReactNode;
   className?: string;
+  /** 滚动速度（秒），数值越小越快 */
   speed?: number;
+  /** 鼠标悬停时是否暂停 */
   pauseOnHover?: boolean;
 }
 
@@ -28,6 +38,7 @@ const Marquee: React.FC<MarqueeProps> = ({
           width: 'max-content',
         }}
       >
+        {/* 渲染两次 children 实现无缝循环 */}
         {children}
         {children}
       </div>

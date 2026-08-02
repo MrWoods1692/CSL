@@ -237,6 +237,7 @@ public final class JavaManagementPage extends ListPageBase<JavaRuntime> {
 
         JavaItemCell(JFXListView<JavaRuntime> listView) {
             BorderPane root = new BorderPane();
+            root.getStyleClass().add("java-runtime-card");
 
             HBox center = new HBox();
             center.setMouseTransparent(true);
@@ -247,7 +248,7 @@ public final class JavaManagementPage extends ListPageBase<JavaRuntime> {
             label.setMinSize(24, 24);
             label.setMaxSize(24, 24);
             label.setPrefSize(24, 24);
-            label.setStyle("-fx-background-color: -monet-secondary-container; -fx-background-radius: 2; -fx-padding: 2; -fx-font-weight: normal; -fx-font-size: 12px;");
+            label.getStyleClass().add("java-version-badge");
 
             this.content = new TwoLineListItem();
             HBox.setHgrow(content, Priority.ALWAYS);
@@ -287,7 +288,7 @@ public final class JavaManagementPage extends ListPageBase<JavaRuntime> {
             root.setRight(right);
 
             root.getStyleClass().add("md-list-cell");
-            root.setPadding(new Insets(8));
+            root.setPadding(new Insets(10, 14, 10, 14));
 
             this.graphic = new RipplerContainer(root);
 

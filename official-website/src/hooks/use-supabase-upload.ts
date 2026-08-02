@@ -1,60 +1,91 @@
+/**
+ * useSupabaseUpload - Supabase Storage 文件上传 Hook
+ *
+ * 封装 react-dropzone 与 Supabase Storage 的上传逻辑，提供：
+ * - 拖拽/选择文件
+ * - MIME 类型过滤
+ * - 文件大小限制
+ * - 文件数量限制
+ * - 上传进度与错误处理
+ * - 部分上传成功重试
+ *
+ * 使用方式：
+ * ```tsx
+ * const uploadProps = useSupabaseUpload({
+ *   bucketName: 'my-bucket',
+ *   path: 'uploads',
+ *   maxFileSize: 10 * 1024 * 1024, // 10MB
+ *   maxFiles: 5,
+ *   supabase: supabaseClient,
+ * })
+ * ```
+ */
+
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 import {type SupabaseClient} from '@supabase/supabase-js'
 
+/** 扩展 File 类型，添加预览 URL 和错误信息 */
 interface FileWithPreview extends File {
   preview?: string
   errors: readonly FileError[]
 }
 
+/** useSupabaseUpload 的配置选项 */
 type UseSupabaseUploadOptions = {
   /**
-   * Name of bucket to upload files to in your Supabase project
+   * Supabase Storage 中的存储桶名称
    */
   bucketName: string
   /**
-   * Folder to upload files to in the specified bucket within your Supabase project.
+   * 上传目标文件夹路径
    *
-   * Defaults to uploading files to the root of the bucket
+   * 默认为存储桶根目录
    *
-   * e.g If specified path is `test`, your file will be uploaded as `test/file_name`
+   * 例如：指定 `test` 后，文件将上传为 `test/file_name`
    */
   path?: string
   /**
-   * Allowed MIME types for each file upload (e.g `image/png`, `text/html`, etc). Wildcards are also supported (e.g `image/*`).
+   * 允许的 MIME 类型列表（如 `image/png`、`text/html`），支持通配符（如 `image/*`）
    *
-   * Defaults to allowing uploading of all MIME types.
+   * 默认允许所有 MIME 类型
    */
   allowedMimeTypes?: string[]
   /**
-   * Maximum upload size of each file allowed in bytes. (e.g 1000 bytes = 1 KB)
+   * 每个文件的最大上传大小（字节）
    */
   maxFileSize?: number
   /**
-   * Maximum number of files allowed per upload.
+   * 每次上传允许的最大文件数
    */
   maxFiles?: number
   /**
-   * The number of seconds the asset is cached in the browser and in the Supabase CDN.
+   * 浏览器和 Supabase CDN 缓存时间（秒）
    *
-   * This is set in the Cache-Control: max-age=<seconds> header. Defaults to 3600 seconds.
+   * 设置在 Cache-Control: max-age=<seconds> 头中。默认 3600 秒。
    */
   cacheControl?: number
   /**
-   * When set to true, the file is overwritten if it exists.
+   * 是否覆盖已存在的文件
    *
-   * When set to false, an error is thrown if the object already exists. Defaults to `false`
+   * - true：覆盖已存在的文件
+   * - false：文件已存在时抛出错误。默认 `false`
    */
   upsert?: boolean
 
   /**
-   * initialized Supabase client instance
+   * 已初始化的 Supabase 客户端实例
    */
   supabase: SupabaseClient
 }
 
 type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
 
+/**
+ * Supabase Storage 文件上传 Hook
+ *
+ * 管理文件选择、验证、上传全流程状态
+ */
 const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
   const {
     bucketName,
@@ -67,11 +98,16 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     supabase
   } = options
 
+  // 已选文件列表（含预览 URL 和错误信息）
   const [files, setFiles] = useState<FileWithPreview[]>([])
+  // 上传进行中标志
   const [loading, setLoading] = useState<boolean>(false)
+  // 上传错误列表
   const [errors, setErrors] = useState<{ name: string; message: string }[]>([])
+  // 上传成功的文件名列表
   const [successes, setSuccesses] = useState<string[]>([])
 
+  /** 判断是否全部上传成功：无错误 && 成功数等于文件数 */
   const isSuccess = useMemo(() => {
     if (errors.length === 0 && successes.length === 0) {
       return false
@@ -82,8 +118,13 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     return false
   }, [errors.length, successes.length, files.length])
 
+  /**
+   * 文件拖放/选择回调
+   * 处理有效文件和被拒绝文件，生成预览 URL
+   */
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+      // 过滤掉已存在的同名文件
       const validFiles = acceptedFiles
         .filter((file) => !files.find((x) => x.name === file.name))
         .map((file) => {
@@ -92,6 +133,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
           return file as FileWithPreview
         })
 
+      // 被拒绝的文件（MIME 不匹配、超出大小等）
       const invalidFiles = fileRejections.map(({ file, errors }) => {
         ;(file as FileWithPreview).preview = URL.createObjectURL(file)
         ;(file as FileWithPreview).errors = errors
@@ -105,6 +147,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     [files, setFiles]
   )
 
+  /** react-dropzone 属性：禁用点击（由 DropzoneEmptyState 手动触发） */
   const dropzoneProps = useDropzone({
     onDrop,
     noClick: true,
@@ -114,11 +157,14 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     multiple: maxFiles !== 1,
   })
 
+  /**
+   * 上传文件到 Supabase Storage
+   * 支持部分失败重试：再次点击只上传之前失败的文件
+   */
   const onUpload = useCallback(async () => {
     setLoading(true)
 
-    // [Joshen] This is to support handling partial successes
-    // If any files didn't upload for any reason, hitting "Upload" again will only upload the files that had errors
+    // 支持部分成功重试：如果之前有失败的文件，再次上传时只上传失败的文件
     const filesWithErrors = errors.map((x) => x.name)
     const filesToUpload =
       filesWithErrors.length > 0
@@ -128,6 +174,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
           ]
         : files
 
+    // 并行上传所有文件
     const responses = await Promise.all(
       filesToUpload.map(async (file) => {
         const { error } = await supabase.storage
@@ -144,8 +191,9 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
       })
     )
 
+    // 分离成功和失败的响应
     const responseErrors = responses.filter((x) => x.message !== undefined)
-    // if there were errors previously, this function tried to upload the files again so we should clear/overwrite the existing errors.
+    // 覆盖之前的错误（因为重试了）
     setErrors(responseErrors)
 
     const responseSuccesses = responses.filter((x) => x.message === undefined)
@@ -157,12 +205,17 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     setLoading(false)
   }, [files, path, bucketName, errors, successes])
 
+  /**
+   * 副作用：文件列表变化时的清理和验证
+   * - 文件列表为空时清除错误
+   * - 文件数未超限时移除 "too-many-files" 错误
+   */
   useEffect(() => {
     if (files.length === 0) {
       setErrors([])
     }
 
-    // If the number of files doesn't exceed the maxFiles parameter, remove the error 'Too many files' from each file
+    // 如果文件数未超过 maxFiles，移除每个文件上的 "too-many-files" 错误
     if (files.length <= maxFiles) {
       let changed = false
       const newFiles = files.map((file) => {

@@ -27,7 +27,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.jackhuang.csl.game.GameInstanceID;
 import org.jackhuang.csl.setting.*;
-import org.jackhuang.csl.terracotta.TerracottaMetadata;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.SVG;
@@ -98,7 +97,7 @@ public class TerracottaPage extends DecoratorAnimatedPage implements DecoratorPa
                             0,
                             mainPage.getRepository(), mainPage.getVersions()));
                 })
-                .addNavigationDrawerItem(i18n("terracotta.feedback.title"), SVG.FEEDBACK, () -> FXUtils.openLink(TerracottaMetadata.FEEDBACK_LINK));
+                ;
         BorderPane.setMargin(toolbar, new Insets(0, 0, 12, 0));
         left.setBottom(toolbar);
 

@@ -1,3 +1,13 @@
+/**
+ * 使用指南页面
+ *
+ * 页面结构：
+ * 1. 快速上手：4 个步骤卡片（启动游戏、安装版本、配置内存、安装模组）
+ * 2. 常见问题 FAQ：可搜索的 Accordion 折叠面板
+ *
+ * FAQ 支持关键词搜索过滤。
+ */
+
 import React, { useState } from 'react';
 import { Search, Play, Settings, Box, HelpCircle, Wrench } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -16,6 +26,7 @@ import IconBox from '@/components/common/IconBox';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 import DecorativeShape from '@/components/common/DecorativeShape';
 
+/** 快速上手步骤数据 */
 const quickStart = [
   {
     icon: Play,
@@ -39,6 +50,7 @@ const quickStart = [
   },
 ];
 
+/** 常见问题数据 */
 const faq = [
   {
     question: 'CSL 启动器支持哪些 Minecraft 版本？',

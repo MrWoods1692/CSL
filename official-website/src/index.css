@@ -1,10 +1,29 @@
+/**
+ * CSL 官网全局样式表
+ *
+ * 设计主题：潮流个性（Neo-Brutalism / Trendy Personality）
+ * 核心特征：高对比配色 + 硬朗边缘 + 实心阴影 + 海报拼贴
+ *
+ * 结构：
+ * 1. Tailwind 基础层（@tailwind base/components/utilities）
+ * 2. @font-face：抖音 Sans Bold 字体
+ * 3. @layer base：CSS 变量（浅色/深色主题）、全局重置、光标、字体
+ * 4. @layer components：贴纸卡片、波纹、按钮、渐变文字、背景图案、动画
+ * 5. @layer utilities：旋转悬停、浮动动画、减少动画偏好
+ * 6. @keyframes：marquee、float-rotate、float-gentle、spin-slow、ppt 动画
+ * 7. 滚动条样式：霓虹渐变滚动条
+ */
+
 /* stylelint-disable */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 潮流个性主题：高对比配色 + 硬朗边缘 + 实心阴影 + 海报拼贴 */
+/* ================================================================
+   潮流个性主题：高对比配色 + 硬朗边缘 + 实心阴影 + 海报拼贴
+   ================================================================ */
 
+/* 抖音 Sans Bold 字体：用于标题和展示文字 */
 @font-face {
   font-family: 'DouyinSansBold';
   src: url('https://resource-static.cdn.bcebos.com/fonts/DouyinSansBold.woff2') format('woff2');
@@ -13,16 +32,20 @@
   font-display: swap;
 }
 
+/**
+ * 基础层：CSS 变量定义
+ * 使用 HSL 颜色空间，便于动态调整亮度和透明度
+ */
 @layer base {
   :root {
     --radius: 0.25rem;
-    /* 霓虹酸柠绿 */
+    /* 霓虹酸柠绿 - 主色调 */
     --primary: 114 100% 72%;
     --primary-foreground: 222 47% 11%;
-    /* 千禧玫粉 */
+    /* 千禧玫粉 - 强调色 */
     --accent: 340 100% 65%;
     --accent-foreground: 222 47% 11%;
-    /* 活力柠檬黄 */
+    /* 活力柠檬黄 - 辅助色 */
     --secondary: 53 100% 60%;
     --secondary-foreground: 222 47% 11%;
 
@@ -55,6 +78,7 @@
     --sidebar-border: 222 47% 11%;
     --sidebar-ring: 340 100% 65%;
 
+    /* 实心阴影变量：Neo-Brutalism 标志性风格 */
     --shadow-solid: 6px 6px 0 0 hsl(var(--foreground));
     --shadow-solid-sm: 4px 4px 0 0 hsl(var(--foreground));
     --shadow-solid-lg: 8px 8px 0 0 hsl(var(--foreground));
@@ -64,24 +88,26 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-    --muted: 217 33% 22%;
-    --muted-foreground: 215 20% 65%;
-    --border: 210 40% 98%;
-    --input: 210 40% 98%;
+    /* 深蓝黑底色：以层级代替纯黑，保留霓虹色的呼吸感 */
+    --background: 224 42% 8%;
+    --foreground: 218 32% 94%;
+    --card: 222 35% 13%;
+    --card-foreground: 218 32% 94%;
+    --popover: 222 35% 15%;
+    --popover-foreground: 218 32% 94%;
+    --muted: 222 31% 18%;
+    --muted-foreground: 218 18% 68%;
+    --border: 220 28% 30%;
+    --input: 220 28% 36%;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 210 40% 98%;
+    --sidebar-background: 224 42% 9%;
+    --sidebar-foreground: 218 32% 94%;
+    --sidebar-border: 220 28% 28%;
 
-    --shadow-solid: 6px 6px 0 0 hsl(var(--foreground));
-    --shadow-solid-sm: 4px 4px 0 0 hsl(var(--foreground));
-    --shadow-solid-lg: 8px 8px 0 0 hsl(var(--foreground));
+    /* 深色模式下使用柔和的墨色硬阴影，避免白色阴影造成视觉噪音 */
+    --shadow-solid: 6px 6px 0 0 hsl(224 42% 3% / 0.92);
+    --shadow-solid-sm: 4px 4px 0 0 hsl(224 42% 3% / 0.92);
+    --shadow-solid-lg: 8px 8px 0 0 hsl(224 42% 3% / 0.92);
   }
 }
 
@@ -97,11 +123,44 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-    cursor: url('/cursor-diamond-sword.svg') 24 2, pointer;
+    /* 默认使用 Minecraft 钻石剑光标 */
+    cursor: url('/diamond-sword-cursor.png') 8 8, pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* 所有元素统一使用钻石剑光标，覆盖 Tailwind 默认的 cursor-pointer/cursor-default */
-  *,
+  /* 深色模式下的背景光晕效果 */
+  .dark body {
+    background-image:
+      radial-gradient(circle at 12% -10%, hsl(var(--primary) / 0.09), transparent 30rem),
+      radial-gradient(circle at 88% 8%, hsl(var(--accent) / 0.07), transparent 28rem);
+    background-attachment: fixed;
+  }
+
+  .dark .border-foreground {
+    border-color: hsl(220 28% 32%);
+  }
+
+  .dark .border-foreground\/20 {
+    border-color: hsl(220 28% 55% / 0.2);
+  }
+
+  .dark .border-foreground\/30 {
+    border-color: hsl(220 28% 55% / 0.3);
+  }
+
+  /* 文本选中颜色：主色背景 + 主色前景 */
+  ::selection {
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+  }
+
+  /* 焦点可见样式：accent 色轮廓 */
+  :focus-visible {
+    outline: 3px solid hsl(var(--accent));
+    outline-offset: 3px;
+  }
+
+  /* 仅交互元素使用点击手势，普通页面区域保留 Minecraft 钻石剑光标 */
   a,
   button,
   [role='button'],
@@ -109,18 +168,32 @@
   textarea,
   select,
   label {
-    cursor: url('/cursor-diamond-sword.svg') 24 2, pointer !important;
+    cursor: pointer !important;
   }
 
+  * {
+    cursor: url('/diamond-sword-cursor.png') 2 2, auto;
+  }
+
+  /* 标题使用抖音 Sans Bold 字体 */
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: 'DouyinSansBold', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
   }
 }
 
+/**
+ * 组件层：可复用的 UI 组件样式
+ */
 @layer components {
+  /* 贴纸卡片：硬边框 + 实心阴影 */
   .sticker-card {
     @apply relative border-2 border-foreground bg-card p-6 transition-transform;
     box-shadow: var(--shadow-solid);
+  }
+
+  .dark .sticker-card {
+    background-image: linear-gradient(145deg, hsl(var(--card) / 0.98), hsl(224 42% 10% / 0.98));
+    border-color: hsl(220 28% 30%);
   }
 
   /* 组合：可交互卡片（悬停抬升 + 点击按压 + 可选倾斜） */
@@ -128,6 +201,7 @@
     @apply sticker-card sticker-card-hover sticker-card-interactive sticker-card-tilt;
   }
 
+  /* 悬停效果：抬升 + 阴影增强 */
   .sticker-card-hover {
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -137,6 +211,7 @@
     box-shadow: var(--shadow-solid-lg);
   }
 
+  /* 点击交互：按压下沉 + 缩放 */
   .sticker-card-interactive {
     transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -150,6 +225,7 @@
     transform: translate(-4px, -4px);
   }
 
+  /* 卡片内图标悬停放大 */
   .sticker-card-icon {
     transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -265,11 +341,13 @@
     box-shadow: none;
   }
 
+  /* 文字描边：Neo-Brutalism 风格粗描边 */
   .text-stroke {
     -webkit-text-stroke: 2px hsl(var(--foreground));
     paint-order: stroke fill;
   }
 
+  /* 渐变文字：primary → accent */
   .text-gradient-primary {
     background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     -webkit-background-clip: text;
@@ -278,6 +356,7 @@
     color: transparent;
   }
 
+  /* 三色渐变文字：primary → secondary → accent */
   .text-gradient-vibrant {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%);
     -webkit-background-clip: text;
@@ -286,14 +365,17 @@
     color: transparent;
   }
 
+  /* 发光阴影：primary 色光晕 + 实心阴影 */
   .glow-primary {
     box-shadow: 0 0 24px hsl(var(--primary) / 0.45), var(--shadow-solid);
   }
 
+  /* 发光阴影：accent 色光晕 + 实心阴影 */
   .glow-accent {
     box-shadow: 0 0 24px hsl(var(--accent) / 0.45), var(--shadow-solid);
   }
 
+  /* 网格背景图案 */
   .bg-grid {
     background-image:
       linear-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px),
@@ -301,11 +383,13 @@
     background-size: 48px 48px;
   }
 
+  /* 圆点背景图案 */
   .bg-dots {
     background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
   }
 
+  /* 粗网格背景图案 */
   .bg-grid-bold {
     background-image:
       linear-gradient(hsl(var(--foreground) / 0.07) 2px, transparent 2px),
@@ -313,25 +397,39 @@
     background-size: 56px 56px;
   }
 
+  /* 斜条纹背景图案 */
   .bg-diagonal-stripes {
     background-image: repeating-linear-gradient(
       45deg,
-      hsl(var(--foreground)) 0,
-      hsl(var(--foreground)) 2px,
+      hsl(var(--foreground) / 0.12) 0,
+      hsl(var(--foreground) / 0.12) 2px,
       transparent 2px,
       transparent 12px
     );
   }
 
+  /* 径向渐变背景：中心亮、边缘透明 */
   .bg-radial-fade {
     background: radial-gradient(ellipse at center, hsl(var(--primary) / 0.12), transparent 70%);
   }
 
+  /* 产品介绍 PPT：每次切页重新播放底部加载进度，强化演示感 */
+  .ppt-progress {
+    animation: ppt-loading 6.5s linear both;
+  }
+
+  /* PPT 卡片入场动画 */
+  .ppt-loader {
+    animation: ppt-loader-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* 胶带装饰：模拟真实胶带贴在卡片顶部的效果 */
   .tape {
     @apply absolute -top-3 left-1/2 h-8 w-24 -translate-x-1/2 rotate-[-2deg] bg-secondary;
     box-shadow: var(--shadow-solid-sm);
   }
 
+  /* 跑马灯轨道：无限循环滚动，悬停暂停 */
   .marquee-track {
     display: flex;
     width: max-content;
@@ -343,35 +441,46 @@
   }
 }
 
+/**
+ * 工具类层：小型原子化动画和效果
+ */
 @layer utilities {
+  /* 悬停旋转：轻微旋转 + 放大 */
   .rotate-hover:hover {
     transform: rotate(-3deg) scale(1.02);
   }
 
+  /* 贴纸胶带形状：不规则四边形裁剪 */
   .sticker-tape {
     clip-path: polygon(0 0, 100% 8%, 96% 100%, 4% 92%);
   }
 
+  /* 仅在 prefers-reduced-motion: no-preference 时启用动画 */
   .motion-safe-only {
     transition: none;
   }
 
+  /* 浮动旋转动画：6s 周期 */
   .animate-float-rotate {
     animation: float-rotate 6s ease-in-out infinite;
   }
 
+  /* 慢速浮动旋转动画：9s 周期 */
   .animate-float-rotate-slow {
     animation: float-rotate 9s ease-in-out infinite;
   }
 
+  /* 轻柔浮动动画：5s 周期 */
   .animate-float-gentle {
     animation: float-gentle 5s ease-in-out infinite;
   }
 
+  /* 慢速旋转动画：20s 周期 */
   .animate-spin-slow {
     animation: spin-slow 20s linear infinite;
   }
 
+  /* 无障碍：用户偏好减少动画时，禁用所有动画 */
   @media (prefers-reduced-motion: reduce) {
     .motion-safe-only,
     .animate-float-rotate,
@@ -384,6 +493,11 @@
   }
 }
 
+/* ================================================================
+   关键帧动画定义
+   ================================================================ */
+
+/* 跑马灯：水平无限滚动（需要两份相同内容实现无缝循环） */
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -393,6 +507,7 @@
   }
 }
 
+/* 浮动旋转：上下浮动 + 轻微旋转，使用 CSS 变量控制起始角度 */
 @keyframes float-rotate {
   0%, 100% {
     transform: translateY(0) rotate(var(--start-rotation, 0deg));
@@ -402,6 +517,7 @@
   }
 }
 
+/* 轻柔浮动：仅上下位移，无旋转 */
 @keyframes float-gentle {
   0%, 100% {
     transform: translateY(0);
@@ -411,6 +527,7 @@
   }
 }
 
+/* 慢速旋转：完整 360° 旋转 */
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -420,8 +537,67 @@
   }
 }
 
-/* 滚动条 */
+/* PPT 加载进度条：从 0 到 100% 宽度 */
+@keyframes ppt-loading {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* PPT 卡片入场：淡入 + 缩放 + 旋转回正 */
+@keyframes ppt-loader-in {
+  from { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ================================================================
+   滚动条样式：细窄、圆润，霓虹渐变配色
+   ================================================================ */
+
+/* Firefox 滚动条 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) transparent;
+  scrollbar-color: hsl(var(--accent)) hsl(var(--foreground) / 0.08);
+}
+
+/* Webkit 滚动条宽度 */
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Webkit 滚动条轨道 */
+/* Webkit 滚动条轨道 */
+*::-webkit-scrollbar-track {
+  background: hsl(var(--foreground) / 0.08);
+  border-left: 1px solid hsl(var(--foreground) / 0.12);
+}
+
+/* Webkit 滚动条滑块：霓虹渐变 + 圆角 + 发光 */
+*::-webkit-scrollbar-thumb {
+  min-height: 56px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--primary)),
+    hsl(var(--accent)) 52%,
+    hsl(var(--secondary))
+  ) padding-box;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.25), 0 0 8px hsl(var(--accent) / 0.35);
+}
+
+/* Webkit 滚动条滑块悬停：反转渐变方向 + 增强发光 */
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--secondary)),
+    hsl(var(--accent)) 52%,
+    hsl(var(--primary))
+  ) padding-box;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.4), 0 0 12px hsl(var(--accent) / 0.6);
+}
+
+/* Webkit 滚动条角落：透明 */
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }

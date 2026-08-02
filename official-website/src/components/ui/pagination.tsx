@@ -1,3 +1,10 @@
+/**
+ * Pagination - 分页
+ *
+ * 数据分页导航组件，支持页码按钮、上一页/下一页和省略号。
+ * 基于 shadcn/ui (new-york 风格) 构建。
+ */
+
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 

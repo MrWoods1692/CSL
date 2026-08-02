@@ -1,3 +1,10 @@
+/**
+ * DropdownMenu - 下拉菜单
+ *
+ * 点击触发按钮后弹出的菜单列表，支持子菜单、快捷键、复选框/单选项和分隔线。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI 原语构建。
+ */
+
 "use client"
 
 import * as React from "react"

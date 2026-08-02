@@ -1,3 +1,10 @@
+/**
+ * Command - 命令面板
+ *
+ * ⌘K 风格命令面板，支持搜索、键盘导航、分组和自定义渲染。
+ * 基于 shadcn/ui (new-york 风格) + cmdk 构建。
+ */
+
 "use client"
 
 import * as React from "react"

@@ -1,12 +1,51 @@
 <!DOCTYPE html>
+<!--
+  CSL 启动器官方网站 - 入口 HTML 文件
+  
+  本文件是 Vite 构建的入口点，包含：
+  - SEO 元数据（标题、描述、关键词、Open Graph、Twitter Card）
+  - 网站图标和主题色配置
+  - React 应用挂载点（#root）
+  - Vite 模块入口脚本
+  
+  语言：zh-CN（简体中文）
+  主题色：#c7ff70（CSL 品牌色 - 霓虹绿）
+-->
 <html lang="zh-CN">
   <head>
+    <!-- 字符编码：UTF-8 支持中文等多语言 -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <!-- 网站图标（Favicon）：使用 CSL 的 PNG 图标 -->
+    <link rel="icon" type="image/png" href="/csl.png" />
+    <!-- 视口配置：移动端适配，初始缩放 1.0 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 浏览器主题色：CSL 品牌色（霓虹绿） -->
+    <meta name="theme-color" content="#c7ff70" />
+    <!-- SEO 描述：搜索引擎结果中显示的网站简介 -->
+    <meta name="description" content="CSL 启动器官方网站：多版本管理、模组安装、自动更新，支持 Windows、macOS 和 Linux。" />
+    <!-- SEO 关键词：帮助搜索引擎理解网站内容 -->
+    <meta name="keywords" content="CSL, CSL启动器, Minecraft启动器, 我的世界启动器, Minecraft, 模组, Forge, Fabric" />
+    <!-- 网站作者 -->
+    <meta name="author" content="CSL 开源社区" />
+    <!-- 搜索引擎爬虫指令：允许索引，允许跟踪链接，允许大图预览 -->
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    
+    <!-- Open Graph 协议标签（用于社交分享，如 Facebook、Telegram 等） -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="CSL 启动器" />
+    <meta property="og:title" content="CSL 启动器 - 为《我的世界》玩家打造" />
+    <meta property="og:description" content="简单、快速、开源、自由的跨平台 Minecraft 启动器。" />
+    
+    <!-- Twitter Card 标签（社交分享：Twitter/X） -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="CSL 启动器 - 为《我的世界》玩家打造" />
+    <meta name="twitter:description" content="简单、快速、开源、自由的跨平台 Minecraft 启动器。" />
   </head>
   <body>
+    <!-- React 应用挂载点：所有 React 组件渲染到此 div 中 -->
     <div id="root"></div>
+    <!-- Vite 入口脚本：ES Module 方式加载 main.tsx -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

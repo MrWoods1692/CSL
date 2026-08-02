@@ -1,3 +1,15 @@
+/**
+ * 首页
+ *
+ * 页面结构：
+ * 1. Hero 区域：大标题 + 描述 + CTA 按钮 + 平台标签 + 装饰形状
+ * 2. Marquee 跑马灯：功能亮点滚动条
+ * 3. Stats 统计区：用户数、版本数、评分、开源
+ * 4. Highlights 亮点区：极速启动、稳定可靠、简洁易用、活跃社区
+ * 5. Feature Preview 核心功能预览：多版本管理、智能内存分配、崩溃恢复
+ * 6. CTA 行动号召：免费下载 + 加入社区
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Download, ArrowRight, Sparkles, Zap, Shield, Users, Package, Cpu, Star, GitBranch } from 'lucide-react';
@@ -11,6 +23,7 @@ import IconBox from '@/components/common/IconBox';
 import DecorativeShape from '@/components/common/DecorativeShape';
 import { StaggerContainer, StaggerItem } from '@/components/common/StaggerContainer';
 
+/** 产品亮点数据 */
 const highlights = [
   {
     icon: Zap,
@@ -38,6 +51,7 @@ const highlights = [
   },
 ];
 
+/** 统计数据 */
 const stats = [
   { icon: Users, value: '50K+', label: '活跃用户', color: 'text-primary' },
   { icon: Package, value: '300+', label: '支持版本', color: 'text-accent' },
@@ -45,6 +59,7 @@ const stats = [
   { icon: GitBranch, value: '100%', label: '开源免费', color: 'text-primary' },
 ];
 
+/** 核心功能预览数据 */
 const previewFeatures = [
   {
     icon: Package,

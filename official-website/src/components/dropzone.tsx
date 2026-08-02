@@ -1,9 +1,37 @@
+/**
+ * Dropzone 拖拽上传组件
+ *
+ * 基于 react-dropzone 和 Supabase Storage 的文件拖拽上传 UI 组件。
+ * 采用 Compound Components 模式，通过 Context 共享上传状态。
+ *
+ * 组件树：
+ * - Dropzone（容器，提供 Context）
+ *   - DropzoneContent（文件列表 + 上传按钮）
+ *   - DropzoneEmptyState（空状态提示）
+ *
+ * 使用方式：
+ * ```tsx
+ * const uploadProps = useSupabaseUpload({ bucketName: '...', supabase })
+ * <Dropzone {...uploadProps}>
+ *   <DropzoneEmptyState />
+ *   <DropzoneContent />
+ * </Dropzone>
+ * ```
+ */
+
 import { cn } from '@/lib/utils'
 import { type UseSupabaseUploadReturn } from '@/hooks/use-supabase-upload'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
 import { createContext, type PropsWithChildren, useCallback, useContext } from 'react'
 
+/**
+ * 格式化字节数为可读大小
+ * @param bytes 字节数
+ * @param decimals 小数位数，默认 2
+ * @param size 强制指定单位（bytes/KB/MB/GB/TB/PB/EB/ZB/YB）
+ * @returns 格式化后的字符串，如 "1.5 MB"
+ */
 export const formatBytes = (
   bytes: number,
   decimals = 2,
@@ -18,14 +46,20 @@ export const formatBytes = (
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
 
+/** Dropzone Context 类型：排除 react-dropzone 的 getRootProps/getInputProps */
 type DropzoneContextType = Omit<UseSupabaseUploadReturn, 'getRootProps' | 'getInputProps'>
 
+/** 拖拽上传上下文，由 Dropzone 根组件提供 */
 const DropzoneContext = createContext<DropzoneContextType | undefined>(undefined)
 
 type DropzoneProps = UseSupabaseUploadReturn & {
   className?: string
 }
 
+/**
+ * Dropzone 根组件
+ * 提供拖拽区域容器，根据状态切换样式（拖拽中/成功/错误）
+ */
 const Dropzone = ({
   className,
   children,
@@ -59,6 +93,12 @@ const Dropzone = ({
     </DropzoneContext.Provider>
   )
 }
+
+/**
+ * DropzoneContent 组件
+ * 显示已选文件列表、错误信息、上传按钮
+ * 上传成功后显示成功提示
+ */
 const DropzoneContent = ({ className }: { className?: string }) => {
   const {
     files,
@@ -74,6 +114,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 
   const exceedMaxFiles = files.length > maxFiles
 
+  /** 从文件列表中移除指定文件 */
   const handleRemoveFile = useCallback(
     (fileName: string) => {
       setFiles(files.filter((file) => file.name !== fileName))
@@ -81,6 +122,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
     [files, setFiles]
   )
 
+  // 全部上传成功：显示成功状态
   if (isSuccess) {
     return (
       <div className={cn('flex flex-row items-center gap-x-2 justify-center', className)}>
@@ -103,6 +145,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
             key={`${file.name}-${idx}`}
             className="flex items-center gap-x-4 border-b py-2 first:mt-4 last:mb-4 "
           >
+            {/* 图片预览 / 文件图标 */}
             {file.type.startsWith('image/') ? (
               <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                 <img src={file.preview} alt={file.name} className="object-cover" />
@@ -113,6 +156,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
               </div>
             )}
 
+            {/* 文件信息：名称 + 状态/错误 */}
             <div className="shrink grow flex flex-col items-start truncate">
               <p title={file.name} className="text-sm truncate max-w-full">
                 {file.name}
@@ -138,6 +182,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
               )}
             </div>
 
+            {/* 移除按钮：仅在上传未完成且未成功时显示 */}
             {!loading && !isSuccessfullyUploaded && (
               <Button
                 size="icon"
@@ -151,12 +196,14 @@ const DropzoneContent = ({ className }: { className?: string }) => {
           </div>
         )
       })}
+      {/* 超出最大文件数提示 */}
       {exceedMaxFiles && (
         <p className="text-sm text-left mt-2 text-destructive">
           You may upload only up to {maxFiles} files, please remove {files.length - maxFiles} file
           {files.length - maxFiles > 1 ? 's' : ''}.
         </p>
       )}
+      {/* 上传按钮：有文件且未超出限制时显示 */}
       {files.length > 0 && !exceedMaxFiles && (
         <div className="mt-2">
           <Button
@@ -179,6 +226,11 @@ const DropzoneContent = ({ className }: { className?: string }) => {
   )
 }
 
+/**
+ * DropzoneEmptyState 组件
+ * 空状态提示：拖拽或点击选择文件上传
+ * 上传成功后自动隐藏
+ */
 const DropzoneEmptyState = ({ className }: { className?: string }) => {
   const { maxFiles, maxFileSize, inputRef, isSuccess } = useDropzoneContext()
 
@@ -214,6 +266,10 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
   )
 }
 
+/**
+ * 获取 DropzoneContext 的自定义 Hook
+ * 必须在 Dropzone 组件内部使用，否则抛出错误
+ */
 const useDropzoneContext = () => {
   const context = useContext(DropzoneContext)
 

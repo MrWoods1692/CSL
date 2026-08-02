@@ -63,6 +63,10 @@ public final class SettingsManager {
             launcherState.setSavePending(false);
             STATE_FILE.save(launcherState);
         }
+        if (usageStatistics != null && usageStatistics.isSavable() && usageStatistics.isSavePending()) {
+            usageStatistics.setSavePending(false);
+            USAGE_STATS_FILE.save(usageStatistics);
+        }
     }
 
     /// The local directory storing per-workspace configuration files.
@@ -104,6 +108,10 @@ public final class SettingsManager {
     /// The current per-workspace launcher state path.
     private static final Path STATE_LOCATION =
             LOCAL_STATE_DIRECTORY.resolve("launcher-state.json");
+
+    /// The usage statistics path.
+    private static final Path USAGE_STATS_LOCATION =
+            LOCAL_STATE_DIRECTORY.resolve("usage-statistics.json");
 
     /// The current per-workspace game directories path.
     private static final Path LOCAL_GAME_DIRECTORIES_LOCATION =
@@ -197,6 +205,14 @@ public final class SettingsManager {
             LauncherState.CURRENT_SCHEMA,
             LauncherState::new);
 
+    /// The usage statistics file helper.
+    private static final JsonSettingFile<UsageStatistics> USAGE_STATS_FILE = new JsonSettingFile<>(
+            USAGE_STATS_LOCATION,
+            "usage statistics",
+            UsageStatistics.class,
+            UsageStatistics.CURRENT_SCHEMA,
+            UsageStatistics::new);
+
     /// The user settings file helper.
     private static final JsonSettingFile<UserSettings> USER_SETTINGS_FILE = new JsonSettingFile<>(
             USER_SETTINGS_LOCATION,
@@ -233,6 +249,9 @@ public final class SettingsManager {
 
     /// The loaded detached launcher state store.
     private static @UnknownNullability LauncherState launcherState;
+
+    /// The loaded usage statistics store.
+    private static @UnknownNullability UsageStatistics usageStatistics;
 
     /// The loaded detached account metadata store.
     private static @UnknownNullability AccountMetadataStore gameAccounts;
@@ -285,6 +304,9 @@ public final class SettingsManager {
     /// Access status for `state/user-state.json`.
     private static SettingFileAccess userStateAccess = SettingFileAccess.READ_WRITE;
 
+    /// Access status for `state/usage-statistics.json`.
+    private static SettingFileAccess usageStatsAccess = SettingFileAccess.READ_WRITE;
+
     /// Returns the loaded per-workspace launcher settings.
     public static LauncherSettings settings() {
         if (launcherSettings == null) {
@@ -315,6 +337,14 @@ public final class SettingsManager {
             throw new IllegalStateException("Launcher state hasn't been loaded");
         }
         return launcherState;
+    }
+
+    /// Returns the loaded usage statistics.
+    public static UsageStatistics usageStats() {
+        if (usageStatistics == null) {
+            throw new IllegalStateException("Usage statistics hasn't been loaded");
+        }
+        return usageStatistics;
     }
 
     /// Returns the current per-workspace config directory path.
@@ -1033,6 +1063,7 @@ public final class SettingsManager {
         loadGameDirectories(migratedDetachedSettings.gameDirectories());
         gameSettingsAccess = loadGameSettingsPresets(migratedDetachedSettings.gameSettingsPresets());
         launcherStateAccess = loadLauncherState(migratedDetachedSettings.launcherState());
+        usageStatsAccess = loadUsageStatistics();
         userGameAccountPrivateDataAccess = loadUserGameAccountPrivateData();
         gameAccountPrivateDataAccess = loadGameAccountPrivateData();
         userGameAccountsAccess = loadUserGameAccounts();
@@ -1275,6 +1306,29 @@ public final class SettingsManager {
 
         if (newlyCreated && launcherState.isSavable()) {
             STATE_FILE.saveSync(launcherState);
+        }
+
+        return result.access();
+    }
+
+    /// Loads usage statistics and installs the save listener.
+    ///
+    /// @return the usage statistics file access status
+    private static SettingFileAccess loadUsageStatistics() throws IOException {
+        if (usageStatistics != null) {
+            throw new IllegalStateException("Usage statistics is already loaded");
+        }
+
+        boolean newlyCreated = !Files.exists(USAGE_STATS_LOCATION);
+        JsonSettingFile.LoadResult<UsageStatistics> result =
+                USAGE_STATS_FILE.load(null);
+        usageStatistics = result.value();
+        if (usageStatistics.isSavable()) {
+            USAGE_STATS_FILE.installAutoSave(usageStatistics);
+        }
+
+        if (newlyCreated && usageStatistics.isSavable()) {
+            USAGE_STATS_FILE.saveSync(usageStatistics);
         }
 
         return result.access();

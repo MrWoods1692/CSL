@@ -97,6 +97,8 @@ public record MicrosoftSession(String tokenType, String accessToken, long notAft
 
     public AuthInfo toAuthInfo() {
         requireNonNull(profile);
+        requireNonNull(tokenType);
+        requireNonNull(accessToken);
 
         return new AuthInfo(profile.name(), profile.id(), accessToken, AuthInfo.USER_TYPE_MSA, "{}");
     }

@@ -1,4 +1,11 @@
 /**
+ * QRCodeDataURL - 二维码数据 URL
+ *
+ * 将文本内容转换为二维码图片的 Data URL，用于生成可下载的二维码图片。
+ * 基于 shadcn/ui (new-york 风格) + QRCode.js 构建。
+ */
+
+/**
  * QR Code Generator Component
  * 
  * React wrapper component based on QRCode.js that can convert any text to QR code image

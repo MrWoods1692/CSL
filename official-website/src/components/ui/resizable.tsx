@@ -1,3 +1,10 @@
+/**
+ * Resizable - 可调整大小面板
+ *
+ * 可拖拽调整大小的面板组，支持水平和垂直方向的分割面板。
+ * 基于 shadcn/ui (new-york 风格) + react-resizable-panels 构建。
+ */
+
 "use client"
 
 import { GripVertical } from "lucide-react"

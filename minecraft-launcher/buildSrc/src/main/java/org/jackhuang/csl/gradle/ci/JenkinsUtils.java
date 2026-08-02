@@ -18,10 +18,15 @@
 package org.jackhuang.csl.gradle.ci;
 
 /// @author Glavo
+/// 提供 Jenkins CI 环境相关的工具方法
+/// @author Glavo
 public final class JenkinsUtils {
 
+    // 判断当前是否在 CI 环境中运行
+    // 通过检查 CSL_CI 环境变量是否为 "1" 来判断
     public static final boolean IS_ON_CI = "1".equals(System.getenv("CSL_CI"));
 
+    // 私有构造函数，防止实例化工具类
     private JenkinsUtils() {
     }
 }

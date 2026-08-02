@@ -21,6 +21,210 @@
     -fx-font-smoothing-type: gray;
 }
 
+/* Multiplayer control page */
+.multiplayer-content {
+    -fx-spacing: 18px;
+}
+
+.multiplayer-section {
+    -fx-spacing: 8px;
+}
+
+.multiplayer-editor {
+    -fx-spacing: 8px;
+}
+
+.multiplayer-button-row {
+    -fx-alignment: center-left;
+}
+
+.multiplayer-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.multiplayer-title {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.multiplayer-badge {
+    -fx-background-color: -monet-primary-container;
+    -fx-text-fill: -monet-on-primary-container;
+    -fx-background-radius: 14;
+    -fx-padding: 5 10 5 10;
+    -fx-font-size: 11px;
+}
+
+.multiplayer-heading {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 2px 1px;
+}
+
+.multiplayer-online-badge {
+    -fx-background-color: rgba(52, 168, 83, 0.14);
+    -fx-text-fill: #2e7d32;
+    -fx-background-radius: 14;
+    -fx-padding: 5 10 5 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.multiplayer-field-label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 1 1;
+}
+
+.multiplayer-fields-row {
+    -fx-alignment: bottom-left;
+    -fx-spacing: 16px;
+}
+
+.multiplayer-separator {
+    -fx-padding: 4 0 4 0;
+}
+
+.multiplayer-frp-fields {
+    -fx-padding: 2 0 0 0;
+    -fx-spacing: 8px;
+}
+
+.multiplayer-section-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.multiplayer-card {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(120, 120, 140, 0.24);
+    -fx-border-radius: 18;
+    -fx-padding: 22;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 22, 0.16, 0, 6);
+}
+
+.multiplayer-card > .multiplayer-section-title {
+    -fx-padding: 0 0 4px 0;
+}
+
+.multiplayer-warning {
+    -fx-background-color: -monet-error-container;
+    -fx-text-fill: -monet-on-error-container;
+    -fx-padding: 14px;
+    -fx-background-radius: 14px;
+    -fx-border-color: -monet-error;
+    -fx-border-radius: 14px;
+    -fx-line-spacing: 2px;
+}
+
+.multiplayer-status {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 12;
+    -fx-padding: 13 15 13 15;
+    -fx-font-size: 13px;
+    -fx-border-color: rgba(120, 120, 140, 0.22);
+    -fx-border-radius: 12;
+}
+
+.multiplayer-log {
+    -fx-background-color: #17202b;
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(120, 140, 170, 0.28);
+    -fx-border-radius: 12;
+    -fx-padding: 14px;
+    -fx-font-family: monospace;
+    -fx-font-size: 12px;
+}
+
+.multiplayer-log-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.multiplayer-log-toolbar {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 2px 0;
+}
+
+.multiplayer-log-toolbar > .label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-idle {
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.multiplayer-card .text-field,
+.multiplayer-card .text-area,
+.multiplayer-card .combo-box {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-radius: 10;
+    -fx-padding: 10 13 10 13;
+}
+
+.multiplayer-card .text-field:focused,
+.multiplayer-card .text-area:focused,
+.multiplayer-card .combo-box:focused {
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 1.5px;
+    -fx-background-color: -monet-surface;
+}
+
+.multiplayer-card .button {
+    -fx-background-radius: 10;
+    -fx-padding: 10 15 10 15;
+    -fx-font-weight: bold;
+}
+
+.multiplayer-card .list-view {
+    -fx-min-height: 92px;
+}
+
+.multiplayer-card .button:hover {
+    -fx-opacity: 0.88;
+    -fx-translate-y: -1px;
+}
+
+.multiplayer-card .accent-button {
+    -fx-background-color: -monet-primary;
+    -fx-text-fill: -monet-on-primary;
+    -fx-background-radius: 12;
+    -fx-padding: 12 20 12 20;
+    -fx-font-size: 14px;
+}
+
+.multiplayer-card .list-view {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-padding: 4px;
+}
+
+.multiplayer-card .list-cell {
+    -fx-background-radius: 7px;
+    -fx-padding: 7px 9px;
+}
+
+.multiplayer-card .list-cell:filled:selected {
+    -fx-background-color: -monet-primary-container;
+    -fx-text-fill: -monet-on-primary-container;
+}
+
+.multiplayer-card .text-area {
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 8;
+}
+
 /* ============================================================
  * Global smooth transitions for interactive elements
  * ============================================================ */
@@ -308,23 +512,23 @@
     -fx-padding: 10 16 10 20;
     -fx-alignment: center-left;
     -fx-graphic-text-gap: 10;
-    -fx-text-fill: -monet-on-surface-variant;
+    -fx-text-fill: -monet-primary;
     -fx-background-radius: 12;
     -fx-margin: 4 8 8 8;
     -fx-cursor: hand;
 }
 
 .sidebar-toggle-button .svg {
-    -fx-fill: -monet-on-surface-variant;
+    -fx-fill: -monet-primary;
 }
 
 .sidebar-toggle-button:hover {
     -fx-background-color: -monet-surface-container-highest;
-    -fx-text-fill: -monet-on-surface;
+    -fx-text-fill: -monet-on-primary;
 }
 
 .sidebar-toggle-button:hover .svg {
-    -fx-fill: -monet-on-surface;
+    -fx-fill: -monet-on-primary;
 }
 
 .game-directory-list-item > .rippler-container > BorderPane > .two-line-list-item > .first-line > .title {
@@ -772,6 +976,48 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.15, 0, 8);
 }
 
+.combo-selection-dialog {
+    -fx-background-color: -monet-surface-container-high;
+    -fx-background-radius: 16px;
+    -fx-padding: 0 18px 18px 18px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 24, 0.15, 0, 8);
+}
+
+.combo-selection-title-bar {
+    -fx-alignment: center-left;
+    -fx-spacing: 12px;
+    -fx-padding: 14px 0 12px 0;
+}
+
+.combo-selection-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.macos-close-dot {
+    -fx-background-color: #ff5f57;
+    -fx-background-radius: 99px;
+    -fx-min-width: 13px;
+    -fx-pref-width: 13px;
+    -fx-max-width: 13px;
+    -fx-min-height: 13px;
+    -fx-pref-height: 13px;
+    -fx-max-height: 13px;
+    -fx-padding: 0;
+}
+
+.macos-close-dot:hover {
+    -fx-background-color: #e0443e;
+}
+
+.combo-selection-list {
+    -fx-background-color: transparent;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
 .jfx-layout-heading {
     -fx-font-weight: BOLD;
     -fx-font-size: 20.0px;
@@ -807,6 +1053,75 @@
 .dialog-cancel {
     -fx-text-fill: -monet-on-surface-variant;
     -fx-padding: 0.7em 0.8em;
+}
+
+.launcher-agreement-dialog {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 22px;
+    -fx-padding: 30px 32px 22px 32px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.34), 30, 0.16, 0, 10);
+}
+
+.launcher-agreement-dialog .jfx-layout-heading {
+    -fx-text-fill: -monet-primary;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-padding: 2px 0 10px 0;
+}
+
+.launcher-agreement-dialog .jfx-layout-body {
+    -fx-pref-width: 440px;
+    -fx-padding: 4px 0 8px 0;
+    -fx-line-spacing: 3px;
+}
+
+.launcher-agreement-dialog .jfx-layout-body .label {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 13px;
+    -fx-wrap-text: true;
+}
+
+.launcher-agreement-dialog .jfx-layout-actions {
+    -fx-pref-width: 440px;
+    -fx-spacing: 8px;
+    -fx-padding: 14px 0 0 0;
+}
+
+.launcher-agreement-dialog .jfx-layout-actions .jfx-hyperlink {
+    -fx-text-fill: -monet-primary;
+    -fx-font-weight: bold;
+    -fx-padding: 9px 12px;
+}
+
+.launcher-agreement-dialog .jfx-layout-actions .jfx-hyperlink:hover {
+    -fx-background-color: -monet-primary-container;
+    -fx-background-radius: 10px;
+}
+
+.launcher-agreement-dialog .dialog-accept,
+.launcher-agreement-dialog .dialog-cancel {
+    -fx-background-radius: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 9px 16px;
+}
+
+.launcher-agreement-dialog .dialog-accept {
+    -fx-background-color: -monet-primary;
+    -fx-text-fill: -monet-on-primary;
+}
+
+.launcher-agreement-dialog .dialog-accept:hover {
+    -fx-background-color: derive(-monet-primary, 10%);
+}
+
+.launcher-agreement-dialog .dialog-cancel {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.launcher-agreement-dialog .dialog-cancel:hover {
+    -fx-background-color: -monet-error-container;
+    -fx-text-fill: -monet-on-error-container;
 }
 
 .task-executor-dialog-layout {
@@ -1625,6 +1940,68 @@
     -fx-spacing: 10;
 }
 
+.account-list {
+    -fx-padding: 16px;
+    -fx-spacing: 12px;
+}
+
+.account-list-card {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 18px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 1px;
+    -fx-border-radius: 18px;
+    -fx-padding: 10px 12px 10px 4px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.07), 14, 0.04, 0, 4);
+}
+
+.account-list-card:hover {
+    -fx-background-color: -monet-surface-container;
+    -fx-border-color: -monet-primary;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.13), 20, 0.06, 0, 6);
+    -fx-translate-y: -1px;
+}
+
+.account-list-card:selected {
+    -fx-background-color: -monet-secondary-container;
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 1.5px;
+}
+
+.account-list-card .account-card-content {
+    -fx-spacing: 12px;
+}
+
+.account-list-card .account-card-content .two-line-list-item .title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.account-list-card .account-card-content .two-line-list-item .subtitle {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+}
+
+.account-list-card .account-card-actions {
+    -fx-spacing: 2px;
+    -fx-padding: 0 2px 0 8px;
+}
+
+.account-list-card .account-card-actions .jfx-button {
+    -fx-background-radius: 10px;
+    -fx-padding: 8px;
+}
+
+.account-list-card .account-card-actions .jfx-button:hover {
+    -fx-background-color: -monet-primary-container;
+}
+
+.account-methods-panel {
+    -fx-padding: 8px;
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 16px;
+}
+
 .md-list-cell {
     -fx-border-color: -monet-outline-variant;
     -fx-border-width: 0 0 1 0;
@@ -2394,10 +2771,10 @@
     -fx-background-color: -monet-surface-transparent-50;
 }
 
-/* The persistent global sidebar container; uses a solid background
-   for clear visual separation from the content area. */
+/* The persistent global sidebar container; keeps the content visible
+   through the sidebar while preserving visual separation. */
 .global-sidebar-container {
-    -fx-background-color: -monet-surface;
+    -fx-background-color: -monet-surface-transparent-80;
     -fx-border-width: 0 1 0 0;
     -fx-border-color: -monet-outline-variant;
 }
@@ -2579,6 +2956,17 @@
  *                                                                             *
  ******************************************************************************/
 
+.loading-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.10);
+    -fx-background-radius: 18px;
+}
+
+.loading-overlay .loading-block {
+    -fx-stroke: -monet-primary;
+    -fx-stroke-width: 1px;
+    -fx-effect: dropshadow(gaussian, -monet-primary, 10, 0.18, 0, 2);
+}
+
 .line-component .line-component-container {
     -fx-padding: 10 16 10 16;
 }
@@ -2614,6 +3002,63 @@
 
 .line-select-button .menu-container .title-label {
     -fx-font-size: 13px;
+}
+
+.general-settings-page {
+    -fx-background-color: -monet-surface;
+    -fx-background-insets: 0;
+}
+
+.general-settings-page > .viewport {
+    -fx-background-color: -monet-surface;
+}
+
+.general-settings-content {
+    -fx-spacing: 8px;
+}
+
+.settings-section-title {
+    -fx-padding: 12px 8px 4px 8px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.settings-section-title .label {
+    -fx-text-fill: -monet-primary;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.settings-section {
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 16px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 1px;
+    -fx-border-radius: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0.03, 0, 3);
+}
+
+.settings-section .options-list-item {
+    -fx-background-color: transparent;
+}
+
+.settings-section .line-component:hover {
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 12px;
+}
+
+.settings-section .line-component:active,
+.settings-section .line-component:focused {
+    -fx-background-color: -monet-primary-container;
+    -fx-background-radius: 12px;
+}
+
+.settings-section .title-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.settings-section .subtitle-label {
+    -fx-font-size: 12px;
 }
 
 .line-select-button .menu-container .title-label {
@@ -2712,6 +3157,23 @@
     -fx-font-size: 13px;
 }
 
+.system-status-pane .recommendation-value {
+    -fx-text-fill: -monet-primary;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-underline: true;
+}
+
+.system-status-pane .recommendation-details-value {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 12px;
+    -fx-line-spacing: 3px;
+    -fx-padding: 4 0 4 22;
+    -fx-wrap-text: true;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 0 0 0 2px;
+}
+
 .gauge-track {
     -fx-stroke: -monet-surface-variant;
 }
@@ -2774,6 +3236,55 @@
     -fx-font-size: 11px;
 }
 
+.system-status-pane .section-title {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 0 4 0;
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 0 0 0 3px;
+    -fx-border-insets: 0 0 0 -10px;
+    -fx-padding: 12 0 4 10px;
+}
+
+.system-status-pane .stats-tile-value {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.system-status-pane .stats-tile {
+    -fx-background-color: -monet-surface-container-lowest;
+    -fx-background-radius: 10px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 10px;
+    -fx-border-width: 0.5px;
+    -fx-padding: 10 12 10 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 4, 0, 1, 2);
+}
+
+.system-status-pane .stats-tile:hover {
+    -fx-background-color: -monet-surface-container;
+    -fx-border-color: -monet-primary;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 2, 4);
+}
+
+.system-status-pane .stats-tile-name {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 11px;
+}
+
+.system-status-pane .stats-tile-icon .svg {
+    -fx-fill: -monet-primary;
+}
+
+.system-status-pane .stats-separator {
+    -fx-background-color: -monet-outline-variant;
+    -fx-pref-height: 1px;
+    -fx-max-height: 1px;
+    -fx-opacity: 0.5;
+}
+
 /* ===== Status Page (full-page dashboard) ===== */
 
 .status-page-root {
@@ -2785,9 +3296,12 @@
 }
 
 .status-page-header {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent transparent -monet-outline-variant transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 18px;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-radius: 18px;
+    -fx-border-width: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 14, 0, 0, 4);
 }
 
 .status-header-icon {
@@ -2806,7 +3320,7 @@
 
 .status-header-title {
     -fx-text-fill: -monet-on-surface;
-    -fx-font-size: 22px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
 }
 
@@ -2829,7 +3343,7 @@
 
 /* Full-page mode: larger content padding */
 .status-page-view > .system-status-content {
-    -fx-padding: 16 20 16 20;
+    -fx-padding: 20 0 24 0;
 }
 
 /* Full-page mode: hide the inline title (page header replaces it) */
@@ -2860,6 +3374,27 @@
     -fx-font-size: 12px;
 }
 
+/* Full-page mode: statistics section */
+.status-page-view .section-title {
+    -fx-font-size: 16px;
+    -fx-padding: 16 0 6 10px;
+}
+
+.status-page-view .stats-tile-value {
+    -fx-font-size: 18px;
+}
+
+.status-page-view .stats-tile-name {
+    -fx-font-size: 12px;
+}
+
+.status-page-view .stats-tile {
+    -fx-min-height: 96px;
+    -fx-pref-height: 96px;
+    -fx-max-height: 96px;
+    -fx-padding: 12 14 12 14;
+}
+
 /* Full-page mode: larger row text */
 .status-page-view .name {
     -fx-font-size: 14px;
@@ -2871,12 +3406,12 @@
 
 /* Full-page mode: transparent cards with subtle border */
 .status-page-view .status-card {
-    -fx-background-color: -monet-surface-container-low;
+    -fx-background-color: -monet-surface-container;
     -fx-background-radius: 12px;
     -fx-border-color: -monet-outline-variant;
     -fx-border-radius: 12px;
     -fx-border-width: 0.5px;
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.07), 10, 0, 0, 3);
 }
 
 .status-page-view .status-tile {
@@ -2887,19 +3422,12 @@
 
 /* Full-page mode: gauge cards transparent */
 .status-page-view .status-gauge-card {
-    -fx-background-color: -monet-surface-container-low;
+    -fx-background-color: -monet-surface-container;
     -fx-background-radius: 12px;
     -fx-border-color: -monet-outline-variant;
     -fx-border-radius: 12px;
     -fx-border-width: 0.5px;
-    -fx-effect: none;
-    .status-page-view .status-gauge-card {
-    -fx-background-color: -monet-surface-container-low;
-    -fx-background-radius: 12px;
-    -fx-border-color: -monet-outline-variant;
-    -fx-border-radius: 12px;
-    -fx-border-width: 0.5px;
-    -fx-effect: none;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.07), 10, 0, 0, 3);
     -fx-padding: 12 8 10 8;
 }
 

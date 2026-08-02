@@ -26,6 +26,7 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -37,6 +38,7 @@ import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.SVG;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.ui.construct.MessageDialogPane.MessageType;
+import org.jackhuang.csl.ui.multiplayer.MultiplayerProfileStore;
 import org.jackhuang.csl.upgrade.RemoteVersion;
 import org.jackhuang.csl.upgrade.UpdateChannel;
 import org.jackhuang.csl.upgrade.UpdateChecker;
@@ -73,15 +75,18 @@ public final class SettingsPage extends ScrollPane {
     private final InvalidationListener updateListener;
 
     public SettingsPage() {
+        getStyleClass().add("general-settings-page");
         this.setFitToWidth(true);
 
         VBox rootPane = new VBox(10);
+        rootPane.getStyleClass().add("general-settings-content");
         rootPane.setPadding(new Insets(10));
         this.setContent(rootPane);
         FXUtils.smoothScrolling(this);
 
         {
             ComponentList updatePaneList = new ComponentList();
+            updatePaneList.getStyleClass().add("settings-section");
             {
                 ObjectProperty<UpdateChannel> updateChannel;
                 {
@@ -161,11 +166,14 @@ public final class SettingsPage extends ScrollPane {
                     updatePaneList.getContent().add(disableAutoShowUpdateDialogPane);
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("update")), updatePaneList);
+                Node title = ComponentList.createComponentListTitle(i18n("update"));
+                title.getStyleClass().add("settings-section-title");
+                rootPane.getChildren().addAll(title, updatePaneList);
             }
 
             {
                 ComponentList languagePaneList = new ComponentList();
+                languagePaneList.getStyleClass().add("settings-section");
 
                 {
                     var chooseLanguagePane = new LineSelectButton<SupportedLocale>();
@@ -188,19 +196,40 @@ public final class SettingsPage extends ScrollPane {
 
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.language")), languagePaneList);
+                Node title = ComponentList.createComponentListTitle(i18n("settings.launcher.language"));
+                title.getStyleClass().add("settings-section-title");
+                rootPane.getChildren().addAll(title, languagePaneList);
+            }
+
+            {
+                ComponentList multiplayerPaneList = new ComponentList();
+                multiplayerPaneList.getStyleClass().add("settings-section");
+                {
+                    LineToggleButton autoStartPane = new LineToggleButton();
+                    autoStartPane.setTitle("启动时自动运行联机");
+                    autoStartPane.setSubtitle("启动器打开后自动启动默认的 FRP 联机配置");
+                    autoStartPane.selectedProperty().bindBidirectional(settings().autoStartMultiplayerProperty());
+                    multiplayerPaneList.getContent().add(autoStartPane);
+                }
+                {
+                    LineSelectButton<String> defaultProfilePane = new LineSelectButton<>();
+                    defaultProfilePane.setTitle("默认联机配置");
+                    defaultProfilePane.setSubtitle("自动联机时使用的已保存配置");
+                    List<String> profileNames = new MultiplayerProfileStore().load().stream()
+                            .map(MultiplayerProfileStore.Profile::name).toList();
+                    defaultProfilePane.setItems(profileNames);
+                    defaultProfilePane.valueProperty().bindBidirectional(settings().defaultMultiplayerProfileProperty());
+                    defaultProfilePane.setNullSafeConverter(value -> value == null || value.isBlank() ? "未选择" : value);
+                    multiplayerPaneList.getContent().add(defaultProfilePane);
+                }
+                Node title = ComponentList.createComponentListTitle("多人联机");
+                title.getStyleClass().add("settings-section-title");
+                rootPane.getChildren().addAll(title, multiplayerPaneList);
             }
 
             {
                 ComponentList miscPaneList = new ComponentList();
-
-                {
-                    LineToggleButton disableAprilFools = new LineToggleButton();
-                    disableAprilFools.setTitle(i18n("settings.launcher.disable_april_fools"));
-                    disableAprilFools.setSubtitle(i18n("settings.take_effect_after_restart"));
-                    disableAprilFools.selectedProperty().bindBidirectional(settings().disableAprilFoolsProperty());
-                    miscPaneList.getContent().add(disableAprilFools);
-                }
+                miscPaneList.getStyleClass().add("settings-section");
 
                 {
                     BorderPane debugPane = new BorderPane();
@@ -246,7 +275,9 @@ public final class SettingsPage extends ScrollPane {
                     miscPaneList.getContent().add(debugPane);
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.misc")), miscPaneList);
+                Node title = ComponentList.createComponentListTitle(i18n("settings.launcher.misc"));
+                title.getStyleClass().add("settings-section-title");
+                rootPane.getChildren().addAll(title, miscPaneList);
             }
         }
     }

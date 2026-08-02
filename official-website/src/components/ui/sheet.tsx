@@ -1,3 +1,32 @@
+/**
+ * Sheet - 侧边面板组件
+ *
+ * 从屏幕边缘滑出的面板，支持四个方向（上/下/左/右），适用于移动端菜单、设置面板等场景。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI Dialog + class-variance-authority 构建。
+ *
+ * @remarks
+ * 导出六个子组件：
+ * - Sheet: 根容器
+ * - SheetTrigger: 触发器
+ * - SheetClose: 关闭按钮包装器
+ * - SheetPortal: Portal 渲染
+ * - SheetOverlay: 半透明遮罩层
+ * - SheetContent: 面板内容，通过 side 属性控制滑出方向
+ * 支持四个方向：top（顶部滑入）、bottom（底部滑入）、left（左侧滑入）、right（右侧滑入，默认）
+ * 内置关闭按钮（X 图标）
+ *
+ * @example
+ * // 基本用法
+ * <Sheet>
+ *   <SheetTrigger>打开面板</SheetTrigger>
+ *   <SheetContent>
+ *     <SheetHeader>
+ *       <SheetTitle>面板标题</SheetTitle>
+ *     </SheetHeader>
+ *   </SheetContent>
+ * </Sheet>
+ */
+
 "use client"
 
 import * as React from "react"
@@ -7,14 +36,23 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/** Sheet - 侧边面板根容器 */
 const Sheet = SheetPrimitive.Root
 
+/** SheetTrigger - 侧边面板触发器 */
 const SheetTrigger = SheetPrimitive.Trigger
 
+/** SheetClose - 侧边面板关闭按钮 */
 const SheetClose = SheetPrimitive.Close
 
+/** SheetPortal - 将面板渲染到 body */
 const SheetPortal = SheetPrimitive.Portal
 
+/**
+ * SheetOverlay - 侧边面板遮罩层
+ *
+ * 固定全屏半透明黑色背景，打开/关闭时有淡入淡出动画。
+ */
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
@@ -30,6 +68,15 @@ const SheetOverlay = React.forwardRef<
 ))
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
+/**
+ * sheetVariants - 侧边面板样式变体
+ *
+ * 使用 CVA 定义四个方向的滑入/滑出动画。
+ * - top: 顶部滑入，底部边框
+ * - bottom: 底部滑入，顶部边框
+ * - left: 左侧滑入，右侧边框，宽度 3/4，最大 sm
+ * - right: 右侧滑入，左侧边框，宽度 3/4，最大 sm（默认）
+ */
 const sheetVariants = cva(
   "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
   {
@@ -49,10 +96,22 @@ const sheetVariants = cva(
   }
 )
 
+/**
+ * SheetContentProps - 侧边面板内容属性
+ *
+ * 继承 Radix Dialog Content 属性，扩展 side 变体。
+ */
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
+/**
+ * SheetContent - 侧边面板内容
+ *
+ * 包含遮罩层和面板主体，内置关闭按钮。
+ *
+ * @param side - 滑出方向，默认 "right"
+ */
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps

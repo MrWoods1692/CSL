@@ -1,3 +1,32 @@
+/**
+ * Carousel - 轮播组件
+ *
+ * 可滑动的轮播组件，支持自动播放、导航按钮、指示器和响应式配置。
+ * 基于 shadcn/ui (new-york 风格) + Embla Carousel 构建。
+ *
+ * @remarks
+ * 导出六个子组件：
+ * - Carousel: 根容器，管理 Embla 实例和滚动状态
+ * - CarouselContent: 轮播内容容器
+ * - CarouselItem: 单个轮播项
+ * - CarouselPrevious: 上一个按钮（ArrowLeft 图标）
+ * - CarouselNext: 下一个按钮（ArrowRight 图标）
+ * - CarouselDots: 指示器点
+ * 使用 React Context 在组件间共享 Embla API 和滚动状态
+ * 支持水平和垂直方向
+ *
+ * @example
+ * // 基本用法
+ * <Carousel>
+ *   <CarouselContent>
+ *     <CarouselItem>幻灯片 1</CarouselItem>
+ *     <CarouselItem>幻灯片 2</CarouselItem>
+ *   </CarouselContent>
+ *   <CarouselPrevious />
+ *   <CarouselNext />
+ * </Carousel>
+ */
+
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -7,11 +36,16 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+/** CarouselApi - Embla Carousel API 类型 */
 type CarouselApi = UseEmblaCarouselType[1]
+/** UseCarouselParameters - useEmblaCarousel 参数类型 */
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
+/** CarouselOptions - Embla 配置选项 */
 type CarouselOptions = UseCarouselParameters[0]
+/** CarouselPlugin - Embla 插件 */
 type CarouselPlugin = UseCarouselParameters[1]
 
+/** CarouselProps - 轮播组件属性 */
 type CarouselProps = {
   opts?: CarouselOptions
   plugins?: CarouselPlugin
@@ -19,6 +53,7 @@ type CarouselProps = {
   setApi?: (api: CarouselApi) => void
 }
 
+/** CarouselContextProps - 轮播上下文类型 */
 type CarouselContextProps = {
   carouselRef: ReturnType<typeof useEmblaCarousel>[0]
   api: ReturnType<typeof useEmblaCarousel>[1]
@@ -28,8 +63,20 @@ type CarouselContextProps = {
   canScrollNext: boolean
 } & CarouselProps
 
+/**
+ * CarouselContext - 轮播上下文
+ *
+ * 在 Carousel 组件树中共享 Embla API 和滚动状态。
+ */
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
+/**
+ * useCarousel - 获取轮播上下文 Hook
+ *
+ * 必须在 Carousel 组件内部使用，否则抛出错误。
+ *
+ * @returns 轮播上下文（carouselRef, api, scrollPrev, scrollNext, canScrollPrev, canScrollNext）
+ */
 function useCarousel() {
   const context = React.useContext(CarouselContext)
 

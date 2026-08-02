@@ -25,15 +25,19 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 /// @author Glavo
+/// 属性文件工具类
+/// @author Glavo
 public final class PropertiesUtils {
+    // 从路径加载 Properties 文件
     public static @NotNull Properties load(Path path) throws IOException {
-        Properties properties = new Properties();
-        try (var reader = Files.newBufferedReader(path)) {
-            properties.load(reader);
+        Properties properties = new Properties();  // 创建 Properties 对象
+        try (var reader = Files.newBufferedReader(path)) {  // 使用 UTF-8 读取
+            properties.load(reader);  // 加载属性
         }
-        return properties;
+        return properties;  // 返回加载的属性
     }
 
+    // 私有构造函数，防止实例化
     private PropertiesUtils() {
     }
 }

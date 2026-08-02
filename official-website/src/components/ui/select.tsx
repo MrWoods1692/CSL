@@ -1,3 +1,10 @@
+/**
+ * Select - 选择器
+ *
+ * 下拉选择组件，支持搜索、分组、滚动和键盘导航。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI 原语构建。
+ */
+
 "use client"
 
 import * as React from "react"

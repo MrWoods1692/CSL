@@ -116,6 +116,7 @@ public final class AccountListPage extends DecoratorAnimatedPage implements Deco
                 VBox boxMethods = new VBox();
                 {
                     boxMethods.getStyleClass().add("advanced-list-box-content");
+                    boxMethods.getStyleClass().add("account-methods-panel");
                     FXUtils.setLimitWidth(boxMethods, 200);
 
                     AdvancedListItem microsoftItem = new AdvancedListItem();
@@ -176,7 +177,7 @@ public final class AccountListPage extends DecoratorAnimatedPage implements Deco
 
                 list.maxWidthProperty().bind(scrollPane.widthProperty());
                 list.setSpacing(10);
-                list.getStyleClass().add("card-list");
+                list.getStyleClass().addAll("card-list", "account-list");
 
                 Bindings.bindContent(list.getChildren(), skinnable.items);
 

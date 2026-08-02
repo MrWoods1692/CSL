@@ -64,6 +64,7 @@ import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.jackhuang.csl.setting.UsageStatsHelper.recordDownload;
 import static org.jackhuang.csl.ui.FXUtils.runInFX;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 import static org.jackhuang.csl.util.logging.Logger.LOG;
@@ -177,6 +178,11 @@ public class DownloadPage extends DecoratorAnimatedPage implements DecoratorPage
                         Controllers.dialog(DownloadProviders.localizeErrorMessage(exception), i18n("install.failed.downloading"), MessageDialogPane.MessageType.ERROR);
                     }
                 } else {
+                    try {
+                        recordDownload(Files.size(dest));
+                    } catch (IOException e) {
+                        recordDownload(0);
+                    }
                     Controllers.showToast(i18n("install.success"));
                 }
             }), i18n("message.downloading"), TaskCancellationAction.NORMAL);

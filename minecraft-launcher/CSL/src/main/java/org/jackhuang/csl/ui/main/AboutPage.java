@@ -17,44 +17,56 @@
  */
 package org.jackhuang.csl.ui.main;
 
-import com.google.gson.*;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
+import javafx.scene.control.Label;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jackhuang.csl.Metadata;
-import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.FXUtils;
-import org.jackhuang.csl.ui.SVG;
-import org.jackhuang.csl.ui.WeakListenerHolder;
 import org.jackhuang.csl.ui.construct.ComponentList;
-import org.jackhuang.csl.ui.construct.ImageContainer;
 import org.jackhuang.csl.ui.construct.LineButton;
 import org.jackhuang.csl.ui.construct.SpinnerPane;
-import org.jackhuang.csl.util.gson.JsonUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
-import static org.jackhuang.csl.util.logging.Logger.LOG;
 
 public final class AboutPage extends SpinnerPane {
-
-    private final WeakListenerHolder holder = new WeakListenerHolder();
 
     public AboutPage() {
         VBox content = new VBox();
         content.getStyleClass().add("spinner-pane-content");
+        content.getStyleClass().add("about-page-content");
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         FXUtils.smoothScrolling(scrollPane);
         setContent(scrollPane);
 
+        HBox hero = new HBox(22);
+        hero.getStyleClass().add("about-hero");
+        hero.setAlignment(Pos.CENTER_LEFT);
+
+        var logo = FXUtils.newBuiltinImage("/assets/img/icon.png", 88, 88, true, true);
+        var logoView = new javafx.scene.image.ImageView(logo);
+        logoView.getStyleClass().add("about-logo");
+        logoView.setMouseTransparent(true);
+
+        Label name = new Label(Metadata.FULL_NAME);
+        name.getStyleClass().add("about-name");
+        Label tagline = new Label(i18n("about"));
+        tagline.getStyleClass().add("about-tagline");
+        Label version = new Label(Metadata.NAME + "  ·  " + Metadata.VERSION);
+        version.getStyleClass().add("about-version");
+
+        VBox heroText = new VBox(7, tagline, name, version);
+        heroText.setAlignment(Pos.CENTER_LEFT);
+        hero.getChildren().setAll(logoView, heroText);
+
         ComponentList about = new ComponentList();
+        about.getStyleClass().add("about-info-list");
         {
             var launcher = LineButton.createExternalLinkButton("https://csl.mrcwoods.com");
             launcher.setLargeTitle(true);
-            launcher.setLeading(FXUtils.newBuiltinImage("/assets/img/icon.png"));
+            launcher.setLeading(FXUtils.newBuiltinImage("/assets/img/icon.png"), 36);
             launcher.setTitle(Metadata.FULL_NAME);
             launcher.setSubtitle(Metadata.VERSION);
 
@@ -67,9 +79,8 @@ public final class AboutPage extends SpinnerPane {
             about.getContent().setAll(launcher, author);
         }
 
-        ComponentList deps = loadIconedTwoLineList("/assets/about/deps.json");
-
         ComponentList legal = new ComponentList();
+        legal.getStyleClass().add("about-info-list");
         {
             var copyright = new LineButton();
             copyright.setLargeTitle(true);
@@ -81,7 +92,7 @@ public final class AboutPage extends SpinnerPane {
             claim.setTitle(i18n("about.claim"));
             claim.setSubtitle(i18n("about.claim.statement"));
 
-            var openSource = LineButton.createExternalLinkButton("https://github.com/MrWoods1692/CSL");
+            var openSource = LineButton.createExternalLinkButton("https://github.com/MrWoods1692/CSL/blob/main/LICENSE");
             openSource.setLargeTitle(true);
             openSource.setTitle(i18n("about.open_source"));
             openSource.setSubtitle(i18n("about.open_source.statement"));
@@ -89,80 +100,17 @@ public final class AboutPage extends SpinnerPane {
             legal.getContent().setAll(copyright, claim, openSource);
         }
 
+        var aboutTitle = ComponentList.createComponentListTitle(i18n("about"));
+        aboutTitle.getStyleClass().add("about-section-title");
+        var legalTitle = ComponentList.createComponentListTitle(i18n("about.legal"));
+        legalTitle.getStyleClass().add("about-section-title");
+
         content.getChildren().setAll(
-                ComponentList.createComponentListTitle(i18n("about")),
+            hero,
+            aboutTitle,
                 about,
-                ComponentList.createComponentListTitle(i18n("about.dependency")),
-                deps,
-                ComponentList.createComponentListTitle(i18n("about.legal")),
+            legalTitle,
                 legal
         );
-    }
-
-    private static Image loadImage(String url) {
-        return url.startsWith("/")
-                ? FXUtils.newBuiltinImage(url)
-                : new Image(url);
-    }
-
-    private ComponentList loadIconedTwoLineList(String path) {
-        ComponentList componentList = new ComponentList();
-
-        InputStream input = FXUtils.class.getResourceAsStream(path);
-        if (input == null) {
-            LOG.warning("Resources not found: " + path);
-            return componentList;
-        }
-
-        try {
-            JsonArray array = JsonUtils.fromJsonFully(input, JsonArray.class);
-
-            for (JsonElement element : array) {
-                JsonObject obj = element.getAsJsonObject();
-
-                var button = new LineButton();
-                button.setLargeTitle(true);
-
-                if (obj.get("externalLink") instanceof JsonPrimitive externalLink) {
-                    button.setTrailingIcon(SVG.OPEN_IN_NEW);
-
-                    String link = externalLink.getAsString();
-                    button.setOnAction(event -> FXUtils.openLink(link));
-                }
-
-                if (obj.has("image")) {
-                    JsonElement image = obj.get("image");
-                    if (image.isJsonPrimitive()) {
-                        var imageView = new ImageContainer(32, 32);
-                        imageView.setImage(loadImage(image.getAsString()));
-                        imageView.setMouseTransparent(true);
-
-
-                        button.setLeading(imageView);
-                    } else if (image.isJsonObject()) {
-                        holder.add(FXUtils.onWeakChangeAndOperate(Themes.darkModeProperty(), darkMode -> button.setLeading(darkMode
-                                ? loadImage(image.getAsJsonObject().get("dark").getAsString())
-                                : loadImage(image.getAsJsonObject().get("light").getAsString())
-                        )));
-                    }
-                }
-
-                if (obj.get("title") instanceof JsonPrimitive title)
-                    button.setTitle(title.getAsString());
-                else if (obj.get("titleLocalized") instanceof JsonPrimitive titleLocalized)
-                    button.setTitle(i18n(titleLocalized.getAsString()));
-
-                if (obj.get("subtitle") instanceof JsonPrimitive subtitle)
-                    button.setSubtitle(subtitle.getAsString());
-                else if (obj.get("subtitleLocalized") instanceof JsonPrimitive subtitleLocalized)
-                    button.setSubtitle(i18n(subtitleLocalized.getAsString()));
-
-                componentList.getContent().add(button);
-            }
-        } catch (IOException | JsonParseException e) {
-            LOG.warning("Failed to load list: " + path, e);
-        }
-
-        return componentList;
     }
 }

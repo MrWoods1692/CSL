@@ -233,8 +233,6 @@ public final class LegacyConfigMigrator {
                 jsonObject.addProperty("themeColorType", ThemeColorType.CUSTOM.name());
                 addThemeAppearanceOverride(themeAppearanceOverrides, LauncherSettings.THEME_APPEARANCE_COLOR);
             }
-            renameMember(jsonObject, "fontFamily", "logFontFamily");
-            renameMember(jsonObject, "fontSize", "logFontSize");
             boolean migratedBackgroundSource = false;
             boolean migratedNetworkBackgroundSource = false;
             migratedBackgroundSource |= renameMember(jsonObject, "bgpath", "customBackgroundImagePath");

@@ -70,6 +70,7 @@ import java.util.stream.Collectors;
 import static javafx.application.Platform.runLater;
 import static javafx.application.Platform.setImplicitExit;
 import static org.jackhuang.csl.setting.SettingsManager.state;
+import static org.jackhuang.csl.setting.UsageStatsHelper.*;
 import static org.jackhuang.csl.ui.FXUtils.runInFX;
 import static org.jackhuang.csl.util.DataSizeUnit.MEGABYTES;
 import static org.jackhuang.csl.util.Lang.resolveException;
@@ -97,7 +98,8 @@ public final class LauncherHelper {
         this.account = Objects.requireNonNull(account);
         this.selectedInstanceId = selectedInstanceId;
         this.setting = repository.getEffectiveGameSettings(selectedInstanceId);
-        this.launcherVisibility = setting.getInheritable(GameSettings::launcherVisibilityProperty);
+        // Keep the launcher alive while the game runs; closing the game must not terminate CSL.
+        this.launcherVisibility = LauncherVisibility.KEEP;
         this.showLogs = setting.getInheritable(GameSettings::showLogsProperty);
         this.launchingStepsPane.setTitle(i18n("instance.launch"));
     }
@@ -137,6 +139,9 @@ public final class LauncherHelper {
         FXUtils.checkFxUserThread();
 
         LOG.info("Launching game version: " + selectedInstanceId);
+
+        // Track launch attempt
+        recordLaunch();
 
         Controllers.dialog(launchingStepsPane);
         launch0();
@@ -306,6 +311,9 @@ public final class LauncherHelper {
                         if (!success) {
                             Exception ex = executor.getException();
                             if (ex != null && !(ex instanceof CancellationException)) {
+                                // Track error
+                                recordError();
+
                                 String message;
                                 if (ex instanceof ModpackCompletionException) {
                                     if (ex.getCause() instanceof FileNotFoundException)
@@ -819,6 +827,7 @@ public final class LauncherHelper {
         private final String forbiddenAccessToken;
         private Thread submitLogThread;
         private LinkedBlockingQueue<GameLog> logBuffer;
+        private long gameStartTimeMs;
 
         public CSLProcessListener(CSLGameRepository repository, GameInstanceManifest manifest, AuthInfo authInfo, LaunchOptions launchOptions, CountDownLatch launchingLatch, boolean detectWindow) {
             this.repository = repository;
@@ -833,6 +842,7 @@ public final class LauncherHelper {
         @Override
         public void setProcess(ManagedProcess process) {
             this.process = process;
+            gameStartTimeMs = System.currentTimeMillis();
 
             String command = new CommandBuilder().addAll(process.getCommands()).toString();
 
@@ -980,6 +990,19 @@ public final class LauncherHelper {
 
         @Override
         public void onExit(int exitCode, ExitType exitType) {
+            // Track game time
+            if (gameStartTimeMs > 0) {
+                long gameTimeMs = System.currentTimeMillis() - gameStartTimeMs;
+                recordGameTime(gameTimeMs);
+            }
+
+            // Track launch success/failure
+            if (exitType == ExitType.NORMAL) {
+                recordLaunchSuccess();
+            } else if (exitType != ExitType.INTERRUPTED) {
+                recordLaunchFailure();
+            }
+
             if (showLogs) {
                 logBuffer.add(new GameLog(String.format("[%s] [CSL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));
                 submitLogThread.interrupt();

@@ -1,0 +1,7 @@
+# robots.txt - 搜索引擎爬虫规则
+# 允许所有爬虫访问全部路径
+User-agent: *
+Allow: /
+
+# 站点地图位置
+Sitemap: /sitemap.xml

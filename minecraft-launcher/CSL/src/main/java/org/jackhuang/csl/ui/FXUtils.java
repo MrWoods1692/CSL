@@ -231,8 +231,6 @@ public final class FXUtils {
         FOCUS_VISIBLE_PROPERTY = focusVisibleProperty;
     }
 
-    public static final String DEFAULT_MONOSPACE_FONT = OperatingSystem.CURRENT_OS == OperatingSystem.WINDOWS ? "Consolas" : "Monospace";
-
     public static final List<String> IMAGE_EXTENSIONS = List.of(
             "png", "jpg", "jpeg", "bmp", "gif", "webp", "svg", "apng"
     );

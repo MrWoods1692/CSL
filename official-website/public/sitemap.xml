@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  sitemap.xml - CSL 官网站点地图
+  用于告知搜索引擎网站页面结构及优先级
+  priority: 1.0 最高（首页），0.9 次高（下载页），0.8 标准（功能页），0.7 较低（社区页）
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 首页 - 最高优先级 -->
+  <url><loc>/</loc><priority>1.0</priority></url>
+  <!-- 产品介绍页 -->
+  <url><loc>/features</loc><priority>0.8</priority></url>
+  <!-- 软件下载页 - 次高优先级（核心转化页） -->
+  <url><loc>/download</loc><priority>0.9</priority></url>
+  <!-- 安装教程页 -->
+  <url><loc>/install</loc><priority>0.8</priority></url>
+  <!-- 使用指南页 -->
+  <url><loc>/guide</loc><priority>0.8</priority></url>
+  <!-- 开发文档页 -->
+  <url><loc>/docs</loc><priority>0.8</priority></url>
+  <!-- 交流社区页 -->
+  <url><loc>/community</loc><priority>0.7</priority></url>
+</urlset>

@@ -96,7 +96,10 @@ public class Navigator extends TransitionPane {
             // to ensure the new page is fully rendered.
             Duration removeDelay = duration.add(Duration.millis(50));
             javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(removeDelay);
-            pause.setOnFinished(e -> getChildren().remove(loadingOverlay));
+            pause.setOnFinished(e -> {
+                loadingOverlay.stop();
+                getChildren().remove(loadingOverlay);
+            });
             pause.play();
 
             NavigationEvent navigated = new NavigationEvent(this, node, Navigation.NavigationDirection.NEXT, NavigationEvent.NAVIGATED);

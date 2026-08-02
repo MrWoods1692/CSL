@@ -1,3 +1,10 @@
+/**
+ * InputOTP - OTP 验证码输入
+ *
+ * 一次性密码（OTP）输入组件，支持分组、分隔符和自动聚焦。
+ * 基于 shadcn/ui (new-york 风格) + input-otp 构建。
+ */
+
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 import { Minus } from "lucide-react"

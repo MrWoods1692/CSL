@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.jackhuang.csl.ui.FXUtils.useJFXContextMenu;
+import org.jackhuang.csl.ui.Controllers;
+import org.jackhuang.csl.ui.construct.ComboBoxSelectionDialog;
 
 /**
  * JFXComboBox is the material design implementation of a combobox.
@@ -100,6 +102,19 @@ public class JFXComboBox<T> extends ComboBox<T> {
         });
 
         useJFXContextMenu(editorProperty().get());
+    }
+
+    /**
+     * Opens the combo box values in the launcher's modal selection dialog.
+     */
+    @Override
+    public void show() {
+        if (getItems().isEmpty()) {
+            return;
+        }
+        ListView<T> source = new ListView<>(getItems());
+        source.setCellFactory(getCellFactory());
+        Controllers.dialog(new ComboBoxSelectionDialog<>(source, getValue(), value -> setValue(value)));
     }
 
     /**

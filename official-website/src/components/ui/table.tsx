@@ -1,3 +1,10 @@
+/**
+ * Table - 表格
+ *
+ * 数据表格组件，包含表头、表体、表尾和行等完整表格结构。
+ * 基于 shadcn/ui (new-york 风格) 构建。
+ */
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

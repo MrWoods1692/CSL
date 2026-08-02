@@ -29,6 +29,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -45,6 +46,8 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.util.Duration;
 import org.jackhuang.csl.setting.DownloadProviders;
 import org.jackhuang.csl.setting.GameDirectoryManager;
+import org.jackhuang.csl.setting.SettingsManager;
+import org.jackhuang.csl.setting.UsageStatistics;
 import org.jackhuang.csl.ui.animation.AnimationUtils;
 import org.jackhuang.csl.util.DataSizeUnit;
 import org.jackhuang.csl.util.MathUtils;
@@ -100,7 +103,16 @@ public final class SystemStatusView extends StackPane {
 
     private List<Tile> tiles;
 
+    private List<StatTile> statsTiles;
+
+    private GridPane statsGrid;
+
     private Label gpuInfoLabel;
+    private Label systemInfoLabel;
+    private Label recommendationLabel;
+    private Label recommendationDetailsLabel;
+    private Label deviceScoreLabel;
+    private boolean recommendationExpanded;
 
     private BarSection memoryBar;
     private BarSection vramBar;
@@ -166,9 +178,62 @@ public final class SystemStatusView extends StackPane {
                 addTile(tileGrid, 1, 2, i18n("status.java"), SVG.JAVA, "tile-sub")
         );
 
+        // Statistics tiles: 2x4 grid
+        this.statsGrid = new GridPane();
+        statsGrid.setHgap(12);
+        statsGrid.setVgap(12);
+        ColumnConstraints statsCol1 = new ColumnConstraints();
+        statsCol1.setPercentWidth(50);
+        ColumnConstraints statsCol2 = new ColumnConstraints();
+        statsCol2.setPercentWidth(50);
+        statsGrid.getColumnConstraints().addAll(statsCol1, statsCol2);
+
+        Label statsTitle = new Label(i18n("status.statistics"));
+        statsTitle.getStyleClass().add("section-title");
+
+        SVGContainer statsIcon = SVG.GRAPH2.createIcon(16);
+        statsIcon.getStyleClass().add("stats-tile-icon");
+        HBox statsHeader = new HBox(6, statsIcon, statsTitle);
+        statsHeader.setAlignment(Pos.CENTER_LEFT);
+
+        statsTiles = List.of(
+                addStatTile(statsGrid, 0, 0, i18n("status.stats.launch_count"), SVG.ROCKET_LAUNCH),
+                addStatTile(statsGrid, 1, 0, i18n("status.stats.game_time"), SVG.UPDATE),
+                addStatTile(statsGrid, 0, 1, i18n("status.stats.download_count"), SVG.DOWNLOAD),
+                addStatTile(statsGrid, 1, 1, i18n("status.stats.download_bytes"), SVG.STORAGE),
+                addStatTile(statsGrid, 0, 2, i18n("status.stats.launch_success"), SVG.CHECK_CIRCLE),
+                addStatTile(statsGrid, 1, 2, i18n("status.stats.launch_failure"), SVG.CANCEL),
+                addStatTile(statsGrid, 0, 3, i18n("status.stats.multiplayer"), SVG.PERSON),
+                addStatTile(statsGrid, 1, 3, i18n("status.stats.launcher_runtime"), SVG.UPDATE)
+        );
+
         VBox rows = new VBox(10);
         rows.getChildren().add(tileGrid);
+
+        // Separator before statistics section
+        Region statsSeparator = new Region();
+        statsSeparator.getStyleClass().add("stats-separator");
+        rows.getChildren().add(statsSeparator);
+
+        rows.getChildren().add(statsHeader);
+        rows.getChildren().add(statsGrid);
         gpuInfoLabel = addRow(rows, i18n("status.gpu.info"), SVG.SCREENSHOT_MONITOR);
+        systemInfoLabel = addRow(rows, i18n("status.hardware.summary"), SVG.HOST);
+        recommendationLabel = addRow(rows, i18n("status.graphics.recommendation"), SVG.SETTINGS);
+        recommendationLabel.getStyleClass().add("recommendation-value");
+        recommendationLabel.setMaxWidth(720);
+        recommendationLabel.setTooltip(new Tooltip(i18n("status.graphics.recommendation.expand")));
+        recommendationLabel.setOnMouseClicked(event -> toggleRecommendation());
+        recommendationLabel.setOnMouseEntered(event -> recommendationLabel.setOpacity(0.78));
+        recommendationLabel.setOnMouseExited(event -> recommendationLabel.setOpacity(1));
+        recommendationDetailsLabel = addRow(rows, i18n("status.graphics.recommendation.details"), SVG.SETTINGS);
+        recommendationDetailsLabel.getStyleClass().add("recommendation-details-value");
+        recommendationDetailsLabel.setWrapText(true);
+        recommendationDetailsLabel.setMaxWidth(720);
+        recommendationDetailsLabel.setVisible(false);
+        recommendationDetailsLabel.setManaged(false);
+        deviceScoreLabel = addRow(rows, i18n("status.device.score"), SVG.SYSTEM_MONITOR);
+        deviceScoreLabel.getStyleClass().add("device-score-value");
         memoryBar = addBarSection(rows, i18n("status.memory"), SVG.MEMORY);
         vramBar = addBarSection(rows, i18n("status.vram"), SVG.MEMORY);
         diskBar = addBarSection(rows, i18n("status.disk"), SVG.STORAGE);
@@ -182,6 +247,22 @@ public final class SystemStatusView extends StackPane {
         FXUtils.onChange(status, this::apply);
 
         updater.start();
+    }
+
+    /**
+     * Expands the compact popup layout for use as a standalone page.
+     */
+    public void setFullPageMode() {
+        // The first child is the compact popup header. The page already has its
+        // title in the window decorator, so keeping it here wastes vertical space.
+        if (!content.getChildren().isEmpty())
+            content.getChildren().remove(0);
+        content.setPrefWidth(1120);
+        content.setMaxWidth(1120);
+        content.setSpacing(18);
+        // Also widen stats grid for full page mode
+        statsGrid.setPrefWidth(1120);
+        statsGrid.setMaxWidth(1120);
     }
 
     /// The panel is sized by its content; the parent must not stretch it to fill the page.
@@ -259,7 +340,7 @@ public final class SystemStatusView extends StackPane {
         return valueLabel;
     }
 
-    private static final int TILE_HEIGHT = 96;
+    private static final int TILE_HEIGHT = 118;
 
     /// A square dashboard tile showing one metric (icon + name + value).
     ///
@@ -306,6 +387,41 @@ public final class SystemStatusView extends StackPane {
         grid.add(tile, column, row);
 
         return new Tile(valueLabel, extraLabel);
+    }
+
+    /// A statistics tile showing a named counter with an icon.
+    private static final class StatTile {
+        final Label value;
+
+        StatTile(Label value) {
+            this.value = value;
+        }
+    }
+
+    private static StatTile addStatTile(GridPane grid, int column, int row, String name, SVG icon) {
+        Label nameLabel = new Label(name);
+        nameLabel.getStyleClass().add("stats-tile-name");
+
+        SVGContainer iconView = icon.createIcon(14);
+        iconView.getStyleClass().add("stats-tile-icon");
+
+        HBox head = new HBox(6, iconView, nameLabel);
+        head.setAlignment(Pos.CENTER_LEFT);
+
+        Label valueLabel = new Label("--");
+        valueLabel.getStyleClass().add("stats-tile-value");
+        valueLabel.setWrapText(true);
+
+        VBox tile = new VBox(6, head, valueLabel);
+        tile.getStyleClass().addAll("status-card", "stats-tile");
+        tile.setMinHeight(TILE_HEIGHT);
+        tile.setPrefHeight(TILE_HEIGHT);
+        tile.setMaxHeight(TILE_HEIGHT);
+
+        GridPane.setHgrow(tile, Priority.ALWAYS);
+        grid.add(tile, column, row);
+
+        return new StatTile(valueLabel);
     }
 
     private static BarSection addBarSection(VBox box, String name, SVG icon) {
@@ -390,11 +506,73 @@ public final class SystemStatusView extends StackPane {
         tiles.get(4).value.setText(newStatus.gameSize());
         tiles.get(5).value.setText(newStatus.javaVersion());
 
+        // Update statistics tiles
+        updateStats();
+
         gpuInfoLabel.setText(newStatus.gpuInfo());
+        systemInfoLabel.setText(newStatus.systemInfo());
+        recommendationLabel.setText(formatRecommendationLabel(newStatus.graphicsRecommendation()));
+        recommendationDetailsLabel.setText(newStatus.graphicsRecommendationDetails());
+        deviceScoreLabel.setText(newStatus.deviceScore());
+        setScoreColor(deviceScoreLabel, newStatus.deviceScoreValue());
 
         updateBar(memoryBar, newStatus.memoryUsedBytes(), newStatus.memoryTotalBytes(), formatMemoryBar(newStatus));
         updateBar(vramBar, newStatus.vramUsedBytes(), newStatus.vramTotalBytes(), formatVramBar(newStatus));
         updateBar(diskBar, newStatus.diskUsedBytes(), newStatus.diskTotalBytes(), formatDiskBar(newStatus));
+    }
+
+    private void updateStats() {
+        try {
+            UsageStatistics stats = SettingsManager.usageStats();
+            statsTiles.get(0).value.setText(formatCount(stats.getLaunchCount()));
+            statsTiles.get(1).value.setText(formatDuration(stats.getTotalGameTimeMs()));
+            statsTiles.get(2).value.setText(formatCount(stats.getDownloadCount()));
+            statsTiles.get(3).value.setText(DataSizeUnit.format(stats.getTotalDownloadBytes()));
+            statsTiles.get(4).value.setText(formatCount(stats.getLaunchSuccessCount()));
+            statsTiles.get(5).value.setText(formatCount(stats.getLaunchFailureCount()));
+            statsTiles.get(6).value.setText(formatCount(stats.getMultiplayerCount()));
+            statsTiles.get(7).value.setText(formatDuration(stats.getTotalLauncherRuntimeMs()));
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    private static String formatCount(long count) {
+        if (count <= 0) return "--";
+        if (count < 1000) return String.valueOf(count);
+        if (count < 1_000_000) return String.format("%.1fK", count / 1000.0);
+        return String.format("%.1fM", count / 1_000_000.0);
+    }
+
+    private static String formatDuration(long ms) {
+        if (ms <= 0) return "--";
+        long seconds = ms / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        if (days > 0)
+            return days + "d " + (hours % 24) + "h";
+        if (hours > 0)
+            return hours + "h " + (minutes % 60) + "m";
+        if (minutes > 0)
+            return minutes + "m";
+        return seconds + "s";
+    }
+
+    private void toggleRecommendation() {
+        recommendationExpanded = !recommendationExpanded;
+        recommendationDetailsLabel.setVisible(recommendationExpanded);
+        recommendationDetailsLabel.setManaged(recommendationExpanded);
+        recommendationLabel.setText(formatRecommendationLabel(
+            recommendationLabel.getText().replaceFirst("^[▸▾] ", "")));
+        }
+
+        private String formatRecommendationLabel(String recommendation) {
+        return (recommendationExpanded ? "▾ " : "▸ ") + recommendation;
+    }
+
+    private static void setScoreColor(Label label, int score) {
+        label.setStyle("-fx-text-fill: " + toCssColor(
+                score >= 80 ? colorFor(15) : score >= 60 ? colorFor(45) : colorFor(75)) + ";");
     }
 
     private static String formatMemoryBar(Status status) {
@@ -490,6 +668,11 @@ public final class SystemStatusView extends StackPane {
             String cpuFrequency,
             String gpuState,
             String gpuInfo,
+            String systemInfo,
+            String graphicsRecommendation,
+            String graphicsRecommendationDetails,
+            int deviceScoreValue,
+            String deviceScore,
             String launcherUsage,
             String power,
             String network,
@@ -504,9 +687,9 @@ public final class SystemStatusView extends StackPane {
     /// shifts the geometry through layout bounds recalculation.
     private static final class Gauge extends StackPane {
 
-        private static final double DIAMETER = 80;
-        private static final double RADIUS = 30;
-        private static final double STROKE_WIDTH = 6;
+        private static final double DIAMETER = 108;
+        private static final double RADIUS = 40;
+        private static final double STROKE_WIDTH = 8;
         private static final Duration ANIMATION_DURATION = Duration.millis(400);
 
         private final Arc valueArc;
@@ -697,6 +880,11 @@ public final class SystemStatusView extends StackPane {
                     graphicsCards == null || graphicsCards.isEmpty()
                             ? i18n("status.not_detected")
                             : formatGraphicsCards(graphicsCards),
+                        getSystemInfo(),
+                        getGraphicsRecommendation(totalMemory, vramTotal, graphicsCards),
+                        getGraphicsRecommendationDetails(totalMemory, vramTotal, graphicsCards),
+                        calculateDeviceScore(totalMemory, vramTotal, graphicsCards, diskTotal, diskFree),
+                        formatDeviceScore(calculateDeviceScore(totalMemory, vramTotal, graphicsCards, diskTotal, diskFree)),
                     getLauncherUsage(),
                     powerStatus,
                     networkStatus,
@@ -716,6 +904,58 @@ public final class SystemStatusView extends StackPane {
                     builder.append(" · ").append(i18n("status.gpu.driver", card.getDriverVersion()));
             }
             return builder.toString();
+        }
+
+        private static String getSystemInfo() {
+            String os = OperatingSystem.CURRENT_OS.name();
+            String arch = System.getProperty("os.arch", i18n("status.unknown"));
+            return os + " · " + arch;
+        }
+
+        private static String getGraphicsRecommendation(long totalMemory, long vramTotal,
+                List<GraphicsCard> graphicsCards) {
+            long memoryGiB = totalMemory > 0 ? totalMemory / (1024 * 1024 * 1024) : 0;
+            long vramGiB = vramTotal > 0 ? vramTotal / (1024 * 1024 * 1024) : 0;
+            boolean hasGpu = graphicsCards != null && !graphicsCards.isEmpty();
+
+            if (hasGpu && memoryGiB >= 16 && vramGiB >= 6)
+                return i18n("status.graphics.recommendation.high");
+            if (hasGpu && memoryGiB >= 8 && vramGiB >= 2)
+                return i18n("status.graphics.recommendation.balanced");
+            return i18n("status.graphics.recommendation.performance");
+        }
+
+        private static String getGraphicsRecommendationDetails(long totalMemory, long vramTotal,
+                List<GraphicsCard> graphicsCards) {
+            long memoryGiB = totalMemory > 0 ? totalMemory / (1024 * 1024 * 1024) : 0;
+            long vramGiB = vramTotal > 0 ? vramTotal / (1024 * 1024 * 1024) : 0;
+            boolean hasGpu = graphicsCards != null && !graphicsCards.isEmpty();
+
+            if (hasGpu && memoryGiB >= 16 && vramGiB >= 6)
+                return i18n("status.graphics.details.high");
+            if (hasGpu && memoryGiB >= 8 && vramGiB >= 2)
+                return i18n("status.graphics.details.balanced");
+            return i18n("status.graphics.details.performance");
+        }
+
+        private static int calculateDeviceScore(long totalMemory, long vramTotal,
+                List<GraphicsCard> graphicsCards, long diskTotal, long diskFree) {
+            int score = 0;
+            long memoryGiB = totalMemory > 0 ? totalMemory / (1024 * 1024 * 1024) : 0;
+            long vramGiB = vramTotal > 0 ? vramTotal / (1024 * 1024 * 1024) : 0;
+
+            score += memoryGiB >= 32 ? 25 : memoryGiB >= 16 ? 22 : memoryGiB >= 8 ? 17 : memoryGiB > 0 ? 10 : 0;
+            score += vramGiB >= 12 ? 30 : vramGiB >= 6 ? 26 : vramGiB >= 4 ? 22 : vramGiB >= 2 ? 16 : vramGiB > 0 ? 8 : 0;
+            score += graphicsCards != null && !graphicsCards.isEmpty() ? 25 : 5;
+            score += diskTotal > 0 && diskFree >= diskTotal / 3 ? 20 : diskTotal > 0 ? 10 : 0;
+            return Math.min(100, score);
+        }
+
+        private static String formatDeviceScore(int score) {
+            String level = score >= 80 ? i18n("status.device.score.excellent")
+                    : score >= 60 ? i18n("status.device.score.good")
+                    : i18n("status.device.score.basic");
+            return i18n("status.device.score.value", score, level);
         }
 
         private static int sampleCpuUsage() {

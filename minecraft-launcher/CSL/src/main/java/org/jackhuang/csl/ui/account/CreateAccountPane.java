@@ -56,15 +56,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.regex.Pattern;
 
 import static org.jackhuang.csl.setting.SettingsManager.settings;
 import static org.jackhuang.csl.ui.FXUtils.*;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 
 public class CreateAccountPane extends JFXDialogLayout implements DialogAware {
-    private static final Pattern USERNAME_CHECKER_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
-
     private boolean showMethodSwitcher;
     private AccountFactory<?> factory;
 
@@ -232,16 +229,7 @@ public class CreateAccountPane extends JFXDialogLayout implements DialogAware {
                     }).executor(true);
         };
 
-        if (factory instanceof OfflineAccountFactory && username != null && (!USERNAME_CHECKER_PATTERN.matcher(username).matches() || username.length() > 16)) {
-            Controllers.confirmWithCountdown(i18n("account.methods.offline.name.invalid"), i18n("message.warning"), 10,
-                    MessageDialogPane.MessageType.WARNING,
-                    doCreate, () -> {
-                        body.setDisable(false);
-                        spinner.hideSpinner();
-                    });
-        } else {
-            doCreate.run();
-        }
+        doCreate.run();
     }
 
     /// Adds the logged-in account, selects it, and closes the dialog.
@@ -355,14 +343,6 @@ public class CreateAccountPane extends JFXDialogLayout implements DialogAware {
                 txtUsername.setPromptText(i18n("account.methods.offline.name.special_characters"));
                 FXUtils.installFastTooltip(txtUsername, i18n("account.methods.offline.name.special_characters"));
 
-                JFXHyperlink purchaseLink = new JFXHyperlink(i18n("account.methods.microsoft.purchase"));
-                purchaseLink.setExternalLink(YggdrasilService.PURCHASE_URL);
-                HBox linkPane = new HBox(purchaseLink);
-                GridPane.setColumnSpan(linkPane, 2);
-                add(linkPane, 0, rowIndex);
-
-                rowIndex++;
-
                 HBox box = new HBox();
                 MenuUpDownButton advancedButton = new MenuUpDownButton();
                 box.getChildren().setAll(advancedButton);
@@ -388,14 +368,6 @@ public class CreateAccountPane extends JFXDialogLayout implements DialogAware {
 
                 rowIndex++;
 
-                HintPane hintPane = new HintPane(MessageDialogPane.MessageType.WARNING);
-                hintPane.managedProperty().bind(advancedButton.selectedProperty());
-                hintPane.visibleProperty().bind(advancedButton.selectedProperty());
-                hintPane.setText(i18n("account.methods.offline.uuid.hint"));
-                GridPane.setColumnSpan(hintPane, 2);
-                add(hintPane, 0, rowIndex);
-
-                rowIndex++;
             }
 
             valid = new BooleanBinding() {

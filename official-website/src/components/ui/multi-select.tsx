@@ -1,4 +1,11 @@
 /**
+ * MultiSelect - 多选下拉
+ *
+ * 支持多选的下拉选择组件，提供搜索过滤、标签展示和全选功能。
+ * 基于 shadcn/ui (new-york 风格) + Radix UI + cmdk 构建。
+ */
+
+/**
  * @file Custom multi-select dropdown component
  */
 

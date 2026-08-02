@@ -27,7 +27,6 @@ import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
@@ -49,7 +48,6 @@ import org.jackhuang.csl.setting.property.SettingProperty;
 import org.jackhuang.csl.ui.*;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.ui.decorator.DecoratorPage;
-import org.jackhuang.csl.ui.instances.GameInstanceIconDialog;
 import org.jackhuang.csl.ui.instances.GameInstancePage;
 import org.jackhuang.csl.util.Holder;
 import org.jackhuang.csl.util.Pair;
@@ -104,7 +102,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
 
     private boolean updatingJavaSetting = false;
     private boolean updatingSelectedJava = false;
-    private boolean updatingParentSetting = false;
     private final ObjectProperty<GameSettings.@Nullable Preset> activeParentSetting =
             new SimpleObjectProperty<>(this, "activeParentSetting");
 
@@ -112,8 +109,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
     private final ScrollPane scrollPane;
     private final VBox rootPane;
     private final HintPane readOnlySettingsHint;
-
-    private final @UnknownNullability ImagePickerItem iconPickerItem;
 
     private final ComponentSublist javaSublist;
     private final RadioChoiceList<@Nullable Pair<@Nullable JavaVersionType, @Nullable JavaRuntime>> javaItem;
@@ -156,52 +151,20 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         rootPane.getChildren().add(readOnlySettingsHint);
 
         var basicSettings = new ComponentList();
+        basicSettings.getStyleClass().add("settings-section");
         var gameSettings = new ComponentList();
+        gameSettings.getStyleClass().add("settings-section");
         var launcherSettings = new ComponentList();
+        launcherSettings.getStyleClass().add("settings-section");
         {
-            if (isPresetSetting) {
-                var presetSettings = new ComponentList();
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.game.section.basic")),
-                        basicSettings,
-                        ComponentList.createComponentListTitle(
-                                i18n("settings.type.global.preset"),
-                                i18n("settings.type.global.preset.help")
-                        ),
-                        presetSettings,
-                        ComponentList.createComponentListTitle(i18n("settings.game.section.game")),
-                        gameSettings,
-                        ComponentList.createComponentListTitle(i18n("settings.launcher")),
-                        launcherSettings
-                );
-
-                iconPickerItem = null;
-                presetSettings.getContent().add(new PresetManagementPane(currentSetting, this::selectPreset, holder));
-            } else {
                 rootPane.getChildren().addAll(
-                        ComponentList.createComponentListTitle(i18n("settings.game.section.basic")),
-                        basicSettings,
-                        ComponentList.createComponentListTitle(i18n("settings.game.section.game")),
-                        gameSettings,
-                        ComponentList.createComponentListTitle(i18n("settings.launcher")),
-                        launcherSettings
+                    titledSection(i18n("settings.game.section.basic")),
+                    basicSettings,
+                    titledSection(i18n("settings.game.section.game")),
+                    gameSettings,
+                    titledSection(i18n("settings.launcher")),
+                    launcherSettings
                 );
-
-                iconPickerItem = new ImagePickerItem();
-                basicSettings.getContent().add(iconPickerItem);
-                iconPickerItem.setImage(FXUtils.newBuiltinImage("/assets/img/icon.png"));
-                iconPickerItem.setTitle(i18n("settings.icon"));
-                iconPickerItem.setOnSelectButtonClicked(e -> onExploreIcon());
-                iconPickerItem.setOnDeleteButtonClicked(e -> onDeleteIcon());
-
-                var parentGameSettingsPane = new LineSelectButton<GameSettings.@Nullable Preset>();
-                basicSettings.getContent().add(parentGameSettingsPane);
-                parentGameSettingsPane.setTitle(i18n("settings.type.global.preset"));
-                parentGameSettingsPane.setSubtitle(i18n("settings.type.global.preset.subtitle"));
-                parentGameSettingsPane.setConverter(setting -> setting != null
-                        ? PresetManagementPane.getPresetDisplayName(setting)
-                        : i18n("settings.type.global.preset.default"));
-                bindInstanceParentSetting(parentGameSettingsPane);
-            }
 
             // Java Setting
             javaSublist = new ComponentSublist();
@@ -356,12 +319,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
                     case MODDED -> i18n("settings.game.default_isolation.modded.desc");
                 });
                 bindPresetBidirectional(defaultIsolationTypePane.valueProperty(), GameSettings.Preset::defaultIsolationTypeProperty);
-            } else {
-                var isolationButton = new LineToggleButton();
-                basicSettings.getContent().add(isolationButton);
-                isolationButton.setTitle(i18n("settings.game.isolation"));
-                isolationButton.setSubtitle(i18n("settings.game.isolation.subtitle"));
-                bindInstanceIsolationButton(isolationButton);
             }
 
             // Memory Setting
@@ -632,8 +589,9 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         }
 
         var jvmSettings = new ComponentList();
+        jvmSettings.getStyleClass().add("settings-section");
         rootPane.getChildren().addAll(
-                ComponentList.createComponentListTitle(i18n("settings.advanced.jvm")),
+                titledSection(i18n("settings.advanced.jvm")),
                 jvmSettings
         );
         {
@@ -669,6 +627,10 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
                     txtMinMemory.setPrefWidth(160);
                     txtMinMemory.setTextFormatter(new TextFormatter<>(change -> {
                         change.setText(change.getText().replaceAll("[^0-9]", ""));
+                        if (!change.getControlNewText().isEmpty()
+                                && Integer.parseInt(change.getControlNewText()) < GameSettings.SUGGESTED_MEMORY) {
+                            change.setText(Integer.toString(GameSettings.SUGGESTED_MEMORY));
+                        }
                         return change;
                     }));
 
@@ -705,8 +667,9 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         }
 
         var customCommandSettings = new ComponentList();
+        customCommandSettings.getStyleClass().add("settings-section");
         rootPane.getChildren().addAll(
-                ComponentList.createComponentListTitle(i18n("settings.advanced.custom_commands")),
+                titledSection(i18n("settings.advanced.custom_commands")),
                 customCommandSettings
         );
         {
@@ -745,8 +708,9 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         }
 
         var graphicsSettings = new ComponentList();
+        graphicsSettings.getStyleClass().add("settings-section");
         rootPane.getChildren().addAll(
-                ComponentList.createComponentListTitle(i18n("settings.advanced.graphics")),
+                titledSection(i18n("settings.advanced.graphics")),
                 graphicsSettings
         );
         {
@@ -803,8 +767,9 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         }
 
         var nativeLibrarySettings = new ComponentList();
+        nativeLibrarySettings.getStyleClass().add("settings-section");
         rootPane.getChildren().addAll(
-                ComponentList.createComponentListTitle(i18n("settings.advanced.natives_settings")),
+                titledSection(i18n("settings.advanced.natives_settings")),
                 nativeLibrarySettings
         );
         {
@@ -841,55 +806,11 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
 
     // region Helper Methods for UI
 
-    @SuppressWarnings("unchecked")
-    private void selectPreset(GameSettings.Preset setting) {
-        currentSetting.set((S) setting);
-    }
-
-    private void bindInstanceParentSetting(LineSelectButton<GameSettings.@Nullable Preset> button) {
-        ObservableList<GameSettings.Preset> items = FXCollections.observableArrayList();
-        ObservableList<GameSettings.Preset> presets = getAvailableParentPresets();
-        InvalidationListener updateItems = observable -> {
-            @Nullable GameSettings.Preset selected = button.getValue();
-            items.setAll((GameSettings.Preset) null);
-            items.addAll(presets);
-            refreshInstanceParentSettingConverter(button);
-            if (selected != null && getAvailableParentPreset(selected.idProperty().getValue()) == null) {
-                button.setValue(null);
-            }
-        };
-        InvalidationListener weakUpdateItems = holder.weak(updateItems);
-        updateItems.invalidated(presets);
-        presets.addListener(weakUpdateItems);
-        button.setItems(items);
-        refreshInstanceParentSettingConverter(button);
-
-        button.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (updatingParentSetting || !(currentSetting.get() instanceof GameSettings.Instance setting)) {
-                return;
-            }
-            setting.parentProperty().setValue(newValue != null ? newValue.idProperty().getValue() : null);
-        });
-
-        currentSetting.addListener((observable, oldValue, newValue) -> {
-            if (newValue instanceof GameSettings.Instance setting) {
-                updatingParentSetting = true;
-                try {
-                    refreshInstanceParentSettingConverter(button);
-                    GameSettingsPresetID parent = setting.parentProperty().getValue();
-                    button.setValue(parent != null ? getAvailableParentPreset(parent) : null);
-                } finally {
-                    updatingParentSetting = false;
-                }
-            }
-        });
-    }
-
-    /// Refreshes parent preset display text after the preset list changes.
-    private void refreshInstanceParentSettingConverter(LineSelectButton<GameSettings.@Nullable Preset> button) {
-        button.setConverter(setting -> setting != null
-                ? PresetManagementPane.getPresetDisplayName(setting)
-                : i18n("settings.type.global.preset.default"));
+    /// Creates a styled section title node consistent with the launcher settings page.
+    private static Node titledSection(String title) {
+        Node node = ComponentList.createComponentListTitle(title);
+        node.getStyleClass().add("settings-section-title");
+        return node;
     }
 
     /// Returns the presets that can be selected as an instance parent.
@@ -1676,68 +1597,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
             activeProperty.set(property);
             setting.addListener(weakRefresh);
             property.addListener(weakRefresh);
-            refresh.invalidated(setting);
-        }
-    }
-
-    /// Binds the instance isolation toggle to the current instance setting.
-    private void bindInstanceIsolationButton(LineToggleButton button) {
-        final Holder<Boolean> updating = new Holder<>(false);
-
-        InvalidationListener refresh = observable -> {
-            S setting = currentSetting.get();
-            if (!(setting instanceof GameSettings.Instance instance) || updating.value) {
-                return;
-            }
-
-            updating.value = true;
-            try {
-                boolean forceIsolated = isCurrentInstanceModpack();
-                button.setSelected(forceIsolated
-                        || instance.getOverrideProperties().contains(GameSettings.PROPERTY_RUNNING_DIRECTORY));
-                button.setDisable(forceIsolated);
-            } finally {
-                updating.value = false;
-            }
-        };
-        InvalidationListener weakRefresh = holder.weak(refresh);
-
-        button.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            S setting = currentSetting.get();
-            if (!(setting instanceof GameSettings.Instance instance) || updating.value || isCurrentInstanceModpack()) {
-                return;
-            }
-
-            updating.value = true;
-            try {
-                if (newValue) {
-                    instance.runningDirectoryProperty().setValue("");
-                    instance.getOverrideProperties().add(GameSettings.PROPERTY_RUNNING_DIRECTORY);
-                } else {
-                    instance.getOverrideProperties().remove(GameSettings.PROPERTY_RUNNING_DIRECTORY);
-                }
-            } finally {
-                updating.value = false;
-            }
-            refresh.invalidated(instance);
-
-            fireEvent(new GameInstancePage.WorkingDirChangedEvent());
-        });
-
-        currentSetting.addListener((observable, oldValue, newValue) -> {
-            if (oldValue instanceof GameSettings.Instance oldInstance) {
-                oldInstance.removeListener(weakRefresh);
-            }
-
-            if (newValue instanceof GameSettings.Instance instance) {
-                instance.addListener(weakRefresh);
-            }
-            refresh.invalidated(newValue);
-        });
-
-        S setting = currentSetting.get();
-        if (setting instanceof GameSettings.Instance instance) {
-            instance.addListener(weakRefresh);
             refresh.invalidated(setting);
         }
     }
@@ -2642,7 +2501,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
                     setting == null || repository.isInstanceGameSettingsReadOnly(instanceId),
                     i18n("settings.game.instance_settings.unsupported"),
                     setting != null ? this::forceOverwriteInstanceGameSettings : null);
-            loadIcon();
         } else {
             this.currentGameVersionNumber.set(GameVersionNumber.unknown());
             this.currentSetting.set((S) SettingsManager.getDefaultGameSettingsPresetOrCreate());
@@ -2714,14 +2572,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
             SettingsManager.forceOverwriteGameSettings();
             setSettingsReadOnly(false, "");
         });
-    }
-
-    private void loadIcon() {
-        @Nullable GameInstanceID loadedInstanceId = getLoadedInstanceId();
-        if (repository == null || loadedInstanceId == null)
-            return;
-
-        iconPickerItem.setImage(repository.getInstanceIconImage(loadedInstanceId));
     }
 
     /// Refreshes Java selection controls and keeps inherited parent Java properties observed.
@@ -2830,26 +2680,6 @@ public final class GameSettingsPage<S extends GameSettings> extends StackPane
         }
 
         javaSublist.setDescription("");
-    }
-
-    private void onExploreIcon() {
-        if (repository == null || instanceId == null)
-            return;
-
-        Controllers.dialog(new GameInstanceIconDialog(repository, instanceId, this::loadIcon));
-    }
-
-    private void onDeleteIcon() {
-        @Nullable GameInstanceID loadedInstanceId = getLoadedInstanceId();
-        if (repository == null || loadedInstanceId == null)
-            return;
-
-        repository.deleteIconFile(loadedInstanceId);
-        GameSettings.Instance localGameSettings = repository.getInstanceGameSettingsOrCreate(loadedInstanceId);
-        if (localGameSettings != null) {
-            localGameSettings.iconProperty().setValue(GameInstanceIconType.DEFAULT);
-        }
-        loadIcon();
     }
 
     private static List<String> getSupportedResolutions() {
