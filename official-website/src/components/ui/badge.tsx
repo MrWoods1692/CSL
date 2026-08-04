@@ -11,29 +11,6 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 /**
- * Badge - 徽章组件
- *
- * 用于标记和分类的小型标签组件，常用于状态标识、计数显示、分类标签等场景。
- * 基于 shadcn/ui (new-york 风格) + class-variance-authority (CVA) 构建。
- *
- * @remarks
- * 支持四种变体：default（默认/主要）、secondary（次要）、destructive（破坏性/危险）、outline（轮廓）
- * 导出 badgeVariants 函数，可在其他组件中复用徽章样式
- *
- * @example
- * // 基本用法
- * <Badge>新功能</Badge>
- * <Badge variant="secondary">进行中</Badge>
- * <Badge variant="destructive">已删除</Badge>
- * <Badge variant="outline">草稿</Badge>
- */
-
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
-import { cn } from "@/lib/utils"
-
-/**
  * badgeVariants - 徽章样式变体配置
  *
  * 使用 CVA (class-variance-authority) 定义徽章的样式变体系统。
