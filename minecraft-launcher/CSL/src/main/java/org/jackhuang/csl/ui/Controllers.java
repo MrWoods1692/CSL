@@ -654,11 +654,11 @@ public final class Controllers {
     }
 
     public static void navigate(Node node) {
-        decorator.navigate(node, ContainerAnimations.NAVIGATION, Motion.SHORT4, Motion.EASE);
+        decorator.navigate(node, ContainerAnimations.NAVIGATION, Motion.LONG1, Motion.STANDARD_DECELERATE);
     }
 
     public static void navigateForward(Node node) {
-        decorator.navigate(node, ContainerAnimations.FORWARD, Motion.SHORT4, Motion.EASE);
+        decorator.navigate(node, ContainerAnimations.FORWARD, Motion.LONG1, Motion.STANDARD_DECELERATE);
     }
 
     public static void showToast(String content) {

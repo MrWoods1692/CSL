@@ -50,6 +50,10 @@ public final class EntryPoint {
         createCSLDirectories();
         LOG.start(Metadata.CSL_LOCAL_HOME.resolve("logs"));
 
+        if (OperatingSystem.CURRENT_OS == OperatingSystem.WINDOWS) {
+            createDesktopShortcut();
+        }
+
         checkWine();
 
         if (OperatingSystem.CURRENT_OS == OperatingSystem.MACOS) {
@@ -122,7 +126,7 @@ public final class EntryPoint {
     private static void initIcon() {
         try {
             if (java.awt.Taskbar.isTaskbarSupported()) {
-                var image = java.awt.Toolkit.getDefaultToolkit().getImage(EntryPoint.class.getResource("/assets/img/icon-mac.png"));
+                var image = java.awt.Toolkit.getDefaultToolkit().getImage(EntryPoint.class.getResource("/assets/img/icon.png"));
                 java.awt.Taskbar.getTaskbar().setIconImage(image);
             }
         } catch (Throwable e) {
@@ -216,5 +220,53 @@ public final class EntryPoint {
     static void showErrorAndExit(String message) {
         SwingUtils.showErrorDialog(message);
         exit(1);
+    }
+
+    /**
+     * Creates a desktop shortcut for CSL on Windows if running from an MSI installation.
+     * Skips silently if not applicable or already exists.
+     */
+    private static void createDesktopShortcut() {
+        Path exePath = JarUtils.thisJarPath();
+        if (exePath == null) return;
+        // Navigate up to find CSL.exe (app-image structure: runtime/bin/... -> CSL.exe is at the root)
+        Path appDir = exePath.getParent(); // bin/
+        if (appDir == null || !"bin".equals(FileUtils.getName(appDir))) return;
+        appDir = appDir.getParent(); // runtime/
+        if (appDir == null || !"runtime".equals(FileUtils.getName(appDir))) return;
+        appDir = appDir.getParent();
+        if (appDir == null) return;
+
+        Path cslexe = appDir.resolve("CSL.exe");
+        if (!Files.exists(cslexe)) return;
+
+        String exePathStr = cslexe.toAbsolutePath().toString();
+        Path desktopDir = Path.of(System.getProperty("user.home"), "Desktop");
+        Path shortcut = desktopDir.resolve("CSL.lnk");
+
+        // Skip if shortcut already exists
+        if (Files.exists(shortcut)) return;
+
+        try {
+            // Use Windows Script Host to create the shortcut
+            String vbsScript = "Set WshShell = CreateObject(\"WScript.Shell\")\n"
+                    + "Set Shortcut = WshShell.CreateShortcut(\"" + shortcut.toString().replace("\\", "\\\\") + "\")\n"
+                    + "Shortcut.TargetPath = \"" + exePathStr.replace("\\", "\\\\") + "\"\n"
+                    + "Shortcut.WorkingDirectory = \"" + appDir.toAbsolutePath().toString().replace("\\", "\\\\") + "\"\n"
+                    + "Shortcut.Description = \"Craft Something Launcher\"\n"
+                    + "Shortcut.Save()\n";
+            Path vbsFile = Path.of(System.getProperty("java.io.tmpdir"), "csl_create_shortcut.vbs");
+            try {
+                Files.writeString(vbsFile, vbsScript);
+                new ProcessBuilder("wscript.exe", vbsFile.toString())
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } finally {
+                try { Files.deleteIfExists(vbsFile); } catch (IOException ignored) {}
+            }
+        } catch (Exception e) {
+            LOG.warning("Failed to create desktop shortcut", e);
+        }
     }
 }

@@ -20,17 +20,9 @@
 
 package org.jackhuang.csl.ui;
 
-import javafx.animation.Animation;
-import javafx.animation.Animation.Status;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.event.EventHandler;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.skin.VirtualFlow;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.util.Duration;
-import org.jackhuang.csl.util.Holder;
 
 /**
  * Utility class for ScrollPanes.
@@ -51,8 +43,8 @@ final class ScrollUtils {
         }
     }
 
-    private static final double DEFAULT_SPEED = 1.0;
-    private static final double DEFAULT_TRACK_PAD_ADJUSTMENT = 7.0;
+    private static final double DEFAULT_SPEED = 0.5;
+    private static final double DEFAULT_TRACK_PAD_ADJUSTMENT = 1.0;
 
     private static final double CUTOFF_DELTA = 0.01;
 
@@ -151,117 +143,41 @@ final class ScrollUtils {
         smoothScroll(virtualFlow, speed, trackPadAdjustment);
     }
 
-    private static final double[] FRICTIONS = {0.99, 0.1, 0.05, 0.04, 0.03, 0.02, 0.01, 0.04, 0.01, 0.008, 0.008, 0.008, 0.008, 0.0006, 0.0005, 0.00003, 0.00001};
-    private static final Duration DURATION = Duration.millis(16); // ~60 FPS, was 3ms (333 FPS)
-
     private static void smoothScroll(ScrollPane scrollPane, double speed, double trackPadAdjustment) {
-        final double[] derivatives = new double[FRICTIONS.length];
-
-        Timeline timeline = new Timeline();
-        Holder<ScrollDirection> scrollDirectionHolder = new Holder<>();
-        final EventHandler<MouseEvent> mouseHandler = event -> timeline.stop();
-        final EventHandler<ScrollEvent> scrollHandler = event -> {
-            if (event.getEventType() == ScrollEvent.SCROLL) {
-                ScrollDirection scrollDirection = determineScrollDirection(event);
-                scrollDirectionHolder.value = scrollDirection;
-
-                double currentSpeed = isTrackPad(event, scrollDirection) ? speed / trackPadAdjustment : speed;
-
-                derivatives[0] += scrollDirection.intDirection * currentSpeed;
-                if (timeline.getStatus() == Status.STOPPED) {
-                    timeline.play();
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            ScrollDirection direction = determineScrollDirection(event);
+            double delta = isTrackPad(event, direction) ? speed / trackPadAdjustment : speed;
+            switch (direction) {
+                case LEFT, RIGHT -> {
+                    double width = scrollPane.getContent().getLayoutBounds().getWidth();
+                    if (width > 0) {
+                        scrollPane.setHvalue(Math.min(Math.max(scrollPane.getHvalue() + direction.intDirection * delta / width, 0), 1));
+                    }
                 }
-                event.consume();
+                case UP, DOWN -> {
+                    double height = scrollPane.getContent().getLayoutBounds().getHeight();
+                    if (height > 0) {
+                        scrollPane.setVvalue(Math.min(Math.max(scrollPane.getVvalue() + direction.intDirection * delta / height, 0), 1));
+                    }
+                }
             }
-        };
-        if (scrollPane.getContent().getParent() != null) {
-            scrollPane.getContent().getParent().addEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
-            scrollPane.getContent().getParent().addEventHandler(ScrollEvent.ANY, scrollHandler);
-        }
-        scrollPane.getContent().parentProperty().addListener((observable, oldValue, newValue) -> {
-            if (oldValue != null) {
-                oldValue.removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
-                oldValue.removeEventHandler(ScrollEvent.ANY, scrollHandler);
-            }
-            if (newValue != null) {
-                newValue.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
-                newValue.addEventHandler(ScrollEvent.ANY, scrollHandler);
-            }
+            event.consume();
         });
-
-        timeline.getKeyFrames().add(new KeyFrame(DURATION, event -> {
-            for (int i = 0; i < derivatives.length; i++) {
-                derivatives[i] *= FRICTIONS[i];
-            }
-            for (int i = 1; i < derivatives.length; i++) {
-                derivatives[i] += derivatives[i - 1];
-            }
-
-            double dy = derivatives[derivatives.length - 1];
-            double size;
-            switch (scrollDirectionHolder.value) {
-                case LEFT:
-                case RIGHT:
-                    size = scrollPane.getContent().getLayoutBounds().getWidth();
-                    scrollPane.setHvalue(Math.min(Math.max(scrollPane.getHvalue() + dy / size, 0), 1));
-                    break;
-                case UP:
-                case DOWN:
-                    size = scrollPane.getContent().getLayoutBounds().getHeight();
-                    scrollPane.setVvalue(Math.min(Math.max(scrollPane.getVvalue() + dy / size, 0), 1));
-                    break;
-            }
-
-            if (Math.abs(dy) < CUTOFF_DELTA) {
-                timeline.stop();
-            }
-        }));
-        timeline.setCycleCount(Animation.INDEFINITE);
     }
 
-    /// @author Glavo
     private static void smoothScroll(VirtualFlow<?> virtualFlow, double speed, double trackPadAdjustment) {
-        if (!virtualFlow.isVertical())
+        if (!virtualFlow.isVertical()) {
             return;
-
-        final double[] derivatives = new double[FRICTIONS.length];
-
-        Timeline timeline = new Timeline();
-        final EventHandler<MouseEvent> mouseHandler = event -> timeline.stop();
-        final EventHandler<ScrollEvent> scrollHandler = event -> {
-            if (event.getEventType() == ScrollEvent.SCROLL) {
-                ScrollDirection scrollDirection = determineScrollDirection(event);
-                if (scrollDirection == ScrollDirection.LEFT || scrollDirection == ScrollDirection.RIGHT) {
-                    return;
-                }
-                double currentSpeed = isTrackPad(event, scrollDirection) ? speed / trackPadAdjustment : speed;
-
-                derivatives[0] += scrollDirection.intDirection * currentSpeed;
-                if (timeline.getStatus() == Status.STOPPED) {
-                    timeline.play();
-                }
-                event.consume();
+        }
+        virtualFlow.addEventFilter(ScrollEvent.SCROLL, event -> {
+            ScrollDirection direction = determineScrollDirection(event);
+            if (direction == ScrollDirection.LEFT || direction == ScrollDirection.RIGHT) {
+                return;
             }
-        };
-        virtualFlow.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseHandler);
-        virtualFlow.addEventFilter(ScrollEvent.ANY, scrollHandler);
-
-        timeline.getKeyFrames().add(new KeyFrame(DURATION, event -> {
-            for (int i = 0; i < derivatives.length; i++) {
-                derivatives[i] *= FRICTIONS[i];
-            }
-            for (int i = 1; i < derivatives.length; i++) {
-                derivatives[i] += derivatives[i - 1];
-            }
-
-            double dy = derivatives[derivatives.length - 1];
-            virtualFlow.scrollPixels(dy);
-
-            if (Math.abs(dy) < CUTOFF_DELTA) {
-                timeline.stop();
-            }
-        }));
-        timeline.setCycleCount(Animation.INDEFINITE);
+            double delta = isTrackPad(event, direction) ? speed / trackPadAdjustment : speed;
+            virtualFlow.scrollPixels(direction.intDirection * delta);
+            event.consume();
+        });
     }
 
     private ScrollUtils() {

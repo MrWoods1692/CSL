@@ -47,9 +47,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
@@ -180,8 +178,7 @@ public class DecoratorSkin extends SkinBase<Decorator> {
             Themes.windowTransparentProperty()));
         StackPane.setAlignment(backgroundNode, Pos.BOTTOM_CENTER);
 
-        // Looping bundled video rendered behind the launcher content.
-        MediaView backgroundVideo = createBackgroundVideo(wrapper);
+        ImageView backgroundVideo = createBackgroundGif(wrapper);
         if (backgroundVideo != null) {
             backgroundVideo.opacityProperty().bind(backgroundNode.opacityProperty());
         }
@@ -498,7 +495,7 @@ public class DecoratorSkin extends SkinBase<Decorator> {
 
         Cursor cursor = root.getCursor();
         if (getSkinnable().isAllowMove()) {
-            if (cursor == Cursor.DEFAULT) {
+            if (cursor == Cursor.DEFAULT || cursor == null) {
                 primaryStage.setX(stageInitX + dx);
                 primaryStage.setY(stageInitY + dy);
                 mouseEvent.consume();
@@ -547,103 +544,16 @@ public class DecoratorSkin extends SkinBase<Decorator> {
         }
     }
 
-    /// Creates the background video layer covering the whole window, or `null` when the bundled video cannot be played.
-    private static @Nullable MediaView createBackgroundVideo(StackPane wrapper) {
-        MediaPlayer player = createBackgroundVideoPlayer();
-        if (player == null) {
-            return null;
-        }
-
-        MediaView view = new MediaView(player);
+    /// Creates the looping GIF background layer covering the whole window.
+    private static @Nullable ImageView createBackgroundGif(StackPane wrapper) {
+        Image image = new Image(DecoratorSkin.class.getResource("/assets/bj.gif").toExternalForm(), true);
+        ImageView view = new ImageView(image);
         view.setMouseTransparent(true);
         view.setPreserveRatio(true);
-        // The cover size is larger than the window, so it must not participate in the layout:
-        // otherwise it inflates the wrapper's min/pref size and pushes the launcher content out of the window.
         view.setManaged(false);
-        view.fitWidthProperty().bind(createVideoCoverWidthBinding(wrapper, player));
-        view.fitHeightProperty().bind(createVideoCoverHeightBinding(wrapper, player));
-        view.translateXProperty().bind(Bindings.createDoubleBinding(
-                () -> (wrapper.getWidth() - view.getFitWidth()) / 2.0,
-                wrapper.widthProperty(), view.fitWidthProperty()));
-        view.translateYProperty().bind(Bindings.createDoubleBinding(
-                () -> (wrapper.getHeight() - view.getFitHeight()) / 2.0,
-                wrapper.heightProperty(), view.fitHeightProperty()));
+        view.fitWidthProperty().bind(wrapper.widthProperty());
+        view.fitHeightProperty().bind(wrapper.heightProperty());
         return view;
-    }
-
-    /// Creates the looping background video player for the bundled background video, or `null` when the video cannot be played.
-    ///
-    /// The bundled video is copied from the classpath into the launcher data directory before playback,
-    /// because JavaFX media cannot read resources packaged inside a jar.
-    private static @Nullable MediaPlayer createBackgroundVideoPlayer() {
-        try {
-            MediaPlayer player = new MediaPlayer(new Media(extractBackgroundVideo().toUri().toString()));
-            player.setCycleCount(MediaPlayer.INDEFINITE);
-            player.setMute(true);
-            player.play();
-            return player;
-        } catch (Throwable e) {
-            // The javafx.media module may be absent on platforms without a media artifact; keep the image background then.
-            LOG.warning("Failed to play background video", e);
-            return null;
-        }
-    }
-
-    /// Extracts the bundled background video into the launcher data directory and returns its location.
-    ///
-    /// @return the extracted background video file
-    /// @throws IOException when the bundled video is missing or cannot be written
-    private static Path extractBackgroundVideo() throws IOException {
-        Path videoFile = Metadata.CSL_LOCAL_HOME.resolve("background/bj.mp4");
-        if (Files.isRegularFile(videoFile)) {
-            return videoFile;
-        }
-        Files.createDirectories(videoFile.getParent());
-        try (InputStream input = DecoratorSkin.class.getResourceAsStream("/assets/bj.mp4")) {
-            if (input == null) {
-                throw new IOException("Bundled background video /assets/bj.mp4 is missing");
-            }
-            Files.copy(input, videoFile, StandardCopyOption.REPLACE_EXISTING);
-        }
-        return videoFile;
-    }
-
-    /// Creates a binding sizing the background video to cover the whole window while preserving its aspect ratio.
-    private static DoubleBinding createVideoCoverWidthBinding(StackPane wrapper, MediaPlayer player) {
-        return Bindings.createDoubleBinding(
-                () -> {
-                    double width = wrapper.getWidth();
-                    double height = wrapper.getHeight();
-                    if (width <= 0 || height <= 0) {
-                        return 0.0;
-                    }
-                    double aspect = mediaAspectRatio(player);
-                    return width / height >= aspect ? width : height * aspect;
-                },
-                wrapper.widthProperty(), wrapper.heightProperty());
-    }
-
-    /// Creates a binding sizing the background video to cover the whole window while preserving its aspect ratio.
-    private static DoubleBinding createVideoCoverHeightBinding(StackPane wrapper, MediaPlayer player) {
-        return Bindings.createDoubleBinding(
-                () -> {
-                    double width = wrapper.getWidth();
-                    double height = wrapper.getHeight();
-                    if (width <= 0 || height <= 0) {
-                        return 0.0;
-                    }
-                    double aspect = mediaAspectRatio(player);
-                    return width / height >= aspect ? width / aspect : height;
-                },
-                wrapper.widthProperty(), wrapper.heightProperty());
-    }
-
-    /// Returns the aspect ratio of the background video, defaulting to 16:9 before the media metadata is available.
-    private static double mediaAspectRatio(MediaPlayer player) {
-        Media media = player.getMedia();
-        double width = media != null ? media.getWidth() : 0.0;
-        double height = media != null ? media.getHeight() : 0.0;
-        return width > 0 && height > 0 ? width / height : 16.0 / 9.0;
     }
 
     enum NavBarAnimations implements TransitionPane.AnimationProducer {
