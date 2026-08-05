@@ -69,6 +69,31 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
     private final Consumer<String> logListener = line ->
         javafx.application.Platform.runLater(() -> appendServerLog(line));
 
+    private void runOAuthAction(Button button, Label oauthStatus, OAuthWork work, String successText) {
+        button.setDisable(true);
+        oauthStatus.setText("OAuth：处理中...");
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return work.run();
+            } catch (IOException exception) {
+                throw new java.util.concurrent.CompletionException(exception);
+            }
+        }).whenComplete((result, throwable) -> javafx.application.Platform.runLater(() -> {
+            button.setDisable(false);
+            if (throwable != null) {
+                Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
+                oauthStatus.setText("OAuth：" + cause.getMessage());
+            } else {
+                oauthStatus.setText(successText + "：" + result);
+            }
+        }));
+    }
+
+    @FunctionalInterface
+    private interface OAuthWork {
+        String run() throws IOException;
+    }
+
     private enum LogCategory {
         ALL("全部"),
         INFO("信息"),
@@ -100,177 +125,90 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
 
         Label title = new Label(i18n("multiplayer"));
         title.getStyleClass().add("multiplayer-title");
-        Label description = new Label("本机启动 Minecraft 服务端，好友通过公网直连、FRP 内网穿透或 P2P 加入你的世界。\n"
-                + "FRP 模式支持直接粘贴完整 INI 配置；启动器会管理内置 frpc 进程。\n"
-                + "服务端自动启用离线模式，无需正版验证即可联机。");
+        Label description = new Label("房主点击“开始联机”，启动器自动启动服务端、获取公网地址、映射端口、生成房间号。\n"
+                + "访客只需输入房间号即可加入。服务端自动启用离线模式，无需正版验证。");
         description.setWrapText(true);
         description.getStyleClass().add("secondary-label");
+        Button oauthLogin = new Button("登录联机服务");
+        oauthLogin.getStyleClass().add("secondary-button");
+        Button oauthRefresh = new Button("刷新令牌");
+        oauthRefresh.getStyleClass().add("secondary-button");
+        Button oauthLogout = new Button("登出联机服务");
+        oauthLogout.getStyleClass().add("secondary-button");
+        Label oauthStatus = new Label("OAuth：未登录");
+        oauthStatus.getStyleClass().add("secondary-label");
+        OAuthPkceService oauth = new OAuthPkceService();
+        oauthLogin.setOnAction(event -> runOAuthAction(oauthLogin, oauthStatus, () -> oauth.startLogin(), "登录成功"));
+        oauthRefresh.setOnAction(event -> runOAuthAction(oauthRefresh, oauthStatus, () -> oauth.refreshToken(), "令牌已刷新"));
+        oauthLogout.setOnAction(event -> runOAuthAction(oauthLogout, oauthStatus, () -> oauth.finishLogout(), "已登出"));
 
         Label badge = new Label("自研联机控制面");
         badge.getStyleClass().add("multiplayer-badge");
         Label onlineBadge = new Label("● 在线工具");
         onlineBadge.getStyleClass().add("multiplayer-online-badge");
-        HBox pageHeading = new HBox(10, badge, onlineBadge);
+        HBox oauthButtons = new HBox(8, oauthLogin, oauthRefresh, oauthLogout);
+        HBox pageHeading = new HBox(10, badge, onlineBadge, oauthButtons);
         pageHeading.getStyleClass().add("multiplayer-heading");
 
-        ComboBox<MultiplayerMode> mode = new ComboBox<>(
-                FXCollections.observableArrayList(MultiplayerMode.values()));
-        mode.setValue(MultiplayerMode.DIRECT);
-        mode.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(MultiplayerMode value) {
-                if (value == MultiplayerMode.FRP) return "FRP 内网穿透";
-                if (value == MultiplayerMode.P2P) return "P2P 直连";
-                if (value == MultiplayerMode.LAN) return "局域网";
-                return "公网直连";
-            }
+        // 角色选择：房主 / 访客
+        ComboBox<String> role = new ComboBox<>(FXCollections.observableArrayList("房主", "访客"));
+        role.setValue("房主");
+        role.setMaxWidth(Double.MAX_VALUE);
+        Label roleHint = new Label();
+        roleHint.setWrapText(true);
+        roleHint.getStyleClass().add("secondary-label");
+        updateRoleHint(role.getValue(), roleHint);
 
-            @Override
-            public MultiplayerMode fromString(String value) {
-                return mode.getValue();
-            }
-        });
-        mode.setMaxWidth(Double.MAX_VALUE);
-        Label modeHint = new Label();
-        modeHint.setWrapText(true);
-        modeHint.getStyleClass().add("secondary-label");
-        updateModeHint(mode.getValue(), modeHint);
-        Label p2pWarning = new Label("P2P 采用直连优先策略：请将本地 Minecraft 端口映射到路由器，并选择公网地址。\n"
-            + "若双方处于对称 NAT、运营商 CGNAT 或端口未映射，P2P 无法仅靠启动器自动打通，请改用 FRP。\n"
-            + "启动器会先检查本地服务端是否监听，并生成可分享的公网地址。");
-        p2pWarning.setWrapText(true);
-        p2pWarning.getStyleClass().add("multiplayer-warning");
-        p2pWarning.setVisible(false);
-        p2pWarning.setManaged(false);
-
-        Label offlineModeWarning = new Label("安全提醒：本机作为服务器运行，自动启用离线模式（online-mode=false, enforce-secure-profile=false）。"
-            + "任何人都可以冒用其他玩家的用户名登录，包括管理员，存在严重安全风险。"
-            + "强烈建议同时安装登录验证插件 AuthMe、nLogin，或安装仅需服务端配置的 DirectAuth 模组，"
-            + "要求玩家输入密码；DirectAuth 还支持正版玩家自动登录。"
-            + "如果希望完全自主管理账户与皮肤，也可以搭建兼容官方 Yggdrasil 协议的 Drasl 验证 API 服务器，"
-            + "从而减少对 Mojang 基础设施的依赖。");
-        offlineModeWarning.setWrapText(true);
-        offlineModeWarning.getStyleClass().add("multiplayer-warning");
-
-        ComboBox<String> host = new ComboBox<>();
-        host.setEditable(true);
-        host.setValue("");
-        host.setPromptText("正在自动获取公网 IP...");
-        host.setMaxWidth(Double.MAX_VALUE);
-        Button refreshPublicIps = new Button("刷新公网 IP");
-        refreshPublicIps.getStyleClass().add("secondary-button");
-        HBox hostActions = new HBox(10, host, refreshPublicIps);
-        HBox.setHgrow(host, Priority.ALWAYS);
-        TextField port = new TextField("25565");
-        port.setPromptText("端口，例如 25565");
-        port.setMaxWidth(Double.MAX_VALUE);
-        Button detectPort = new Button("自动检测");
-        detectPort.getStyleClass().add("secondary-button");
-        HBox portActions = new HBox(8, port, detectPort);
-        HBox.setHgrow(port, Priority.ALWAYS);
-        TextArea frpConfiguration = new TextArea();
-        frpConfiguration.setPromptText("粘贴完整 FRP INI 配置，例如：\n[common]\nserver_addr = example.com\nserver_port = 7000\n\n[mc]\ntype = tcp\nlocal_ip = 127.0.0.1\nlocal_port = 25565\nremote_port = 25565");
-        frpConfiguration.setPrefRowCount(8);
-        frpConfiguration.setWrapText(false);
-        frpConfiguration.setMaxWidth(Double.MAX_VALUE);
-        Label configurationHint = new Label("FRP 配置可直接从服务端复制粘贴，无需另外填写地址或端口。");
-        configurationHint.getStyleClass().add("secondary-label");
-        ComboBox<String> profiles = new ComboBox<>();
-        profiles.setPromptText("选择已保存的配置");
-        profiles.setMaxWidth(Double.MAX_VALUE);
-        ListView<String> multiProfiles = new ListView<>();
-        multiProfiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        multiProfiles.setPrefHeight(96);
-        multiProfiles.setPlaceholder(new Label("暂无可同时运行的配置"));
-        TextField profileName = new TextField();
-        profileName.setPromptText("配置名称，例如：我的服务器");
-        Button newProfile = new Button("新建配置");
-        Button saveProfile = new Button("保存配置");
-        Button deleteProfile = new Button("删除配置");
-        newProfile.getStyleClass().add("secondary-button");
-        saveProfile.getStyleClass().add("secondary-button");
-        deleteProfile.getStyleClass().add("secondary-button");
-        HBox profileButtons = new HBox(8, newProfile, saveProfile, deleteProfile);
-        profileButtons.getStyleClass().add("multiplayer-button-row");
-        VBox profileEditor = new VBox(8, profileName, profileButtons);
-        profileEditor.getStyleClass().add("multiplayer-editor");
-        MultiplayerProfileStore profileStore = new MultiplayerProfileStore();
-        List<MultiplayerProfileStore.Profile> savedProfiles = profileStore.load();
-        savedProfiles.forEach(profile -> profiles.getItems().add(profile.name()));
-        savedProfiles.forEach(profile -> multiProfiles.getItems().add(profile.name()));
-
+        // 房主模式控件
         Button start = new Button("开始联机");
         start.getStyleClass().add("accent-button");
         Button stop = new Button("停止联机");
         stop.getStyleClass().add("secondary-button");
         stop.setDisable(true);
-        HBox actions = new HBox(10, start, stop);
+        Button chmlfrp = new Button("使用 chmlfrp");
+        chmlfrp.getStyleClass().add("secondary-button");
+        HBox hostActions = new HBox(10, start, stop, chmlfrp);
         HBox.setHgrow(start, Priority.ALWAYS);
         HBox.setHgrow(stop, Priority.ALWAYS);
+        HBox.setHgrow(chmlfrp, Priority.ALWAYS);
         start.setMaxWidth(Double.MAX_VALUE);
         stop.setMaxWidth(Double.MAX_VALUE);
+        chmlfrp.setMaxWidth(Double.MAX_VALUE);
 
+        // 访客模式控件
+        TextField roomCode = new TextField();
+        roomCode.setPromptText("输入房主给出的房间号（8位字符）");
+        roomCode.setMaxWidth(Double.MAX_VALUE);
+        Button visitorJoin = new Button("加入服务器");
+        visitorJoin.getStyleClass().add("accent-button");
+        HBox guestActions = new HBox(10, roomCode, visitorJoin);
+        HBox.setHgrow(roomCode, Priority.ALWAYS);
+        guestActions.setVisible(false);
+        guestActions.setManaged(false);
+
+        // 邀请/房间号显示
         TextField invite = new TextField();
         invite.setEditable(false);
-        invite.setPromptText("启动联机后生成邀请信息");
+        invite.setPromptText("启动联机后生成房间号");
         invite.setMaxWidth(Double.MAX_VALUE);
-        Button copyInvite = new Button("复制邀请");
+        Button copyInvite = new Button("复制房间号");
         copyInvite.getStyleClass().add("secondary-button");
         copyInvite.setDisable(true);
         copyInvite.setOnAction(event -> {
             ClipboardContent content = new ClipboardContent();
             content.putString(invite.getText());
             Clipboard.getSystemClipboard().setContent(content);
-            status.setText("状态：邀请信息已复制，可发送给好友。");
+            status.setText("状态：房间号已复制，可发送给好友。");
         });
         HBox inviteActions = new HBox(10, invite, copyInvite);
         HBox.setHgrow(invite, Priority.ALWAYS);
-        HBox directFields = new HBox(12);
-        directFields.getStyleClass().add("multiplayer-fields-row");
-        VBox addressColumn = new VBox(6);
-        HBox.setHgrow(addressColumn, Priority.ALWAYS);
-        VBox portColumn = new VBox(6);
-        portColumn.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(portColumn, Priority.ALWAYS);
-        VBox frpFields = new VBox(8);
-        frpFields.getStyleClass().add("multiplayer-frp-fields");
 
-        mode.valueProperty().addListener((observable, oldValue, newValue) -> {
-            boolean frpMode = newValue == MultiplayerMode.FRP;
-            boolean lanMode = newValue == MultiplayerMode.LAN;
-            addressColumn.setVisible(!frpMode && !lanMode);
-            addressColumn.setManaged(!frpMode && !lanMode);
-            frpFields.setVisible(frpMode);
-            frpFields.setManaged(frpMode);
-            boolean p2pMode = newValue == MultiplayerMode.P2P;
-            p2pWarning.setVisible(p2pMode);
-            p2pWarning.setManaged(p2pMode);
-            newProfile.setDisable(p2pMode || lanMode);
-            profileName.setDisable(p2pMode || lanMode);
-            saveProfile.setDisable(p2pMode || lanMode);
-            deleteProfile.setDisable(p2pMode || lanMode);
-            if (newValue == MultiplayerMode.P2P) {
-                status.setText("状态：P2P 直连待启动；请确认路由器已映射本地端口。");
-            } else if (newValue == MultiplayerMode.LAN) {
-                String lanIp = detectLanIp();
-                status.setText("状态：局域网模式，本机 IP " + lanIp + "，同一局域网内的好友可直接连接。");
-            } else if (session.state() != MultiplayerSession.State.RUNNING) {
-                status.setText("状态：未启动");
-            }
-            updateModeHint(newValue, modeHint);
-        });
-        directFields.setVisible(true);
-        directFields.setManaged(true);
-        frpFields.setVisible(false);
-        frpFields.setManaged(false);
-        profiles.setDisable(false);
-        profileName.setDisable(false);
-        newProfile.setDisable(false);
-        saveProfile.setDisable(false);
-        deleteProfile.setDisable(false);
+        // 状态标签
         status.setText("状态：未启动");
         status.setWrapText(true);
         status.getStyleClass().addAll("multiplayer-status", "status-idle");
+
+        // 服务端日志
         serverLog.getStyleClass().add("multiplayer-log");
         serverLog.setPrefHeight(220);
         serverLog.setMaxWidth(Double.MAX_VALUE);
@@ -296,107 +234,69 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         HBox.setHgrow(logSummary, Priority.ALWAYS);
         minecraftServer.addLogListener(logListener);
         minecraftServer.getLogLines().forEach(this::appendServerLog);
-        start.setOnAction(event -> {
-            if (mode.getValue() == MultiplayerMode.FRP) {
-                List<MultiplayerProfileStore.Profile> selectedProfiles = savedProfiles.stream()
-                        .filter(profile -> multiProfiles.getSelectionModel().getSelectedItems().contains(profile.name()))
-                        .toList();
-                if (!selectedProfiles.isEmpty()) {
-                    ensureServerThenStartAllProfiles(selectedProfiles, start, stop);
-                } else {
-                    ensureServerThenStart(mode.getValue(), host, port, frpConfiguration,
-                        invite, copyInvite, start, stop);
-                }
+
+        // 角色切换逻辑
+        role.valueProperty().addListener((observable, oldValue, newValue) -> {
+            boolean guest = "访客".equals(newValue);
+            hostActions.setVisible(!guest);
+            hostActions.setManaged(!guest);
+            guestActions.setVisible(guest);
+            guestActions.setManaged(guest);
+            inviteActions.setVisible(!guest);
+            inviteActions.setManaged(!guest);
+            updateRoleHint(newValue, roleHint);
+            if (guest) {
+                status.setText("状态：访客模式，请输入房主给出的房间号。");
             } else {
-                ensureServerThenStart(mode.getValue(), host, port, frpConfiguration,
-                    invite, copyInvite, start, stop);
+                status.setText("状态：未启动");
             }
         });
-        stop.setOnAction(event -> stopAll(start, stop));
-        newProfile.setOnAction(event -> {
-            profiles.getSelectionModel().clearSelection();
-            multiProfiles.getSelectionModel().clearSelection();
-            profileName.clear();
-            mode.setValue(MultiplayerMode.DIRECT);
-            host.setValue("");
-            port.setText("25565");
-            frpConfiguration.clear();
-            invite.clear();
-            copyInvite.setDisable(true);
-            status.setText("状态：已新建空白配置，请填写内容后保存。");
-        });
-        saveProfile.setOnAction(event -> {
-            String name = profileName.getText().trim();
-            if (name.isBlank()) {
-                status.setText("状态：请输入配置名称。");
+
+        // 房主：开始联机
+        start.setOnAction(event -> {
+            if (!"房主".equals(role.getValue())) {
+                status.setText("状态：当前是访客模式，请使用“加入服务器”。");
                 return;
             }
-            savedProfiles.removeIf(profile -> profile.name().equals(name));
-            savedProfiles.add(new MultiplayerProfileStore.Profile(name, mode.getValue(),
-                host.getValue() == null ? "" : host.getValue().trim(),
-                parsePortOrDefault(port.getText()), frpConfiguration.getText()));
-            try {
-                profileStore.save(savedProfiles);
-                profiles.getItems().setAll(savedProfiles.stream().map(MultiplayerProfileStore.Profile::name).toList());
-                multiProfiles.getItems().setAll(savedProfiles.stream().map(MultiplayerProfileStore.Profile::name).toList());
-                profiles.setValue(name);
-                status.setText("状态：配置“" + name + "”已保存。");
-            } catch (IOException exception) {
-                status.setText("状态：配置保存失败：" + exception.getMessage());
+            start.setDisable(true);
+            stop.setDisable(false);
+            chmlfrp.setDisable(true);
+            doP2pAutoStart(25565, invite, copyInvite, start, stop);
+        });
+
+        // 访客：加入
+        visitorJoin.setOnAction(event -> {
+            if (!"访客".equals(role.getValue())) {
+                status.setText("状态：当前是房主模式，请使用“开始联机”。");
+                return;
             }
-        });
-        deleteProfile.setOnAction(event -> {
-            String name = profiles.getValue();
-            if (name == null) return;
-            savedProfiles.removeIf(profile -> profile.name().equals(name));
-            try {
-                profileStore.save(savedProfiles);
-                profiles.getItems().setAll(savedProfiles.stream().map(MultiplayerProfileStore.Profile::name).toList());
-                multiProfiles.getItems().setAll(savedProfiles.stream().map(MultiplayerProfileStore.Profile::name).toList());
-                status.setText("状态：配置已删除。");
-            } catch (IOException exception) {
-                status.setText("状态：配置删除失败：" + exception.getMessage());
+            String code = roomCode.getText().trim();
+            if (code.isBlank()) {
+                status.setText("状态：请输入房主给出的房间号。");
+                return;
             }
+            // 解析房间号：格式 p2p:ip:port:token
+            String[] parts = P2pHolePuncher.parseInvite(code);
+            if (parts == null) {
+                status.setText("状态：房间号格式错误，应为 p2p:IP:端口:TOKEN。");
+                return;
+            }
+            String hostIp = parts[0];
+            int hostPort = Integer.parseInt(parts[1]);
+            String token = parts[2];
+            status.setText("状态：正在连接房主 " + hostIp + ":" + hostPort + "...");
+            visitorJoin.setDisable(true);
+            startP2pAsGuest(hostIp, hostPort, token, invite, copyInvite, visitorJoin);
         });
 
-        profiles.setOnAction(event -> {
-            String name = profiles.getValue();
-            savedProfiles.stream().filter(profile -> profile.name().equals(name)).findFirst().ifPresent(profile -> {
-                mode.setValue(profile.mode());
-                host.setValue(isPublicAddress(profile.host()) ? profile.host() : "");
-                port.setText(Integer.toString(profile.port()));
-                frpConfiguration.setText(profile.configuration());
-                profileName.setText(profile.name());
-                status.setText("状态：已加载配置“" + profile.name() + "”。");
-            });
+        // 停止、chmlfrp
+        stop.setOnAction(event -> stopAll(start, stop));
+        chmlfrp.setOnAction(event -> {
+            status.setText("状态：chmlfrp 暂未接入真实 API，请后续提供接口文档后再接入。");
+            showP2pFallbackPrompt("用户主动查看 chmlfrp 联机方案。");
         });
 
-        Label profileLabel = new Label("已保存配置");
-        profileLabel.getStyleClass().add("multiplayer-field-label");
-        Label modeLabel = new Label("联机方式");
-        modeLabel.getStyleClass().add("multiplayer-field-label");
-        Label addressLabel = new Label("公网地址");
-        addressLabel.getStyleClass().add("multiplayer-field-label");
-        Label portLabel = new Label("本地 Minecraft 服务端口");
-        portLabel.getStyleClass().add("multiplayer-field-label");
-        addressColumn.getChildren().setAll(addressLabel, hostActions);
-        portColumn.getChildren().setAll(portLabel, portActions);
-        directFields.getChildren().setAll(addressColumn, portColumn);
-        frpFields.getChildren().setAll(configurationHint, frpConfiguration);
-        Separator connectionSeparator = new Separator();
-        connectionSeparator.getStyleClass().add("multiplayer-separator");
-        Label multiProfileHint = new Label("按住 Ctrl/Command 可选择多个 FRP 配置同时运行。配置需共享同一个本地端口，且每个配置必须使用不同的远程端口。");
-        multiProfileHint.getStyleClass().add("secondary-label");
-        VBox savedProfileSection = new VBox(8, profileLabel, profiles, profileEditor);
-        savedProfileSection.getStyleClass().add("multiplayer-section");
-        Label multiProfileLabel = new Label("批量运行 FRP 配置");
-        multiProfileLabel.getStyleClass().add("multiplayer-field-label");
-        VBox multiProfileSection = new VBox(8, multiProfileLabel, multiProfiles, multiProfileHint);
-        multiProfileSection.getStyleClass().add("multiplayer-section");
-        VBox modeSection = new VBox(8, modeLabel, mode, modeHint, p2pWarning, directFields, frpFields);
-        modeSection.getStyleClass().add("multiplayer-section");
-
-        // --- Admin (ops) management ---
+        // 管理员 (ops) 管理
         TextField opNameField = new TextField();
         opNameField.setPromptText("输入玩家名，例如：Notch");
         opNameField.setMaxWidth(Double.MAX_VALUE);
@@ -433,33 +333,79 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         VBox opSection = new VBox(8, new Label("管理员"), opNameField, opButtons, opList, opHint);
         opSection.getStyleClass().add("multiplayer-section");
 
-        VBox connectionCard = new VBox(18, new Label("连接设置"), savedProfileSection,
-            multiProfileSection, connectionSeparator, modeSection, offlineModeWarning, opSection);
+        // 安全警告
+        Label offlineModeWarning = new Label("安全提醒：本机作为服务器运行，自动启用离线模式（online-mode=false, enforce-secure-profile=false）。"
+                + "任何人都可以冒用其他玩家的用户名登录，包括管理员，存在严重安全风险。"
+                + "强烈建议同时安装登录验证插件 AuthMe、nLogin，或安装仅需服务端配置的 DirectAuth 模组，"
+                + "要求玩家输入密码；DirectAuth 还支持正版玩家自动登录。"
+                + "如果希望完全自主管理账户与皮肤，也可以搭建兼容官方 Yggdrasil 协议的 Drasl 验证 API 服务器，"
+                + "从而减少对 Mojang 基础设施的依赖。");
+        offlineModeWarning.setWrapText(true);
+        offlineModeWarning.getStyleClass().add("multiplayer-warning");
+
+        // 布局组装
+        VBox connectionCard = new VBox(14,
+                new Label("联机控制"),
+                role, roleHint,
+                hostActions,
+                guestActions,
+                inviteActions,
+                offlineModeWarning,
+                opSection);
         connectionCard.getStyleClass().add("multiplayer-card");
         connectionCard.getChildren().get(0).getStyleClass().add("multiplayer-section-title");
-        VBox inviteCard = new VBox(8, new Label("邀请好友"), inviteActions,
-            new Label("启动联机后复制此信息发送给好友，好友可据此连接。"));
-        inviteCard.getStyleClass().add("multiplayer-card");
-        inviteCard.getChildren().get(0).getStyleClass().add("multiplayer-section-title");
-        VBox statusCard = new VBox(8, new Label("运行状态"), status, actions);
+
+        VBox statusCard = new VBox(8, new Label("运行状态"), status, new HBox(10));
         statusCard.getStyleClass().add("multiplayer-card");
         statusCard.getChildren().get(0).getStyleClass().add("multiplayer-section-title");
+
         VBox logCard = new VBox(10, new Label("服务端日志"), logToolbar, logScroll);
         logCard.getStyleClass().add("multiplayer-card");
         logCard.getChildren().get(0).getStyleClass().add("multiplayer-section-title");
-        VBox content = new VBox(18, pageHeading, title, description,
-            connectionCard, inviteCard, statusCard, logCard);
+
+        VBox content = new VBox(18, pageHeading, title, description, oauthStatus,
+                connectionCard, statusCard, logCard);
         content.getStyleClass().add("multiplayer-content");
         content.setPadding(new Insets(8));
-        content.setMaxWidth(860);
+        content.setMaxWidth(720);
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.getStyleClass().add("multiplayer-scroll");
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         getChildren().add(scrollPane);
-        refreshPublicIps.setOnAction(event -> discoverPublicIps(host, status));
-        detectPort.setOnAction(event -> detectLocalPort(port, detectPort, status));
-        discoverPublicIps(host, status);
+    }
+
+    private void startP2pAsGuest(String hostIp, int hostPort, String token,
+                                 TextField invite, Button copyInvite, Button visitorJoin) {
+        P2pHolePuncher.knockAsGuest(hostIp, hostPort, token,
+                logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)))
+                .thenAccept(result -> {
+                    P2pHolePuncher.Result hole = result;
+                    javafx.application.Platform.runLater(() -> {
+                        if (!hole.ok()) {
+                            String msg = hole.error() != null ? hole.error() : "超时";
+                            session.transition(MultiplayerSession.State.FAILED, msg);
+                            status.setText("P2P 连接失败：" + msg);
+                            visitorJoin.setDisable(false);
+                            showP2pFallbackPrompt(msg);
+                        } else {
+                            session.transition(MultiplayerSession.State.RUNNING, null);
+                            status.setText("P2P 连接已建立！");
+                            invite.setText("已连接到 " + hole.peer().getHostString() + ":" + hole.peer().getPort());
+                            copyInvite.setDisable(false);
+                        }
+                    });
+                })
+                .exceptionally(err -> {
+                    javafx.application.Platform.runLater(() -> {
+                        String msg = rootMessage(err != null ? err : new RuntimeException("未知错误"));
+                        session.transition(MultiplayerSession.State.FAILED, msg);
+                        status.setText("P2P 连接异常：" + msg);
+                        visitorJoin.setDisable(false);
+                        showP2pFallbackPrompt(msg);
+                    });
+                    return null;
+                });
     }
 
     /// Starts the configured FRP profile during launcher startup when enabled.
@@ -643,6 +589,20 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         return root.getMessage() == null ? "未知错误" : root.getMessage();
     }
 
+    private void showP2pFallbackPrompt(String message) {
+        JFXButton frp = new JFXButton("改用 FRP");
+        frp.getStyleClass().add("dialog-accept");
+        frp.setOnAction(event -> {
+            status.setText("状态：请切换到 FRP 模式并粘贴完整配置。");
+        });
+        Controllers.confirmAction(
+                "P2P 连接未打通，可能是对称 NAT、CGNAT、防火墙或端口未映射导致。建议改用 FRP，或接入 chmlfrp 做隧道穿透。\n\n原因：" + message,
+                "P2P 失败",
+                MessageDialogPane.MessageType.WARNING,
+                frp,
+                () -> status.setText("状态：chmlfrp 暂未接入真实 API，请后续提供接口文档后再接入。"));
+    }
+
     private void start(MultiplayerMode mode, ComboBox<String> host, TextField port,
                        TextArea frpConfiguration, TextField invite, Button copyInvite,
                        Button start, Button stop) {
@@ -686,40 +646,95 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         setInvite(invite, copyInvite, mode, hostValue, parsedPort);
     }
 
-    private void startDirect(MultiplayerMode mode, String host, int port,
-                             ComboBox<String> hostSelector, TextField invite,
-                             Button copyInvite, Button start, Button stop) {
-        session.transition(MultiplayerSession.State.STARTING, null);
-        start.setDisable(true);
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                String localHost = "127.0.0.1";
-                try (Socket socket = new Socket()) {
-                    socket.connect(new InetSocketAddress(localHost, port), 1500);
-                } catch (IOException exception) {
-                    throw new IOException("本地 Minecraft 服务端未在 " + localHost + ":" + port
-                            + " 监听，请先启动服务端。", exception);
-                }
-                return null;
+    private void startDirect(MultiplayerMode p2pMode, String host, int mcPort,
+                             ComboBox<String> hostSelector, TextField inviteField,
+                             Button copyInviteBtn, Button startBtn, Button stopBtn) {
+        status.setText("状态：正在自动启动 Minecraft 服务端...");
+        startBtn.setDisable(true);
+        stopBtn.setDisable(false);
+
+        // 固定端口 25565，自动检测并启动服务端
+        final int localPort = 25565;
+        minecraftServer.ensureRunning(localPort, ops).whenComplete((ignored, exception) ->
+                javafx.application.Platform.runLater(() -> {
+                    if (exception != null) {
+                        startBtn.setDisable(false);
+                        stopBtn.setDisable(true);
+                        String message = rootMessage(exception);
+                        status.setText("状态：Minecraft 服务端启动失败：" + message);
+                        showServerDownloadPromptIfNeeded(message);
+                        return;
+                    }
+                    doP2pAutoStart(localPort, inviteField, copyInviteBtn, startBtn, stopBtn);
+                }));
+    }
+
+    private void doP2pAutoStart(int localPort, TextField inviteField, Button copyInviteBtn,
+                                Button startBtn, Button stopBtn) {
+        status.setText("状态：正在获取公网地址 (STUN)...");
+        StunClient.lookup().thenCompose(stunResult -> {
+            if (stunResult == null) {
+                throw new RuntimeException("STUN查询失败：无法获取公网地址映射。请检查网络后重试。");
             }
-        };
-        task.setOnSucceeded(event -> {
-            session.transition(MultiplayerSession.State.RUNNING, null);
-            stop.setDisable(false);
-            status.setText("状态：P2P 服务器已就绪。若好友无法连接，请检查端口映射或改用 FRP。");
-            setInvite(invite, copyInvite, mode, hostSelector.getValue(), port);
+            String publicIp = stunResult.publicIp();
+            int publicPort = stunResult.publicPort();
+
+            // 尝试 UPnP 自动映射（外网端口=公网端口，内网端口=本地端口）
+            javafx.application.Platform.runLater(() -> status.setText("状态：尝试 UPnP 自动映射端口..."));
+            return UpnpPortMapper.mapPort("127.0.0.1", publicPort, localPort, "CSL-P2P")
+                    .thenApply(ok -> {
+                        javafx.application.Platform.runLater(() -> {
+                            if (ok) {
+                                status.setText("状态：UPnP 端口映射成功。");
+                            } else {
+                                status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），仍继续尝试打洞。");
+                            }
+                        });
+                        return new String[]{publicIp, String.valueOf(publicPort)};
+                    });
+        }).thenCompose(arr -> {
+            String publicIp = arr[0];
+            int publicPort = Integer.parseInt(arr[1]);
+            String token = java.util.UUID.randomUUID().toString().substring(0, 8);
+            String inviteCode = P2pHolePuncher.buildInvite(publicIp, publicPort, token);
+
+            javafx.application.Platform.runLater(() -> {
+                inviteField.setText(inviteCode);
+                copyInviteBtn.setDisable(false);
+                status.setText("P2P 邀请已就绪，发给好友。等待访客握手…");
+            });
+
+            // 开始监听访客握手
+            return P2pHolePuncher.listenForGuest(localPort, token,
+                    logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
+        }).thenAccept(result -> {
+            P2pHolePuncher.Result hole = result;
+            javafx.application.Platform.runLater(() -> {
+                if (!hole.ok()) {
+                    String msg = hole.error() != null ? hole.error() : "超时";
+                    session.transition(MultiplayerSession.State.FAILED, msg);
+                    status.setText("P2P 打洞失败：" + msg);
+                    startBtn.setDisable(false);
+                    stopBtn.setDisable(true);
+                    showP2pFallbackPrompt(msg);
+                } else {
+                    session.transition(MultiplayerSession.State.RUNNING, null);
+                    status.setText("P2P 连接已建立！好友可通过邀请码加入");
+                    setInvite(inviteField, copyInviteBtn, MultiplayerMode.P2P,
+                            hole.peer().getHostString(), hole.peer().getPort());
+                }
+            });
+        }).exceptionally(err -> {
+            javafx.application.Platform.runLater(() -> {
+                String msg = rootMessage(err != null ? err : new RuntimeException("未知错误"));
+                session.transition(MultiplayerSession.State.FAILED, msg);
+                status.setText("P2P 启动失败：" + msg);
+                startBtn.setDisable(false);
+                stopBtn.setDisable(true);
+                showP2pFallbackPrompt(msg);
+            });
+            return null;
         });
-        task.setOnFailed(event -> {
-            Throwable error = task.getException();
-            session.transition(MultiplayerSession.State.FAILED, error == null ? "未知错误" : error.getMessage());
-            status.setText("状态：P2P 启动失败：" + (error == null ? "未知错误" : error.getMessage()));
-            start.setDisable(false);
-            stop.setDisable(true);
-        });
-        Thread worker = new Thread(task, "CSL-Multiplayer-P2P");
-        worker.setDaemon(true);
-        worker.start();
     }
 
     private void startFrp(String pastedConfiguration, TextField localServerPort,
@@ -900,24 +915,39 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         }
     }
 
+    private static volatile List<String> cachedPublicIps;
+    private static volatile long cachedPublicIpsTime;
+
     private static void discoverPublicIps(ComboBox<String> host, Label status) {
+        List<String> cached = cachedPublicIps;
+        long now = System.currentTimeMillis();
+        if (cached != null && now - cachedPublicIpsTime < 300_000L) {
+            applyPublicIps(host, status, cached);
+            return;
+        }
         host.setPromptText("正在自动获取公网 IP...");
         CompletableFuture.supplyAsync(PublicIpDiscovery::discover).thenAccept(addresses ->
                 javafx.application.Platform.runLater(() -> {
-                    String current = host.getValue();
-                    host.getItems().setAll(addresses);
-                        if (current != null && isPublicAddress(current)) host.setValue(current);
-                    else if (!addresses.isEmpty()) host.setValue(addresses.get(0));
-                        else host.setValue("");
-                    host.setPromptText(addresses.isEmpty()
-                            ? "未发现公网 IP，请配置端口映射或改用 FRP"
-                            : "选择公网 IP（发现多个时可切换）");
-                    if (!addresses.isEmpty()) {
-                        status.setText(addresses.size() == 1
-                                ? "状态：已自动获取公网 IP：" + addresses.get(0)
-                                : "状态：发现多个公网 IP，请选择对外可访问的地址。");
-                    }
+                    cachedPublicIps = List.copyOf(addresses);
+                    cachedPublicIpsTime = System.currentTimeMillis();
+                    applyPublicIps(host, status, addresses);
                 }));
+    }
+
+    private static void applyPublicIps(ComboBox<String> host, Label status, List<String> addresses) {
+        String current = host.getValue();
+        host.getItems().setAll(addresses);
+        if (current != null && isPublicAddress(current)) host.setValue(current);
+        else if (!addresses.isEmpty()) host.setValue(addresses.get(0));
+        else host.setValue("");
+        host.setPromptText(addresses.isEmpty()
+                ? "未发现公网 IP，请配置端口映射或改用 FRP"
+                : "选择公网 IP（发现多个时可切换）");
+        if (!addresses.isEmpty()) {
+            status.setText(addresses.size() == 1
+                    ? "状态：已自动获取公网 IP：" + addresses.get(0)
+                    : "状态：发现多个公网 IP，请选择对外可访问的地址。");
+        }
     }
 
     private static boolean isPublicAddress(String address) {
@@ -934,19 +964,13 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             } catch (NumberFormatException ignored) {
                 configured = 25565;
             }
-            java.util.LinkedHashSet<Integer> candidates = new java.util.LinkedHashSet<>();
-            candidates.add(configured);
-            candidates.add(25565);
-            candidates.add(25566);
-            candidates.add(25567);
-            candidates.add(25568);
-            candidates.add(25569);
-            for (int candidate : candidates) {
-                if (isLocalPortOpen(candidate)) return candidate;
-            }
-            return 0;
-        }).thenAccept(found -> javafx.application.Platform.runLater(() -> {
+            return isLocalPortOpen(configured) ? configured : 0;
+        }).whenComplete((found, throwable) -> javafx.application.Platform.runLater(() -> {
             detectButton.setDisable(false);
+            if (throwable != null) {
+                status.setText("状态：端口检测失败：" + rootMessage(throwable));
+                return;
+            }
             if (found > 0) {
                 port.setText(Integer.toString(found));
                 status.setText("状态：检测到本地 Minecraft 服务端端口 " + found + "。");
@@ -962,6 +986,14 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             return true;
         } catch (IOException ignored) {
             return false;
+        }
+    }
+
+    private static void updateRoleHint(String role, Label target) {
+        if ("访客".equals(role)) {
+            target.setText("访客：输入房主给出的公网地址、P2P 地址或 FRP 地址后直接加入，无需启动本地服务端。");
+        } else {
+            target.setText("房主：先启动本地 Minecraft 服务端，再按公网直连、P2P、FRP 的优先级选择联机方式。");
         }
     }
 

@@ -56,7 +56,7 @@ public class JFXComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
         this.promptTextScale = new Scale(1.0F, 1.0F, 0.0F, 0.0F);
         this.promptTextFill = new SimpleObjectProperty(Color.valueOf("#B2B2B2"));
         this.usePromptText = Bindings.createBooleanBinding(this::usePromptText, ((JFXComboBox) this.getSkinnable()).valueProperty(), this.getSkinnable().promptTextProperty());
-        this.getArrowButton().setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
+        ((Region) ComboBoxListViewSkin.getArrowButton(this)).setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, null, null)));
         this.promptText.textProperty().bind(comboBox.promptTextProperty());
         this.promptText.fillProperty().bind(this.promptTextFill);
         this.promptText.getStyleClass().addAll("text", "prompt-text");

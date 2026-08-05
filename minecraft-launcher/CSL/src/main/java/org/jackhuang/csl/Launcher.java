@@ -30,6 +30,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -387,25 +389,40 @@ public final class Launcher extends Application {
                 return;
 
             Image image = Toolkit.getDefaultToolkit().createImage(stream.readAllBytes());
-            PopupMenu menu = new PopupMenu();
-            MenuItem restore = new MenuItem("显示启动器");
-            restore.addActionListener(event -> runInFX(() -> {
+            ContextMenu menu = new ContextMenu();
+            javafx.scene.control.MenuItem restore = new javafx.scene.control.MenuItem("\u663e\u793a\u542f\u52a8\u5668");
+            javafx.scene.control.MenuItem exit = new javafx.scene.control.MenuItem("\u9000\u51fa\u542f\u52a8\u5668");
+            menu.getItems().addAll(restore, exit);
+            restore.setOnAction(event -> {
+                menu.hide();
                 stage.show();
                 stage.toFront();
-            }));
-            MenuItem exit = new MenuItem("退出启动器");
-            exit.addActionListener(event -> {
+            });
+            exit.setOnAction(event -> {
+                menu.hide();
                 if (trayIcon != null)
                     SystemTray.getSystemTray().remove(trayIcon);
                 trayIcon = null;
                 stopApplication();
             });
-            menu.add(restore);
-            menu.addSeparator();
-            menu.add(exit);
 
-            trayIcon = new TrayIcon(image, "CSL", menu);
+            trayIcon = new TrayIcon(image, "CSL");
             trayIcon.setImageAutoSize(true);
+            trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mousePressed(java.awt.event.MouseEvent event) {
+                    if (event.isPopupTrigger() || event.getButton() == java.awt.event.MouseEvent.BUTTON3) {
+                        runInFX(() -> menu.show(stage, event.getXOnScreen(), event.getYOnScreen()));
+                    }
+                }
+
+                @Override
+                public void mouseReleased(java.awt.event.MouseEvent event) {
+                    if (event.isPopupTrigger()) {
+                        runInFX(() -> menu.show(stage, event.getXOnScreen(), event.getYOnScreen()));
+                    }
+                }
+            });
             trayIcon.addActionListener(event -> runInFX(() -> {
                 stage.show();
                 stage.toFront();

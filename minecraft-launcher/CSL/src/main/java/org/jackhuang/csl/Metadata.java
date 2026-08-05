@@ -84,7 +84,7 @@ public final class Metadata {
         String cslCurrentDir = System.getProperty("csl.dir", System.getenv("CSL_LOCAL_HOME"));
         CSL_LOCAL_HOME = StringUtils.isNotBlank(cslCurrentDir)
                 ? Path.of(cslCurrentDir).toAbsolutePath().normalize()
-                : CURRENT_DIRECTORY.resolve(".csl");
+                : CSL_USER_HOME;
 
         String cslDependencies = System.getProperty("csl.dependencies.dir", System.getenv("CSL_DEPENDENCIES_DIR"));
         DEPENDENCIES_DIRECTORY = StringUtils.isNotBlank(cslDependencies)
