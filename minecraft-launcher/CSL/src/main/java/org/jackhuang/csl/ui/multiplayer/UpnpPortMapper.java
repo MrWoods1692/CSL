@@ -67,23 +67,24 @@ final class UpnpPortMapper {
     }
 
     /// Asynchronously try to map (externalPort → internalPort) on localAddress via UPnP.
+    /// @param protocol "TCP" or "UDP"
     static CompletableFuture<Boolean> mapPort(String localAddress, int externalPort,
-                                               int internalPort, String description) {
+                                               int internalPort, String protocol, String description) {
         return CompletableFuture.supplyAsync(() -> {
             String controlUrl = discoverControl();
             if (controlUrl == null) return false;
             return sendSoap(controlUrl, "AddPortMapping", buildMappingArgs(
-                    externalPort, internalPort, localAddress, description));
+                    externalPort, internalPort, localAddress, protocol, description));
         });
     }
 
-    static CompletableFuture<Boolean> unmapPort(int externalPort) {
+    static CompletableFuture<Boolean> unmapPort(int externalPort, String protocol) {
         return CompletableFuture.supplyAsync(() -> {
             String controlUrl = discoverControl();
             if (controlUrl == null) return false;
             return sendSoap(controlUrl, "DeletePortMapping",
                     "<NewRemoteHost></NewRemoteHost><NewExternalPort>"
-                            + externalPort + "</NewExternalPort><NewProtocol>TCP</NewProtocol>");
+                            + externalPort + "</NewExternalPort><NewProtocol>" + protocol + "</NewProtocol>");
         });
     }
 
@@ -158,10 +159,10 @@ final class UpnpPortMapper {
         }
     }
 
-    private static String buildMappingArgs(int extPort, int intPort, String localIp, String desc) {
+    private static String buildMappingArgs(int extPort, int intPort, String localIp, String protocol, String desc) {
         return "<NewRemoteHost></NewRemoteHost>"
                 + "<NewExternalPort>" + extPort + "</NewExternalPort>"
-                + "<NewProtocol>TCP</NewProtocol>"
+                + "<NewProtocol>" + protocol + "</NewProtocol>"
                 + "<NewInternalPort>" + intPort + "</NewInternalPort>"
                 + "<NewInternalClient>" + localIp + "</NewInternalClient>"
                 + "<NewEnabled>1</NewEnabled>"

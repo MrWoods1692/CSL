@@ -10,6 +10,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -35,13 +36,11 @@ final class P2pHolePuncher {
         return parts; // ip, port, token
     }
 
-    /** Host listens for guest handshake; finishes after first correct match or timeout. */
-    static CompletableFuture<Result> listenForGuest(int localPort, String token,
+    /** Host listens for guest handshake on the provided socket; finishes after first correct match or timeout. */
+    static CompletableFuture<Result> listenForGuest(DatagramSocket sock, String token,
                                                      Consumer<String> onProgress) {
         return CompletableFuture.supplyAsync(() -> {
-            try (DatagramSocket sock = new DatagramSocket(null)) {
-                sock.setReuseAddress(true);
-                sock.bind(new InetSocketAddress(localPort));
+            try {
                 sock.setSoTimeout(1000);
                 String expect = HELLO_PREFIX + token;
                 long deadline = System.currentTimeMillis() + 30_000L;
@@ -66,11 +65,11 @@ final class P2pHolePuncher {
         });
     }
 
-    /** Guest sends hello loops towards the host. */
-    static CompletableFuture<Result> knockAsGuest(String hostIp, int hostPort,
+    /** Guest sends hello loops towards the host using the provided socket. */
+    static CompletableFuture<Result> knockAsGuest(DatagramSocket sock, String hostIp, int hostPort,
                                                   String token, Consumer<String> onProgress) {
         return CompletableFuture.supplyAsync(() -> {
-            try (DatagramSocket sock = new DatagramSocket()) {
+            try {
                 sock.setSoTimeout(1000);
                 InetSocketAddress target = new InetSocketAddress(hostIp, hostPort);
                 byte[] hello = (HELLO_PREFIX + token).getBytes();
@@ -90,6 +89,47 @@ final class P2pHolePuncher {
                     }
                 }
                 return new Result(false, "P2P 访客会话超时 (30s)", null);
+            } catch (Exception e) {
+                return new Result(false, rootText(e), null);
+            }
+        });
+    }
+
+    /// Run both STUN discovery and hole punching on the same socket for consistent port mapping.
+    /// Returns (publicIp, publicPort, token) if successful, or throws on failure.
+    static CompletableFuture<Result> runHolePunch(int localPort, boolean isHost, String hostIp, int hostPort,
+                                                   Consumer<String> onProgress) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (DatagramSocket sock = new DatagramSocket(null)) {
+                sock.setReuseAddress(true);
+                sock.bind(new InetSocketAddress(localPort));
+
+                // Use same socket for STUN query to get consistent public mapping
+                StunClient.Result stun = null;
+                for (InetSocketAddress server : StunClient.STUN_SERVERS) {
+                    try {
+                        sock.setSoTimeout(5000);
+                        byte[] request = StunClient.buildRequest();
+                        sock.send(new DatagramPacket(request, request.length, server));
+                        byte[] buf = new byte[1024];
+                        DatagramPacket resp = new DatagramPacket(buf, buf.length);
+                        sock.receive(resp);
+                        StunClient.Result r = StunClient.parse(buf, resp.getLength());
+                        if (r != null) { stun = r; break; }
+                    } catch (Exception ignored) {}
+                }
+                if (stun == null) {
+                    return new Result(false, "STUN查询失败：无法获取公网地址映射", null);
+                }
+
+                String token = java.util.UUID.randomUUID().toString().substring(0, 8);
+
+                if (isHost) {
+                    onProgress.accept("状态：等待访客握手…");
+                    return listenForGuest(sock, token, onProgress).join();
+                } else {
+                    return knockAsGuest(sock, hostIp, hostPort, token, onProgress).join();
+                }
             } catch (Exception e) {
                 return new Result(false, rootText(e), null);
             }
