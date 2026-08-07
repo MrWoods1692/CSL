@@ -38,6 +38,7 @@ import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jetbrains.annotations.NotNullByDefault;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -380,7 +381,7 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
                                  TextField invite, Button copyInvite, Button visitorJoin) {
         int localPort = 25565;
         try (DatagramSocket sock = new DatagramSocket()) {
-            P2pHolePuncher.runHolePunch(localPort, false, hostIp, hostPort,
+            P2pHolePuncher.runHolePunch(localPort, false, hostIp, hostPort, token,
                 logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)))
                 .thenAccept(result -> {
                     P2pHolePuncher.Result hole = result;
@@ -685,15 +686,55 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             .thenCompose(upnpOk -> {
                 javafx.application.Platform.runLater(() -> {
                     if (upnpOk) {
-                        status.setText("状态：UPnP UDP 端口映射成功，开始 P2P 打洞...");
+                        status.setText("状态：UPnP UDP 端口映射成功，正在查询公网地址...");
                     } else {
-                        status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），仍继续尝试打洞...");
+                        status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），正在查询公网地址...");
                     }
                 });
                 
-                // Run hole punch with STUN on same socket
-                return P2pHolePuncher.runHolePunch(localPort, true, null, 0,
-                    logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
+                // Do STUN query first to get public IP/port for invite code
+                return CompletableFuture.supplyAsync(() -> {
+                    try (DatagramSocket sock = new DatagramSocket(null)) {
+                        sock.setReuseAddress(true);
+                        sock.bind(new InetSocketAddress(localPort));
+                        
+                        StunClient.Result stun = null;
+                        for (InetSocketAddress server : StunClient.STUN_SERVERS) {
+                            try {
+                                sock.setSoTimeout(5000);
+                                byte[] request = StunClient.buildRequest();
+                                sock.send(new DatagramPacket(request, request.length, server));
+                                byte[] buf = new byte[1024];
+                                DatagramPacket resp = new DatagramPacket(buf, buf.length);
+                                sock.receive(resp);
+                                StunClient.Result r = StunClient.parse(buf, resp.getLength());
+                                if (r != null) { stun = r; break; }
+                            } catch (Exception ignored) {}
+                        }
+                        return stun;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }).thenCompose(stun -> {
+                    if (stun == null) {
+                        return CompletableFuture.completedFuture(
+                            new P2pHolePuncher.Result(false, "STUN查询失败：无法获取公网地址映射", null));
+                    }
+                    
+                    // Generate token and show initial invite code
+                    String token = java.util.UUID.randomUUID().toString().substring(0, 8);
+                    String initialInvite = P2pHolePuncher.buildInvite(stun.publicIp(), stun.publicPort(), token);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        inviteField.setText(initialInvite);
+                        copyInviteBtn.setDisable(false);
+                        status.setText("状态：已生成房间号，请复制发给好友。等待访客握手（最长 90 秒）...");
+                    });
+                    
+                    // Run hole punch with the same token
+                    return P2pHolePuncher.runHolePunch(localPort, true, null, 0, token,
+                        logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
+                });
             })
             .thenAccept(result -> {
                 P2pHolePuncher.Result hole = result;
@@ -707,7 +748,7 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
                         showP2pFallbackPrompt(msg);
                     } else {
                         session.transition(MultiplayerSession.State.RUNNING, null);
-                        // 打洞成功后生成邀请码（使用访客实际连接的地址）
+                        // 打洞成功后更新邀请码（使用访客实际连接的地址）
                         String inviteCode = P2pHolePuncher.buildInvite(
                                 hole.peer().getAddress().getHostAddress(),
                                 hole.peer().getPort(),
