@@ -16,13 +16,71 @@ import org.jetbrains.annotations.Nullable;
 /// STUN Binding Request (RFC 5389) — discovers the publicly mapped IP and port.
 final class StunClient {
 
-    static final InetSocketAddress GOOGLE = new InetSocketAddress("stun.l.google.com", 19302);
+    // Multiple STUN servers for reliability
+    static final InetSocketAddress[] STUN_SERVERS = {
+        new InetSocketAddress("stun.l.google.com", 19302),
+        new InetSocketAddress("stun1.l.google.com", 19302),
+        new InetSocketAddress("stun2.l.google.com", 19302),
+        new InetSocketAddress("stun3.l.google.com", 19302),
+        new InetSocketAddress("stun4.l.google.com", 19302),
+        new InetSocketAddress("stun.cloudflare.com", 3478),
+        new InetSocketAddress("stun.miwifi.com", 3478)
+    };
     private static final int MAGIC_COOKIE = 0x2112A442;
 
     private StunClient() {}
 
     record Result(String publicIp, int publicPort) {}
 
+    /// Query a specific STUN server using the provided socket (so port mapping is consistent)
+    static CompletableFuture<@Nullable Result> queryWithSocket(DatagramSocket socket, InetSocketAddress server) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                socket.setSoTimeout(5000);
+                byte[] request = buildRequest();
+                socket.send(new DatagramPacket(request, request.length, server));
+                byte[] buf = new byte[1024];
+                DatagramPacket resp = new DatagramPacket(buf, buf.length);
+                socket.receive(resp);
+                return parse(buf, resp.getLength());
+            } catch (Exception ignored) {
+                return null;
+            }
+        });
+    }
+
+    /// Try multiple STUN servers sequentially until one succeeds
+    static CompletableFuture<@Nullable Result> lookupWithSocket(DatagramSocket socket) {
+        return CompletableFuture.supplyAsync(() -> {
+            for (InetSocketAddress server : STUN_SERVERS) {
+                try {
+                    socket.setSoTimeout(5000);
+                    byte[] request = buildRequest();
+                    socket.send(new DatagramPacket(request, request.length, server));
+                    byte[] buf = new byte[1024];
+                    DatagramPacket resp = new DatagramPacket(buf, buf.length);
+                    socket.receive(resp);
+                    Result r = parse(buf, resp.getLength());
+                    if (r != null) return r;
+                } catch (Exception ignored) {
+                    // Try next server
+                }
+            }
+            return null;
+        });
+    }
+
+    @Nullable
+    static Result queryOrNull(long timeoutMs) {
+        try {
+            return lookup().get(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    // ---- legacy single-server lookup (deprecated) ----
+    @Deprecated
     static CompletableFuture<@Nullable Result> query(InetSocketAddress server) {
         return CompletableFuture.supplyAsync(() -> {
             try (DatagramSocket socket = new DatagramSocket()) {
@@ -39,22 +97,14 @@ final class StunClient {
         });
     }
 
+    @Deprecated
     static CompletableFuture<@Nullable Result> lookup() {
-        return query(GOOGLE);
-    }
-
-    @Nullable
-    static Result queryOrNull(long timeoutMs) {
-        try {
-            return lookup().get(timeoutMs, TimeUnit.MILLISECONDS);
-        } catch (Exception ignored) {
-            return null;
-        }
+        return query(STUN_SERVERS[0]);
     }
 
     // ---- wire format ----
 
-    private static byte[] buildRequest() {
+    static byte[] buildRequest() {
         byte[] msg = new byte[20];
         msg[0] = 0x00;
         msg[1] = 0x01; // Binding Request
@@ -68,7 +118,7 @@ final class StunClient {
         return msg;
     }
 
-    private static @Nullable Result parse(byte[] data, int length) {
+    static @Nullable Result parse(byte[] data, int length) {
         if (length < 20) return null;
         int type = ((data[0] & 0xFF) << 8) | (data[1] & 0xFF);
         if (type != 0x0101) return null; // Binding Success

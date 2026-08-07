@@ -38,6 +38,7 @@ import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jetbrains.annotations.NotNullByDefault;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
@@ -377,7 +378,9 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
 
     private void startP2pAsGuest(String hostIp, int hostPort, String token,
                                  TextField invite, Button copyInvite, Button visitorJoin) {
-        P2pHolePuncher.knockAsGuest(hostIp, hostPort, token,
+        int localPort = 25565;
+        try (DatagramSocket sock = new DatagramSocket()) {
+            P2pHolePuncher.runHolePunch(localPort, false, hostIp, hostPort,
                 logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)))
                 .thenAccept(result -> {
                     P2pHolePuncher.Result hole = result;
@@ -400,12 +403,16 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
                     javafx.application.Platform.runLater(() -> {
                         String msg = rootMessage(err != null ? err : new RuntimeException("未知错误"));
                         session.transition(MultiplayerSession.State.FAILED, msg);
-                        status.setText("P2P 连接异常：" + msg);
+                        status.setText("P2P 连接失败：" + msg);
                         visitorJoin.setDisable(false);
                         showP2pFallbackPrompt(msg);
                     });
                     return null;
                 });
+        } catch (Exception e) {
+            status.setText("P2P 连接失败：" + e.getMessage());
+            visitorJoin.setDisable(false);
+        }
     }
 
     /// Starts the configured FRP profile during launcher startup when enabled.
@@ -671,70 +678,59 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
 
     private void doP2pAutoStart(int localPort, TextField inviteField, Button copyInviteBtn,
                                 Button startBtn, Button stopBtn) {
-        status.setText("状态：正在获取公网地址 (STUN)...");
-        StunClient.lookup().thenCompose(stunResult -> {
-            if (stunResult == null) {
-                throw new RuntimeException("STUN查询失败：无法获取公网地址映射。请检查网络后重试。");
-            }
-            String publicIp = stunResult.publicIp();
-            int publicPort = stunResult.publicPort();
-
-            // 尝试 UPnP 自动映射（外网端口=公网端口，内网端口=本地端口）
-            javafx.application.Platform.runLater(() -> status.setText("状态：尝试 UPnP 自动映射端口..."));
-            return UpnpPortMapper.mapPort("127.0.0.1", publicPort, localPort, "CSL-P2P")
-                    .thenApply(ok -> {
-                        javafx.application.Platform.runLater(() -> {
-                            if (ok) {
-                                status.setText("状态：UPnP 端口映射成功。");
-                            } else {
-                                status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），仍继续尝试打洞。");
-                            }
-                        });
-                        return new String[]{publicIp, String.valueOf(publicPort)};
-                    });
-        }).thenCompose(arr -> {
-            String publicIp = arr[0];
-            int publicPort = Integer.parseInt(arr[1]);
-            String token = java.util.UUID.randomUUID().toString().substring(0, 8);
-            String inviteCode = P2pHolePuncher.buildInvite(publicIp, publicPort, token);
-
-            javafx.application.Platform.runLater(() -> {
-                inviteField.setText(inviteCode);
-                copyInviteBtn.setDisable(false);
-                status.setText("P2P 邀请已就绪，发给好友。等待访客握手…");
-            });
-
-            // 开始监听访客握手
-            return P2pHolePuncher.listenForGuest(localPort, token,
+        status.setText("状态：正在获取公网地址并映射端口 (STUN + UPnP)...");
+        
+        // First try UPnP UDP mapping
+        UpnpPortMapper.mapPort("127.0.0.1", localPort, localPort, "UDP", "CSL-P2P-UDP")
+            .thenCompose(upnpOk -> {
+                javafx.application.Platform.runLater(() -> {
+                    if (upnpOk) {
+                        status.setText("状态：UPnP UDP 端口映射成功，开始 P2P 打洞...");
+                    } else {
+                        status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），仍继续尝试打洞...");
+                    }
+                });
+                
+                // Run hole punch with STUN on same socket
+                return P2pHolePuncher.runHolePunch(localPort, true, null, 0,
                     logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
-        }).thenAccept(result -> {
-            P2pHolePuncher.Result hole = result;
-            javafx.application.Platform.runLater(() -> {
-                if (!hole.ok()) {
-                    String msg = hole.error() != null ? hole.error() : "超时";
+            })
+            .thenAccept(result -> {
+                P2pHolePuncher.Result hole = result;
+                javafx.application.Platform.runLater(() -> {
+                    if (!hole.ok()) {
+                        String msg = hole.error() != null ? hole.error() : "超时";
+                        session.transition(MultiplayerSession.State.FAILED, msg);
+                        status.setText("P2P 打洞失败：" + msg);
+                        startBtn.setDisable(false);
+                        stopBtn.setDisable(true);
+                        showP2pFallbackPrompt(msg);
+                    } else {
+                        session.transition(MultiplayerSession.State.RUNNING, null);
+                        // 打洞成功后生成邀请码（使用访客实际连接的地址）
+                        String inviteCode = P2pHolePuncher.buildInvite(
+                                hole.peer().getAddress().getHostAddress(),
+                                hole.peer().getPort(),
+                                java.util.UUID.randomUUID().toString().substring(0, 8));
+                        inviteField.setText(inviteCode);
+                        copyInviteBtn.setDisable(false);
+                        status.setText("P2P 连接已建立！好友可通过邀请码加入");
+                        setInvite(inviteField, copyInviteBtn, MultiplayerMode.P2P,
+                                hole.peer().getHostString(), hole.peer().getPort());
+                    }
+                });
+            })
+            .exceptionally(err -> {
+                javafx.application.Platform.runLater(() -> {
+                    String msg = rootMessage(err != null ? err : new RuntimeException("未知错误"));
                     session.transition(MultiplayerSession.State.FAILED, msg);
-                    status.setText("P2P 打洞失败：" + msg);
+                    status.setText("P2P 启动失败：" + msg);
                     startBtn.setDisable(false);
                     stopBtn.setDisable(true);
                     showP2pFallbackPrompt(msg);
-                } else {
-                    session.transition(MultiplayerSession.State.RUNNING, null);
-                    status.setText("P2P 连接已建立！好友可通过邀请码加入");
-                    setInvite(inviteField, copyInviteBtn, MultiplayerMode.P2P,
-                            hole.peer().getHostString(), hole.peer().getPort());
-                }
+                });
+                return null;
             });
-        }).exceptionally(err -> {
-            javafx.application.Platform.runLater(() -> {
-                String msg = rootMessage(err != null ? err : new RuntimeException("未知错误"));
-                session.transition(MultiplayerSession.State.FAILED, msg);
-                status.setText("P2P 启动失败：" + msg);
-                startBtn.setDisable(false);
-                stopBtn.setDisable(true);
-                showP2pFallbackPrompt(msg);
-            });
-            return null;
-        });
     }
 
     private void startFrp(String pastedConfiguration, TextField localServerPort,
