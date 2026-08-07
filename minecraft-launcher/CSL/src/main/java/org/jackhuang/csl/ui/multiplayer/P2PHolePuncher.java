@@ -98,7 +98,7 @@ final class P2pHolePuncher {
     /// Run both STUN discovery and hole punching on the same socket for consistent port mapping.
     /// Returns (publicIp, publicPort, token) if successful, or throws on failure.
     static CompletableFuture<Result> runHolePunch(int localPort, boolean isHost, String hostIp, int hostPort,
-                                                   Consumer<String> onProgress) {
+                                                   String token, Consumer<String> onProgress) {
         return CompletableFuture.supplyAsync(() -> {
             try (DatagramSocket sock = new DatagramSocket(null)) {
                 sock.setReuseAddress(true);
@@ -122,14 +122,71 @@ final class P2pHolePuncher {
                     return new Result(false, "STUN查询失败：无法获取公网地址映射", null);
                 }
 
-                String token = java.util.UUID.randomUUID().toString().substring(0, 8);
-
                 if (isHost) {
-                    onProgress.accept("状态：等待访客握手…");
-                    return listenForGuest(sock, token, onProgress).join();
+                    onProgress.accept("状态：等待访客握手（最长 90 秒）…");
+                    return listenForGuest(sock, token, onProgress, 90_000L).join();
                 } else {
-                    return knockAsGuest(sock, hostIp, hostPort, token, onProgress).join();
+                    return knockAsGuest(sock, hostIp, hostPort, token, onProgress, 90_000L).join();
                 }
+            } catch (Exception e) {
+                return new Result(false, rootText(e), null);
+            }
+        });
+    }
+
+    /// Host listens for guest handshake on the provided socket; finishes after first correct match or timeout.
+    static CompletableFuture<Result> listenForGuest(DatagramSocket sock, String token,
+                                                     Consumer<String> onProgress, long timeoutMs) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                sock.setSoTimeout(1000);
+                String expect = HELLO_PREFIX + token;
+                long deadline = System.currentTimeMillis() + timeoutMs;
+                byte[] buf = new byte[256];
+                while (System.currentTimeMillis() < deadline) {
+                    DatagramPacket pkt = new DatagramPacket(buf, buf.length);
+                    try { sock.receive(pkt); }
+                    catch (SocketTimeoutException e) { continue; }
+                    String msg = new String(pkt.getData(), 0, pkt.getLength());
+                    if (msg.equals(expect)) {
+                        byte[] ack = (ACK_PREFIX + token).getBytes();
+                        sock.send(new DatagramPacket(ack, ack.length, pkt.getSocketAddress()));
+                        onProgress.accept("P2P 打洞成功：房主侧确认");
+                        return new Result(true, null,
+                                new InetSocketAddress(pkt.getAddress(), pkt.getPort()));
+                    }
+                }
+                return new Result(false, "P2P 房主等待超时 (" + (timeoutMs / 1000) + "s)", null);
+            } catch (Exception e) {
+                return new Result(false, rootText(e), null);
+            }
+        });
+    }
+
+    /** Guest sends hello loops towards the host using the provided socket. */
+    static CompletableFuture<Result> knockAsGuest(DatagramSocket sock, String hostIp, int hostPort,
+                                                  String token, Consumer<String> onProgress, long timeoutMs) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                sock.setSoTimeout(1000);
+                InetSocketAddress target = new InetSocketAddress(hostIp, hostPort);
+                byte[] hello = (HELLO_PREFIX + token).getBytes();
+                long deadline = System.currentTimeMillis() + timeoutMs;
+                byte[] buf = new byte[256];
+                while (System.currentTimeMillis() < deadline) {
+                    sock.send(new DatagramPacket(hello, hello.length, target));
+                    onProgress.accept("P2P 访客已发送握手");
+                    DatagramPacket pkt = new DatagramPacket(buf, buf.length);
+                    try { sock.receive(pkt); }
+                    catch (SocketTimeoutException e) { continue; }
+                    String msg = new String(pkt.getData(), 0, pkt.getLength());
+                    if (msg.startsWith(ACK_PREFIX + token)) {
+                        onProgress.accept("P2P 打洞成功：访客侧收到确认");
+                        return new Result(true, null,
+                                new InetSocketAddress(pkt.getAddress(), pkt.getPort()));
+                    }
+                }
+                return new Result(false, "P2P 访客会话超时 (" + (timeoutMs / 1000) + "s)", null);
             } catch (Exception e) {
                 return new Result(false, rootText(e), null);
             }

@@ -38,6 +38,7 @@ import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jetbrains.annotations.NotNullByDefault;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -160,6 +161,69 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         roleHint.getStyleClass().add("secondary-label");
         updateRoleHint(role.getValue(), roleHint);
 
+        // 联机模式选择（仅房主可见）
+        ComboBox<MultiplayerMode> modeSelector = new ComboBox<>(FXCollections.observableArrayList(
+                MultiplayerMode.P2P, MultiplayerMode.FRP, MultiplayerMode.LAN, MultiplayerMode.DIRECT));
+        modeSelector.setValue(MultiplayerMode.P2P);
+        modeSelector.setMaxWidth(Double.MAX_VALUE);
+        modeSelector.setConverter(new StringConverter<MultiplayerMode>() {
+            @Override public String toString(MultiplayerMode m) {
+                return switch (m) {
+                    case P2P -> "P2P 直连（自动打洞，无需公网 IP）";
+                    case FRP -> "FRP 内网穿透（需粘贴 frpc.ini 配置）";
+                    case LAN -> "局域网联机（同一路由器下自动发现）";
+                    case DIRECT -> "公网直连（需公网 IP 或已做端口映射）";
+                };
+            }
+            @Override public MultiplayerMode fromString(String s) { return MultiplayerMode.P2P; }
+        });
+        Label modeHint = new Label();
+        modeHint.setWrapText(true);
+        modeHint.getStyleClass().add("secondary-label");
+        updateModeHint(modeSelector.getValue(), modeHint);
+        modeSelector.valueProperty().addListener((obs, o, n) -> updateModeHint(n, modeHint));
+
+        // 模式相关配置控件
+        // DIRECT / P2P: 公网 IP + 端口
+        ComboBox<String> hostSelector = new ComboBox<>();
+        hostSelector.setPromptText("选择或输入公网 IP");
+        hostSelector.setEditable(true);
+        hostSelector.setMaxWidth(Double.MAX_VALUE);
+        TextField portField = new TextField("25565");
+        portField.setPrefWidth(100);
+        HBox directConfig = new HBox(10, new Label("公网地址:"), hostSelector, new Label("端口:"), portField);
+        directConfig.setVisible(false);
+        directConfig.setManaged(false);
+
+        // FRP: 配置文本框
+        TextArea frpConfigArea = new TextArea();
+        frpConfigArea.setPromptText("粘贴完整的 frpc.ini 配置（含 [common] 和 [mc] 段）");
+        frpConfigArea.setPrefRowCount(6);
+        frpConfigArea.setMaxWidth(Double.MAX_VALUE);
+        VBox frpConfig = new VBox(4, new Label("FRP 配置:"), frpConfigArea);
+        frpConfig.setVisible(false);
+        frpConfig.setManaged(false);
+
+        // LAN: 仅端口
+        TextField lanPortField = new TextField("25565");
+        lanPortField.setPrefWidth(100);
+        HBox lanConfig = new HBox(10, new Label("本地端口:"), lanPortField);
+        lanConfig.setVisible(false);
+        lanConfig.setManaged(false);
+
+        // 根据模式显示对应配置
+        modeSelector.valueProperty().addListener((obs, oldMode, newMode) -> {
+            directConfig.setVisible(newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P);
+            directConfig.setManaged(newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P);
+            frpConfig.setVisible(newMode == MultiplayerMode.FRP);
+            frpConfig.setManaged(newMode == MultiplayerMode.FRP);
+            lanConfig.setVisible(newMode == MultiplayerMode.LAN);
+            lanConfig.setManaged(newMode == MultiplayerMode.LAN);
+            if (newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P) {
+                discoverPublicIps(hostSelector, status);
+            }
+        });
+
         // 房主模式控件
         Button start = new Button("开始联机");
         start.getStyleClass().add("accent-button");
@@ -245,6 +309,16 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             guestActions.setManaged(guest);
             inviteActions.setVisible(!guest);
             inviteActions.setManaged(!guest);
+            modeSelector.setVisible(!guest);
+            modeSelector.setManaged(!guest);
+            modeHint.setVisible(!guest);
+            modeHint.setManaged(!guest);
+            directConfig.setVisible(!guest && (modeSelector.getValue() == MultiplayerMode.DIRECT || modeSelector.getValue() == MultiplayerMode.P2P));
+            directConfig.setManaged(!guest && (modeSelector.getValue() == MultiplayerMode.DIRECT || modeSelector.getValue() == MultiplayerMode.P2P));
+            frpConfig.setVisible(!guest && modeSelector.getValue() == MultiplayerMode.FRP);
+            frpConfig.setManaged(!guest && modeSelector.getValue() == MultiplayerMode.FRP);
+            lanConfig.setVisible(!guest && modeSelector.getValue() == MultiplayerMode.LAN);
+            lanConfig.setManaged(!guest && modeSelector.getValue() == MultiplayerMode.LAN);
             updateRoleHint(newValue, roleHint);
             if (guest) {
                 status.setText("状态：访客模式，请输入房主给出的房间号。");
@@ -262,7 +336,16 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             start.setDisable(true);
             stop.setDisable(false);
             chmlfrp.setDisable(true);
-            doP2pAutoStart(25565, invite, copyInvite, start, stop);
+            MultiplayerMode selectedMode = modeSelector.getValue();
+            if (selectedMode == MultiplayerMode.P2P) {
+                doP2pAutoStart(25565, invite, copyInvite, start, stop);
+            } else if (selectedMode == MultiplayerMode.FRP) {
+                ensureServerThenStart(selectedMode, hostSelector, portField, frpConfigArea, invite, copyInvite, start, stop);
+            } else if (selectedMode == MultiplayerMode.LAN) {
+                ensureServerThenStart(selectedMode, hostSelector, lanPortField, frpConfigArea, invite, copyInvite, start, stop);
+            } else { // DIRECT
+                ensureServerThenStart(selectedMode, hostSelector, portField, frpConfigArea, invite, copyInvite, start, stop);
+            }
         });
 
         // 访客：加入
@@ -348,6 +431,8 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         VBox connectionCard = new VBox(14,
                 new Label("联机控制"),
                 role, roleHint,
+                modeSelector, modeHint,
+                directConfig, frpConfig, lanConfig,
                 hostActions,
                 guestActions,
                 inviteActions,
@@ -380,7 +465,7 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
                                  TextField invite, Button copyInvite, Button visitorJoin) {
         int localPort = 25565;
         try (DatagramSocket sock = new DatagramSocket()) {
-            P2pHolePuncher.runHolePunch(localPort, false, hostIp, hostPort,
+            P2pHolePuncher.runHolePunch(localPort, false, hostIp, hostPort, token,
                 logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)))
                 .thenAccept(result -> {
                     P2pHolePuncher.Result hole = result;
@@ -685,15 +770,55 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             .thenCompose(upnpOk -> {
                 javafx.application.Platform.runLater(() -> {
                     if (upnpOk) {
-                        status.setText("状态：UPnP UDP 端口映射成功，开始 P2P 打洞...");
+                        status.setText("状态：UPnP UDP 端口映射成功，正在查询公网地址...");
                     } else {
-                        status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），仍继续尝试打洞...");
+                        status.setText("状态：UPnP 映射失败（路由器可能不支持或已禁用），正在查询公网地址...");
                     }
                 });
                 
-                // Run hole punch with STUN on same socket
-                return P2pHolePuncher.runHolePunch(localPort, true, null, 0,
-                    logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
+                // Do STUN query first to get public IP/port for invite code
+                return CompletableFuture.supplyAsync(() -> {
+                    try (DatagramSocket sock = new DatagramSocket(null)) {
+                        sock.setReuseAddress(true);
+                        sock.bind(new InetSocketAddress(localPort));
+                        
+                        StunClient.Result stun = null;
+                        for (InetSocketAddress server : StunClient.STUN_SERVERS) {
+                            try {
+                                sock.setSoTimeout(5000);
+                                byte[] request = StunClient.buildRequest();
+                                sock.send(new DatagramPacket(request, request.length, server));
+                                byte[] buf = new byte[1024];
+                                DatagramPacket resp = new DatagramPacket(buf, buf.length);
+                                sock.receive(resp);
+                                StunClient.Result r = StunClient.parse(buf, resp.getLength());
+                                if (r != null) { stun = r; break; }
+                            } catch (Exception ignored) {}
+                        }
+                        return stun;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }).thenCompose(stun -> {
+                    if (stun == null) {
+                        return CompletableFuture.completedFuture(
+                            new P2pHolePuncher.Result(false, "STUN查询失败：无法获取公网地址映射", null));
+                    }
+                    
+                    // Generate token and show initial invite code
+                    String token = java.util.UUID.randomUUID().toString().substring(0, 8);
+                    String initialInvite = P2pHolePuncher.buildInvite(stun.publicIp(), stun.publicPort(), token);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        inviteField.setText(initialInvite);
+                        copyInviteBtn.setDisable(false);
+                        status.setText("状态：已生成房间号，请复制发给好友。等待访客握手（最长 90 秒）...");
+                    });
+                    
+                    // Run hole punch with the same token
+                    return P2pHolePuncher.runHolePunch(localPort, true, null, 0, token,
+                        logMsg -> javafx.application.Platform.runLater(() -> status.setText(logMsg)));
+                });
             })
             .thenAccept(result -> {
                 P2pHolePuncher.Result hole = result;
@@ -707,7 +832,7 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
                         showP2pFallbackPrompt(msg);
                     } else {
                         session.transition(MultiplayerSession.State.RUNNING, null);
-                        // 打洞成功后生成邀请码（使用访客实际连接的地址）
+                        // 打洞成功后更新邀请码（使用访客实际连接的地址）
                         String inviteCode = P2pHolePuncher.buildInvite(
                                 hole.peer().getAddress().getHostAddress(),
                                 hole.peer().getPort(),
