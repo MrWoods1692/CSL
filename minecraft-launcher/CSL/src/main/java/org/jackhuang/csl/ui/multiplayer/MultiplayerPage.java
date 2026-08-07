@@ -161,6 +161,69 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         roleHint.getStyleClass().add("secondary-label");
         updateRoleHint(role.getValue(), roleHint);
 
+        // 联机模式选择（仅房主可见）
+        ComboBox<MultiplayerMode> modeSelector = new ComboBox<>(FXCollections.observableArrayList(
+                MultiplayerMode.P2P, MultiplayerMode.FRP, MultiplayerMode.LAN, MultiplayerMode.DIRECT));
+        modeSelector.setValue(MultiplayerMode.P2P);
+        modeSelector.setMaxWidth(Double.MAX_VALUE);
+        modeSelector.setConverter(new StringConverter<MultiplayerMode>() {
+            @Override public String toString(MultiplayerMode m) {
+                return switch (m) {
+                    case P2P -> "P2P 直连（自动打洞，无需公网 IP）";
+                    case FRP -> "FRP 内网穿透（需粘贴 frpc.ini 配置）";
+                    case LAN -> "局域网联机（同一路由器下自动发现）";
+                    case DIRECT -> "公网直连（需公网 IP 或已做端口映射）";
+                };
+            }
+            @Override public MultiplayerMode fromString(String s) { return MultiplayerMode.P2P; }
+        });
+        Label modeHint = new Label();
+        modeHint.setWrapText(true);
+        modeHint.getStyleClass().add("secondary-label");
+        updateModeHint(modeSelector.getValue(), modeHint);
+        modeSelector.valueProperty().addListener((obs, o, n) -> updateModeHint(n, modeHint));
+
+        // 模式相关配置控件
+        // DIRECT / P2P: 公网 IP + 端口
+        ComboBox<String> hostSelector = new ComboBox<>();
+        hostSelector.setPromptText("选择或输入公网 IP");
+        hostSelector.setEditable(true);
+        hostSelector.setMaxWidth(Double.MAX_VALUE);
+        TextField portField = new TextField("25565");
+        portField.setPrefWidth(100);
+        HBox directConfig = new HBox(10, new Label("公网地址:"), hostSelector, new Label("端口:"), portField);
+        directConfig.setVisible(false);
+        directConfig.setManaged(false);
+
+        // FRP: 配置文本框
+        TextArea frpConfigArea = new TextArea();
+        frpConfigArea.setPromptText("粘贴完整的 frpc.ini 配置（含 [common] 和 [mc] 段）");
+        frpConfigArea.setPrefRowCount(6);
+        frpConfigArea.setMaxWidth(Double.MAX_VALUE);
+        VBox frpConfig = new VBox(4, new Label("FRP 配置:"), frpConfigArea);
+        frpConfig.setVisible(false);
+        frpConfig.setManaged(false);
+
+        // LAN: 仅端口
+        TextField lanPortField = new TextField("25565");
+        lanPortField.setPrefWidth(100);
+        HBox lanConfig = new HBox(10, new Label("本地端口:"), lanPortField);
+        lanConfig.setVisible(false);
+        lanConfig.setManaged(false);
+
+        // 根据模式显示对应配置
+        modeSelector.valueProperty().addListener((obs, oldMode, newMode) -> {
+            directConfig.setVisible(newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P);
+            directConfig.setManaged(newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P);
+            frpConfig.setVisible(newMode == MultiplayerMode.FRP);
+            frpConfig.setManaged(newMode == MultiplayerMode.FRP);
+            lanConfig.setVisible(newMode == MultiplayerMode.LAN);
+            lanConfig.setManaged(newMode == MultiplayerMode.LAN);
+            if (newMode == MultiplayerMode.DIRECT || newMode == MultiplayerMode.P2P) {
+                discoverPublicIps(hostSelector, status);
+            }
+        });
+
         // 房主模式控件
         Button start = new Button("开始联机");
         start.getStyleClass().add("accent-button");
@@ -246,6 +309,16 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             guestActions.setManaged(guest);
             inviteActions.setVisible(!guest);
             inviteActions.setManaged(!guest);
+            modeSelector.setVisible(!guest);
+            modeSelector.setManaged(!guest);
+            modeHint.setVisible(!guest);
+            modeHint.setManaged(!guest);
+            directConfig.setVisible(!guest && (modeSelector.getValue() == MultiplayerMode.DIRECT || modeSelector.getValue() == MultiplayerMode.P2P));
+            directConfig.setManaged(!guest && (modeSelector.getValue() == MultiplayerMode.DIRECT || modeSelector.getValue() == MultiplayerMode.P2P));
+            frpConfig.setVisible(!guest && modeSelector.getValue() == MultiplayerMode.FRP);
+            frpConfig.setManaged(!guest && modeSelector.getValue() == MultiplayerMode.FRP);
+            lanConfig.setVisible(!guest && modeSelector.getValue() == MultiplayerMode.LAN);
+            lanConfig.setManaged(!guest && modeSelector.getValue() == MultiplayerMode.LAN);
             updateRoleHint(newValue, roleHint);
             if (guest) {
                 status.setText("状态：访客模式，请输入房主给出的房间号。");
@@ -263,7 +336,16 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
             start.setDisable(true);
             stop.setDisable(false);
             chmlfrp.setDisable(true);
-            doP2pAutoStart(25565, invite, copyInvite, start, stop);
+            MultiplayerMode selectedMode = modeSelector.getValue();
+            if (selectedMode == MultiplayerMode.P2P) {
+                doP2pAutoStart(25565, invite, copyInvite, start, stop);
+            } else if (selectedMode == MultiplayerMode.FRP) {
+                ensureServerThenStart(selectedMode, hostSelector, portField, frpConfigArea, invite, copyInvite, start, stop);
+            } else if (selectedMode == MultiplayerMode.LAN) {
+                ensureServerThenStart(selectedMode, hostSelector, lanPortField, frpConfigArea, invite, copyInvite, start, stop);
+            } else { // DIRECT
+                ensureServerThenStart(selectedMode, hostSelector, portField, frpConfigArea, invite, copyInvite, start, stop);
+            }
         });
 
         // 访客：加入
@@ -349,6 +431,8 @@ public final class MultiplayerPage extends VBox implements DecoratorPage {
         VBox connectionCard = new VBox(14,
                 new Label("联机控制"),
                 role, roleHint,
+                modeSelector, modeHint,
+                directConfig, frpConfig, lanConfig,
                 hostActions,
                 guestActions,
                 inviteActions,
