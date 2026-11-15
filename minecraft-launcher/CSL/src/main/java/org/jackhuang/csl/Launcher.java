@@ -43,7 +43,6 @@ import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.animation.AnimationUtils;
-import org.jackhuang.csl.ui.multiplayer.MultiplayerPage;
 import org.jackhuang.csl.upgrade.UpdateChecker;
 import org.jackhuang.csl.upgrade.UpdateHandler;
 import org.jackhuang.csl.util.*;
@@ -143,7 +142,6 @@ public final class Launcher extends Application {
                 Platform.setImplicitExit(false);
                 Controllers.initialize(primaryStage);
                 installSystemTray(primaryStage);
-                MultiplayerPage.autoStartDefaultProfile();
 
                 if (OperatingSystem.CURRENT_OS == OperatingSystem.MACOS)
                     Themes.applyNativeDarkMode(primaryStage);
@@ -280,7 +278,6 @@ public final class Launcher extends Application {
     @Override
     public void stop() throws Exception {
         UsageStatsHelper.stopLauncherTimer();
-        MultiplayerPage.stopAutomaticDefaultProfile();
         Controllers.onApplicationStop();
         SettingsManager.shutdown();
         LOG.shutdown();

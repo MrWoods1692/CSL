@@ -42,7 +42,6 @@ public class TaskExecutorDialogPane extends BorderPane {
     private final Label lblTitle;
     private final JFXButton btnCancel;
     private final TaskListPane taskListPane;
-    private final LoadingOverlay loadingOverlay;
     private final JFXProgressBar singleProgressBar;
     private final Label singleProgressLabel;
     private final VBox singleProgressBox;
@@ -64,12 +63,7 @@ public class TaskExecutorDialogPane extends BorderPane {
             taskListPane = new TaskListPane();
             VBox.setVgrow(taskListPane, Priority.ALWAYS);
 
-            // Single progress view: loading animation above, progress bar below
-            loadingOverlay = new LoadingOverlay();
-            loadingOverlay.setStyle("-fx-background-color: transparent;");
-            loadingOverlay.setMouseTransparent(true);
-            loadingOverlay.setPickOnBounds(false);
-
+            // Single progress view: progress bar with the current task name below
             singleProgressBar = new JFXProgressBar();
             singleProgressBar.getStyleClass().add("single-download-progress");
             singleProgressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
@@ -77,7 +71,7 @@ public class TaskExecutorDialogPane extends BorderPane {
             singleProgressLabel = new Label();
             singleProgressLabel.getStyleClass().add("single-download-label");
 
-            singleProgressBox = new VBox(16, loadingOverlay, singleProgressBar, singleProgressLabel);
+            singleProgressBox = new VBox(16, singleProgressBar, singleProgressLabel);
             singleProgressBox.setAlignment(Pos.CENTER);
             singleProgressBox.setPadding(new Insets(24, 32, 24, 32));
             singleProgressBox.setVisible(false);
@@ -122,7 +116,7 @@ public class TaskExecutorDialogPane extends BorderPane {
             taskListPane.setExecutor(executor);
 
             if (forceLoadingMode) {
-                // Force loading animation mode: always show LoadingOverlay + progress bar
+                // Force loading mode: always show the progress bar instead of the task list
                 taskListPane.setVisible(false);
                 taskListPane.setManaged(false);
                 singleProgressBox.setVisible(true);
@@ -171,9 +165,9 @@ public class TaskExecutorDialogPane extends BorderPane {
     }
 
     /**
-     * When set to true, the dialog always shows the loading animation + progress bar
-     * instead of the task list, regardless of how many tasks are running.
-     * Useful for launch pages where a clean loading UI is preferred.
+     * When set to true, the dialog always shows the progress bar instead of the task list,
+     * regardless of how many tasks are running.
+     * Useful for launch pages where a clean progress UI is preferred.
      */
     public void setForceLoadingMode(boolean forceLoadingMode) {
         this.forceLoadingMode = forceLoadingMode;

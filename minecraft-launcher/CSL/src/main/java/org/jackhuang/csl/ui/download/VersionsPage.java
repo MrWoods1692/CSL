@@ -301,78 +301,72 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
         private final JFXSpinner spinner;
 
         private final JFXTextField nameField;
-        private final JFXComboBox<VersionTypeFilter> categoryField = new JFXComboBox<>();
+        private final ComboBox<VersionTypeFilter> categoryField = new ComboBox<>();
 
         VersionsPageSkin(VersionsPage control) {
             super(control);
 
             BorderPane root = new BorderPane();
 
-            GridPane searchPane = new GridPane();
+            HBox searchPane = new HBox();
             root.setTop(searchPane);
-            searchPane.getStyleClass().addAll("card", "search-bar");
+            searchPane.getStyleClass().addAll("card", "search-bar", "version-search-bar");
             BorderPane.setMargin(searchPane, new Insets(10, 10, 0, 10));
 
-            ColumnConstraints nameColumn = new ColumnConstraints();
-            nameColumn.setMinWidth(USE_PREF_SIZE);
-            ColumnConstraints column1 = new ColumnConstraints();
-            column1.setHgrow(Priority.ALWAYS);
-            ColumnConstraints column2 = new ColumnConstraints();
-            column2.setMaxWidth(150);
-            ColumnConstraints column3 = new ColumnConstraints();
-
-            if (control.versionList.hasType())
-                searchPane.getColumnConstraints().setAll(nameColumn, column1, nameColumn, column2, column3);
-            else
-                searchPane.getColumnConstraints().setAll(nameColumn, column1, column3);
-
-            searchPane.setHgap(16);
-            searchPane.setVgap(10);
-
             {
-                int rowIndex = 0;
+                var searchIcon = SVG.SEARCH.createIcon(15);
+                searchIcon.getStyleClass().add("search-bar-icon");
+                searchIcon.setMouseTransparent(true);
 
-                {
-                    nameField = new JFXTextField();
-                    nameField.setPromptText(i18n("instance.search.prompt"));
-                    nameField.textProperty().addListener(o -> updateList());
+                nameField = new JFXTextField();
+                nameField.setPromptText(i18n("instance.search.prompt"));
+                nameField.textProperty().addListener(o -> updateList());
+                nameField.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(nameField, Priority.ALWAYS);
 
-                    if ("game".equals(control.libraryId)) {
-                        categoryField.getItems().setAll(
-                                VersionTypeFilter.ALL,
-                                VersionTypeFilter.RELEASE,
-                                VersionTypeFilter.SNAPSHOTS,
-                                VersionTypeFilter.APRIL_FOOLS,
-                                VersionTypeFilter.OLD
-                        );
-                        categoryField.getSelectionModel().select(VersionTypeFilter.RELEASE);
-                    } else {
-                        categoryField.getItems().setAll(
-                                VersionTypeFilter.ALL,
-                                VersionTypeFilter.RELEASE,
-                                VersionTypeFilter.SNAPSHOTS
-                        );
-                        categoryField.getSelectionModel().select(VersionTypeFilter.ALL);
-                    }
-                    categoryField.setConverter(stringConverter(type -> i18n("instance.game." + type.name().toLowerCase(Locale.ROOT))));
-                    categoryField.getSelectionModel().selectedItemProperty().addListener(o -> updateList());
+                JFXButton clearButton = new JFXButton();
+                clearButton.getStyleClass().add("jfx-decorator-button");
+                clearButton.setGraphic(SVG.CLOSE.createIcon(10));
+                clearButton.setFocusTraversable(false);
+                clearButton.visibleProperty().bind(nameField.textProperty().isNotEmpty());
+                clearButton.managedProperty().bind(clearButton.visibleProperty());
+                clearButton.setOnAction(event -> {
+                    nameField.clear();
+                    nameField.requestFocus();
+                });
 
-                    JFXButton refreshButton = FXUtils.newRaisedButton(i18n("button.refresh"));
-                    refreshButton.setOnAction(event -> control.onRefresh());
-
-                    if (control.versionList.hasType()) {
-                        searchPane.addRow(rowIndex++,
-                                new Label(i18n("instance.search")), nameField,
-                                new Label(i18n("instance.game.type")), categoryField,
-                                refreshButton
-                        );
-                    } else {
-                        searchPane.addRow(rowIndex++,
-                                new Label(i18n("instance.search")), nameField,
-                                refreshButton
-                        );
-                    }
+                if ("game".equals(control.libraryId)) {
+                    categoryField.getItems().setAll(
+                            VersionTypeFilter.ALL,
+                            VersionTypeFilter.RELEASE,
+                            VersionTypeFilter.SNAPSHOTS,
+                            VersionTypeFilter.APRIL_FOOLS,
+                            VersionTypeFilter.OLD
+                    );
+                    categoryField.getSelectionModel().select(VersionTypeFilter.RELEASE);
+                } else {
+                    categoryField.getItems().setAll(
+                            VersionTypeFilter.ALL,
+                            VersionTypeFilter.RELEASE,
+                            VersionTypeFilter.SNAPSHOTS
+                    );
+                    categoryField.getSelectionModel().select(VersionTypeFilter.ALL);
                 }
+                categoryField.setConverter(stringConverter(type -> i18n("instance.game." + type.name().toLowerCase(Locale.ROOT))));
+                categoryField.getSelectionModel().selectedItemProperty().addListener(o -> updateList());
+                categoryField.getStyleClass().add("version-filter");
+
+                JFXButton refreshButton = new JFXButton();
+                refreshButton.getStyleClass().add("jfx-decorator-button");
+                refreshButton.setGraphic(SVG.REFRESH.createIcon(14));
+                refreshButton.setFocusTraversable(false);
+                refreshButton.setTooltip(new Tooltip(i18n("button.refresh")));
+                refreshButton.setOnAction(event -> control.onRefresh());
+
+                searchPane.getChildren().addAll(searchIcon, nameField, clearButton);
+                if (control.versionList.hasType())
+                    searchPane.getChildren().add(categoryField);
+                searchPane.getChildren().add(refreshButton);
             }
 
             {
@@ -390,6 +384,10 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
                     {
                         list = new JFXListView<>();
                         list.getStyleClass().add("jfx-list-view-float");
+
+                        Label placeholderLabel = new Label(i18n("search.no_results_found"));
+                        placeholderLabel.getStyleClass().add("search-placeholder");
+                        list.setPlaceholder(placeholderLabel);
 
                         RemoteVersionListCell dummyCell = new RemoteVersionListCell(control);
                         dummyCell.twoLineListItem.setTitle("Dummy");

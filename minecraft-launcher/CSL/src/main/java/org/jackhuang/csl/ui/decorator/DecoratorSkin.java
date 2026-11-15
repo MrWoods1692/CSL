@@ -47,7 +47,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
@@ -65,7 +64,6 @@ import org.jackhuang.csl.ui.animation.Motion;
 import org.jackhuang.csl.ui.animation.TransitionPane;
 import org.jackhuang.csl.ui.wizard.Navigation;
 import org.jackhuang.csl.util.platform.OperatingSystem;
-import org.jetbrains.annotations.Nullable;
 
 import static org.jackhuang.csl.util.logging.Logger.LOG;
 
@@ -178,17 +176,9 @@ public class DecoratorSkin extends SkinBase<Decorator> {
             Themes.windowTransparentProperty()));
         StackPane.setAlignment(backgroundNode, Pos.BOTTOM_CENTER);
 
-        ImageView backgroundVideo = createBackgroundGif(wrapper);
-        if (backgroundVideo != null) {
-            backgroundVideo.opacityProperty().bind(backgroundNode.opacityProperty());
-        }
-
         BorderPane frame = new BorderPane();
         frame.getStyleClass().addAll("jfx-decorator");
         wrapper.getChildren().setAll(backgroundNode, frame);
-        if (backgroundVideo != null) {
-            wrapper.getChildren().add(1, backgroundVideo);
-        }
         skinnable.setDrawerWrapper(wrapper);
 
         parent.getChildren().add(wrapper);
@@ -542,18 +532,6 @@ public class DecoratorSkin extends SkinBase<Decorator> {
                 mouseEvent.consume();
             }
         }
-    }
-
-    /// Creates the looping GIF background layer covering the whole window.
-    private static @Nullable ImageView createBackgroundGif(StackPane wrapper) {
-        Image image = new Image(DecoratorSkin.class.getResource("/assets/bj.gif").toExternalForm(), true);
-        ImageView view = new ImageView(image);
-        view.setMouseTransparent(true);
-        view.setPreserveRatio(true);
-        view.setManaged(false);
-        view.fitWidthProperty().bind(wrapper.widthProperty());
-        view.fitHeightProperty().bind(wrapper.heightProperty());
-        return view;
     }
 
     enum NavBarAnimations implements TransitionPane.AnimationProducer {

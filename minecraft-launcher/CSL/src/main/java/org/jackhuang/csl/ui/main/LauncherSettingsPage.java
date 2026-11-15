@@ -35,7 +35,6 @@ public class LauncherSettingsPage extends DecoratorAnimatedPage implements Decor
     private final TabHeader tab;
     private final TabControl.Tab<JavaManagementPage> javaManagementTab = new TabControl.Tab<>("javaManagementPage");
     private final TabHeader.Tab<SettingsPage> settingsTab = new TabHeader.Tab<>("settingsPage");
-    private final TabHeader.Tab<PersonalizationPage> personalizationTab = new TabHeader.Tab<>("personalizationPage");
     private final TabHeader.Tab<DownloadSettingsPage> downloadTab = new TabHeader.Tab<>("downloadSettingsPage");
     private final TabHeader.Tab<AboutPage> aboutTab = new TabHeader.Tab<>("aboutPage");
     private final TabHeader.Tab<FeedbackPage> feedbackTab = new TabHeader.Tab<>("feedbackPage");
@@ -44,11 +43,10 @@ public class LauncherSettingsPage extends DecoratorAnimatedPage implements Decor
     public LauncherSettingsPage() {
         javaManagementTab.setNodeSupplier(JavaManagementPage::new);
         settingsTab.setNodeSupplier(SettingsPage::new);
-        personalizationTab.setNodeSupplier(PersonalizationPage::new);
         downloadTab.setNodeSupplier(DownloadSettingsPage::new);
         feedbackTab.setNodeSupplier(FeedbackPage::new);
         aboutTab.setNodeSupplier(AboutPage::new);
-        tab = new TabHeader(transitionPane, javaManagementTab, settingsTab, personalizationTab, downloadTab, feedbackTab, aboutTab);
+        tab = new TabHeader(transitionPane, javaManagementTab, settingsTab, downloadTab, feedbackTab, aboutTab);
 
         tab.select(settingsTab);
 
@@ -56,7 +54,6 @@ public class LauncherSettingsPage extends DecoratorAnimatedPage implements Decor
                 .addNavigationDrawerTab(tab, javaManagementTab, i18n("java.management"), SVG.JAVA)
                 .startCategory(i18n("launcher").toUpperCase(Locale.ROOT))
                 .addNavigationDrawerTab(tab, settingsTab, i18n("settings.launcher.general"), SVG.TUNE)
-                .addNavigationDrawerTab(tab, personalizationTab, i18n("settings.launcher.appearance"), SVG.APPEARANCE)
                 .addNavigationDrawerTab(tab, downloadTab, i18n("download"), SVG.DOWNLOAD)
                 .startCategory(i18n("contact").toUpperCase(Locale.ROOT))
                 .addNavigationDrawerTab(tab, feedbackTab, i18n("contact"), SVG.FEEDBACK, SVG.FEEDBACK_FILL)

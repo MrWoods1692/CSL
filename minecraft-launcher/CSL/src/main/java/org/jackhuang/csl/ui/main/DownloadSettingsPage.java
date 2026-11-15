@@ -25,14 +25,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.*;
 import org.jackhuang.csl.setting.DownloadSource;
 import org.jackhuang.csl.setting.EnumCommonDirectory;
-import org.jackhuang.csl.setting.ProxyType;
 import org.jackhuang.csl.task.FetchTask;
 import org.jackhuang.csl.ui.FXUtils;
-import org.jackhuang.csl.ui.WeakListenerHolder;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.util.Holder;
 import org.jackhuang.csl.util.i18n.I18n;
@@ -49,8 +46,6 @@ import static org.jackhuang.csl.setting.SettingsManager.settings;
 import static org.jackhuang.csl.util.i18n.I18n.i18n;
 
 public class DownloadSettingsPage extends StackPane {
-
-    private final WeakListenerHolder holder = new WeakListenerHolder();
 
     public DownloadSettingsPage() {
         VBox content = new VBox(10);
@@ -188,163 +183,6 @@ public class DownloadSettingsPage extends StackPane {
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("download")), downloadList);
         }
 
-        {
-            VBox proxyList = new VBox(10);
-            proxyList.getStyleClass().add("card-non-transparent");
-
-            HBox proxyTypePane = new HBox();
-            {
-                proxyTypePane.setPadding(new Insets(10, 0, 0, 0));
-
-                ToggleGroup proxyConfigurationGroup = new ToggleGroup();
-
-                JFXRadioButton chkProxySystem = new JFXRadioButton(i18n("settings.launcher.proxy.default"));
-                chkProxySystem.setUserData(ProxyType.SYSTEM);
-                chkProxySystem.setToggleGroup(proxyConfigurationGroup);
-
-                JFXRadioButton chkProxyNone = new JFXRadioButton(i18n("settings.launcher.proxy.none"));
-                chkProxyNone.setUserData(ProxyType.DIRECT);
-                chkProxyNone.setToggleGroup(proxyConfigurationGroup);
-
-                JFXRadioButton chkProxyHttp = new JFXRadioButton(i18n("settings.launcher.proxy.http"));
-                chkProxyHttp.setUserData(ProxyType.HTTP);
-                chkProxyHttp.setToggleGroup(proxyConfigurationGroup);
-
-
-                JFXRadioButton chkProxySocks = new JFXRadioButton(i18n("settings.launcher.proxy.socks"));
-                chkProxySocks.setUserData(ProxyType.SOCKS);
-                chkProxySocks.setToggleGroup(proxyConfigurationGroup);
-
-                switch (settings().proxyTypeProperty().get()) {
-                    case DIRECT -> chkProxyNone.setSelected(true);
-                    case HTTP -> chkProxyHttp.setSelected(true);
-                    case SOCKS -> chkProxySocks.setSelected(true);
-                    case SYSTEM -> chkProxySystem.setSelected(true);
-                }
-
-                holder.add(FXUtils.onWeakChange(proxyConfigurationGroup.selectedToggleProperty(), toggle -> {
-                    settings().proxyTypeProperty().set(toggle != null
-                            ? (ProxyType) toggle.getUserData()
-                            : ProxyType.SYSTEM);
-                }));
-
-                proxyTypePane.getChildren().setAll(chkProxySystem, chkProxyNone, chkProxyHttp, chkProxySocks);
-                proxyList.getChildren().add(proxyTypePane);
-            }
-
-            VBox proxyPane = new VBox();
-            {
-                proxyPane.disableProperty().bind(
-                        Bindings.createBooleanBinding(() ->
-                                        !settings().proxyTypeProperty().get().usesCustomAddress(),
-                                settings().proxyTypeProperty()));
-
-                ColumnConstraints colHgrow = new ColumnConstraints();
-                colHgrow.setHgrow(Priority.ALWAYS);
-
-                {
-                    GridPane gridPane = new GridPane();
-                    gridPane.setPadding(new Insets(0, 0, 0, 30));
-                    gridPane.setHgap(20);
-                    gridPane.setVgap(10);
-                    gridPane.getColumnConstraints().setAll(new ColumnConstraints(), colHgrow);
-                    gridPane.getRowConstraints().setAll(new RowConstraints(), new RowConstraints());
-
-                    {
-                        Label host = new Label(i18n("settings.launcher.proxy.host"));
-                        GridPane.setRowIndex(host, 1);
-                        GridPane.setColumnIndex(host, 0);
-                        gridPane.getChildren().add(host);
-                    }
-
-                    {
-                        JFXTextField txtProxyHost = new JFXTextField();
-                        GridPane.setRowIndex(txtProxyHost, 1);
-                        GridPane.setColumnIndex(txtProxyHost, 1);
-                        gridPane.getChildren().add(txtProxyHost);
-                        FXUtils.bindString(txtProxyHost, settings().proxyHostProperty());
-                    }
-
-                    {
-                        Label port = new Label(i18n("settings.launcher.proxy.port"));
-                        GridPane.setRowIndex(port, 2);
-                        GridPane.setColumnIndex(port, 0);
-                        gridPane.getChildren().add(port);
-                    }
-
-                    {
-                        JFXTextField txtProxyPort = new JFXTextField();
-                        GridPane.setFillWidth(txtProxyPort, false);
-                        txtProxyPort.setMaxWidth(200);
-                        GridPane.setRowIndex(txtProxyPort, 2);
-                        GridPane.setColumnIndex(txtProxyPort, 1);
-                        FXUtils.setValidateWhileTextChanged(txtProxyPort, true);
-                        gridPane.getChildren().add(txtProxyPort);
-
-                        FXUtils.bind(txtProxyPort, settings().proxyPortProperty(), SafeStringConverter.fromInteger()
-                                .restrict(it -> it >= 0 && it <= 0xFFFF)
-                                .fallbackTo(0)
-                                .asPredicate(Validator.addTo(txtProxyPort)));
-                    }
-                    proxyPane.getChildren().add(gridPane);
-                }
-
-                VBox chkProxyAuthenticationPane = new VBox();
-                {
-                    chkProxyAuthenticationPane.setPadding(new Insets(20, 0, 20, 5));
-
-                    JFXCheckBox chkProxyAuthentication = new JFXCheckBox(i18n("settings.launcher.proxy.authentication"));
-                    chkProxyAuthenticationPane.getChildren().add(chkProxyAuthentication);
-                    chkProxyAuthentication.selectedProperty().bindBidirectional(settings().hasProxyAuthProperty());
-
-                    proxyPane.getChildren().add(chkProxyAuthenticationPane);
-                }
-
-                GridPane authPane = new GridPane();
-                {
-                    authPane.setPadding(new Insets(0, 0, 0, 30));
-                    authPane.setHgap(20);
-                    authPane.setVgap(10);
-                    authPane.getColumnConstraints().setAll(new ColumnConstraints(), colHgrow);
-                    authPane.getRowConstraints().setAll(new RowConstraints(), new RowConstraints());
-                    authPane.disableProperty().bind(settings().hasProxyAuthProperty().not());
-
-                    {
-                        Label username = new Label(i18n("settings.launcher.proxy.username"));
-                        GridPane.setRowIndex(username, 0);
-                        GridPane.setColumnIndex(username, 0);
-                        authPane.getChildren().add(username);
-                    }
-
-                    {
-                        JFXTextField txtProxyUsername = new JFXTextField();
-                        GridPane.setRowIndex(txtProxyUsername, 0);
-                        GridPane.setColumnIndex(txtProxyUsername, 1);
-                        authPane.getChildren().add(txtProxyUsername);
-                        FXUtils.bindString(txtProxyUsername, settings().proxyUserProperty());
-                    }
-
-                    {
-                        Label password = new Label(i18n("settings.launcher.proxy.password"));
-                        GridPane.setRowIndex(password, 1);
-                        GridPane.setColumnIndex(password, 0);
-                        authPane.getChildren().add(password);
-                    }
-
-                    {
-                        JFXPasswordField txtProxyPassword = new JFXPasswordField();
-                        GridPane.setRowIndex(txtProxyPassword, 1);
-                        GridPane.setColumnIndex(txtProxyPassword, 1);
-                        authPane.getChildren().add(txtProxyPassword);
-                        txtProxyPassword.textProperty().bindBidirectional(settings().proxyPasswordProperty());
-                    }
-
-                    proxyPane.getChildren().add(authPane);
-                    proxyList.getChildren().add(proxyPane);
-                }
-            }
-            content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.proxy")), proxyList);
-        }
 
     }
 

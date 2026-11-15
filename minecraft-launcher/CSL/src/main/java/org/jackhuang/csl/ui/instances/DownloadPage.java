@@ -210,6 +210,17 @@ public class DownloadPage extends Control implements DecoratorPage {
             pane.getChildren().add(descriptionPane);
             descriptionPane.getStyleClass().add("card-non-transparent");
             {
+                // The detail page is pushed onto the navigation stack by the download list, so it
+                // needs its own way back: the window title bar of this launcher has no back button.
+                JFXButton backButton = new JFXButton();
+                backButton.getStyleClass().add("jfx-decorator-button");
+                backButton.setGraphic(SVG.ARROW_BACK.createIcon(20));
+                FXUtils.installFastTooltip(backButton, i18n("button.back"));
+                backButton.setOnAction(e -> Controllers.getDecorator().back());
+                backButton.visibleProperty().bind(Controllers.getDecorator().backableProperty());
+                backButton.managedProperty().bind(backButton.visibleProperty());
+                descriptionPane.getChildren().add(backButton);
+
                 var imageContainer = new ImageContainer(40);
                 if (StringUtils.isNotBlank(getSkinnable().addon.iconUrl())) {
                     imageContainer.imageProperty().bind(FXUtils.newRemoteImage(getSkinnable().addon.iconUrl(), 80, 80, true, true));

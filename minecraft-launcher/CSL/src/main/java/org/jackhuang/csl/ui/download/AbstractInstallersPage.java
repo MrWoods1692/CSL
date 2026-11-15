@@ -177,6 +177,17 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
 
                 HBox.setHgrow(control.txtName, Priority.ALWAYS);
 
+                // The install wizard is pushed onto the navigation stack as well, so it needs a
+                // way back: the window title bar of this launcher has no back button.
+                JFXButton backButton = new JFXButton();
+                backButton.getStyleClass().add("jfx-decorator-button");
+                backButton.setGraphic(SVG.ARROW_BACK.createIcon(20));
+                FXUtils.installFastTooltip(backButton, i18n("button.back"));
+                backButton.setOnAction(e -> Controllers.getDecorator().back());
+                backButton.visibleProperty().bind(Controllers.getDecorator().backableProperty());
+                backButton.managedProperty().bind(backButton.visibleProperty());
+                versionNamePane.getChildren().add(backButton);
+
                 Label nameLabel = new Label(i18n("instance.name"));
                 nameLabel.getStyleClass().add("input-label");
                 versionNamePane.getChildren().addAll(nameLabel, control.txtName);

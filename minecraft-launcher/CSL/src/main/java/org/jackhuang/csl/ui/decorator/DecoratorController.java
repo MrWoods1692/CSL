@@ -153,7 +153,9 @@ public class DecoratorController {
         navigator.clear();
     }
 
-    private void back() {
+    /// Navigates one step back: the current page may consume the request first, otherwise the
+    /// previous page on the navigation stack is restored.
+    public void back() {
         if (navigator.getCurrentPage() instanceof DecoratorPage) {
             DecoratorPage page = (DecoratorPage) navigator.getCurrentPage();
 

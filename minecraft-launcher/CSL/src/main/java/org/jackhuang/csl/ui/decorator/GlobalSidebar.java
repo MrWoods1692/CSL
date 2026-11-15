@@ -17,27 +17,18 @@
  */
 package org.jackhuang.csl.ui.decorator;
 
-import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXPopup;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.geometry.Pos;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
-import javafx.util.Duration;
-import org.jackhuang.csl.theme.Themes;
 import org.jackhuang.csl.ui.Controllers;
 import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.SVG;
 import org.jackhuang.csl.ui.account.AccountAdvancedListItem;
 import org.jackhuang.csl.ui.account.AccountListPopupMenu;
 import org.jackhuang.csl.ui.animation.AnimationUtils;
-import org.jackhuang.csl.ui.animation.Motion;
 import org.jackhuang.csl.ui.construct.AdvancedListBox;
 import org.jackhuang.csl.ui.construct.AdvancedListItem;
 import org.jackhuang.csl.ui.instances.GameAdvancedListItem;
@@ -55,13 +46,17 @@ import static org.jackhuang.csl.util.i18n.I18n.i18n;
 /// The persistent global sidebar shown on the left side of the decorator.
 ///
 /// It contains a "Home" button that returns to the root page, plus the main
-/// navigation items (account, game, download, settings, terracotta, chat).
-/// This sidebar is always visible regardless of which page is currently shown.
+/// navigation items (account, game, download, settings).
+/// This sidebar is always visible regardless of which page is currently shown,
+/// and is permanently rendered in its expanded form: the width is fixed and
+/// there is no collapse toggle.
 @NotNullByDefault
 public final class GlobalSidebar extends VBox {
 
-    /// The collapsed state of the sidebar; {@code true} means narrow (icon-only).
-    final BooleanProperty sidebarCollapsed = new SimpleBooleanProperty(true);
+    /// The collapsed state of the sidebar; permanently {@code false}, so every
+    /// navigation item keeps its regular layout with the icon on the left and
+    /// the title on the right.
+    final BooleanProperty sidebarCollapsed = new SimpleBooleanProperty(false);
 
     private final RootPage rootPage;
 
@@ -105,6 +100,12 @@ public final class GlobalSidebar extends VBox {
         }
         FXUtils.onSecondaryButtonClicked(gameListItem, () -> showGameListPopupMenu(gameListItem));
 
+        // The current-instance entry only makes sense while an instance is selected.
+        // Without one it would be an exact duplicate of the "instance list" item below,
+        // so it stays hidden until an instance has been chosen.
+        gameListItem.visibleProperty().bind(GameDirectoryManager.selectedInstanceProperty().isNotNull());
+        gameListItem.managedProperty().bind(gameListItem.visibleProperty());
+
         // Game list item
         AdvancedListItem gameItem = new AdvancedListItem();
         gameItem.setLeftIcon(SVG.INSTANCES);
@@ -135,19 +136,6 @@ public final class GlobalSidebar extends VBox {
             FXUtils.prepareOnMouseEnter(launcherSettingsItem, Controllers::prepareSettingsPage);
         }
 
-        // Launcher-owned multiplayer item. It must not initialize Terracotta.
-        AdvancedListItem multiplayerItem = new AdvancedListItem();
-        multiplayerItem.setLeftIcon(SVG.GRAPH2);
-        multiplayerItem.setTitle(i18n("multiplayer"));
-        multiplayerItem.setOnAction(e -> Controllers.navigate(Controllers.getMultiplayerPage()));
-
-        // System status item
-        AdvancedListItem statusItem = new AdvancedListItem();
-        statusItem.setLeftIcon(SVG.SYSTEM_MONITOR);
-        statusItem.setTitle(i18n("status"));
-        statusItem.setOnAction(e -> Controllers.navigate(Controllers.getStatusPage()));
-
-        // Chat / feedback item
         AdvancedListBox sideBar = new AdvancedListBox()
                 .add(homeItem)
                 .add(accountListItem)
@@ -155,49 +143,15 @@ public final class GlobalSidebar extends VBox {
                 .add(gameItem)
                 .add(downloadItem)
                 .add(launcherSettingsItem)
-                .add(multiplayerItem)
-                .add(statusItem)
-                .addNavigationDrawerItem(i18n("contact.chat"), SVG.CHAT, () -> {
-                    Controllers.getSettingsPage().showFeedback();
-                    Controllers.navigate(Controllers.getSettingsPage());
-                })
                 .bindSidebarCollapsed(sidebarCollapsed);
 
-        // Toggle button at the bottom of the sidebar
-        JFXButton sidebarToggleButton = new JFXButton();
-        sidebarToggleButton.setFocusTraversable(false);
-        sidebarToggleButton.getStyleClass().add("sidebar-toggle-button");
-        sidebarToggleButton.setAlignment(Pos.CENTER_LEFT);
-        SVGPath sidebarToggleIcon = new SVGPath();
-        sidebarToggleIcon.getStyleClass().add("svg");
-        // Use the theme primary color so the toggle remains visible against
-        // both light and dark, translucent sidebar backgrounds.
-        sidebarToggleIcon.fillProperty().bind(Themes.colorSchemeProperty().getPrimary());
-        sidebarToggleButton.setGraphic(sidebarToggleIcon);
-        sidebarToggleButton.setOnAction(e -> sidebarCollapsed.set(!sidebarCollapsed.get()));
-        FXUtils.onChangeAndOperate(sidebarCollapsed, collapsed -> {
-            sidebarToggleIcon.setContent((collapsed ? SVG.SIDEBAR_EXPAND : SVG.SIDEBAR_COLLAPSE).getPath());
-            sidebarToggleButton.setText(collapsed ? null : i18n("sidebar.collapse"));
-        });
-
-        getChildren().setAll(sideBar, sidebarToggleButton);
+        getChildren().setAll(sideBar);
         VBox.setVgrow(sideBar, Priority.ALWAYS);
 
-        // Narrow sidebar by default, animate the width when toggled
+        // The sidebar is permanently expanded: its width is fixed and it never collapses.
+        setMinWidth(200);
+        setPrefWidth(200);
         setMaxWidth(200);
-        setMinWidth(0);
-        setPrefWidth(60);
-        FXUtils.onChangeAndOperate(sidebarCollapsed, collapsed -> {
-            double targetWidth = collapsed ? 60 : 200;
-            if (AnimationUtils.isAnimationEnabled()) {
-                Timeline timeline = new Timeline(
-                        new KeyFrame(Duration.millis(250),
-                                new KeyValue(prefWidthProperty(), targetWidth, Motion.STANDARD)));
-                timeline.play();
-            } else {
-                setPrefWidth(targetWidth);
-            }
-        });
     }
 
     private void showGameListPopupMenu(Region gameListItem) {

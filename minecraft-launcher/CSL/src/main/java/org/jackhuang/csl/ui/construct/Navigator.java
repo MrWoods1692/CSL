@@ -83,24 +83,10 @@ public class Navigator extends TransitionPane {
 
         node.getProperties().put("csl.navigator.animation", animationProducer);
 
-        // Show a loading overlay during page transition to avoid UI freeze.
-        LoadingOverlay loadingOverlay = new LoadingOverlay();
-        getChildren().add(loadingOverlay);
-
-        // Defer the actual page transition so the loading overlay renders first.
+        // The page transition animation is the only motion while switching pages:
+        // no loading overlay is drawn on top of the pages any more.
         javafx.application.Platform.runLater(() -> {
             setContent(node, animationProducer, duration, interpolator);
-
-            // Remove the loading overlay after the transition animation completes.
-            // The transition duration is the animation duration; we wait a bit longer
-            // to ensure the new page is fully rendered.
-            Duration removeDelay = duration.add(Duration.millis(50));
-            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(removeDelay);
-            pause.setOnFinished(e -> {
-                loadingOverlay.stop();
-                getChildren().remove(loadingOverlay);
-            });
-            pause.play();
 
             NavigationEvent navigated = new NavigationEvent(this, node, Navigation.NavigationDirection.NEXT, NavigationEvent.NAVIGATED);
             node.fireEvent(navigated);

@@ -240,8 +240,7 @@
 .status-card,
 .menu-container,
 .jfx-decorator-button,
-.window-control-button,
-.sidebar-toggle-button {
+.window-control-button {
     -fx-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -503,32 +502,6 @@
 .advanced-list-item.compact > .rippler-container > .container {
     -fx-padding: 12 16 12 16;
     -fx-alignment: center-left;
-}
-
-/* The toggle button icon stays at a fixed position (left-aligned with a fixed
-   left padding); expanding the sidebar only appends a text label next to it. */
-.sidebar-toggle-button {
-    -fx-background-color: transparent;
-    -fx-padding: 10 16 10 20;
-    -fx-alignment: center-left;
-    -fx-graphic-text-gap: 10;
-    -fx-text-fill: -monet-primary;
-    -fx-background-radius: 12;
-    -fx-margin: 4 8 8 8;
-    -fx-cursor: hand;
-}
-
-.sidebar-toggle-button .svg {
-    -fx-fill: -monet-primary;
-}
-
-.sidebar-toggle-button:hover {
-    -fx-background-color: -monet-surface-container-highest;
-    -fx-text-fill: -monet-on-primary;
-}
-
-.sidebar-toggle-button:hover .svg {
-    -fx-fill: -monet-on-primary;
 }
 
 .game-directory-list-item > .rippler-container > BorderPane > .two-line-list-item > .first-line > .title {
@@ -1690,6 +1663,69 @@
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-padding: 0 0 2 0;
+}
+
+/* Compact search bar used by the version list: icon + field + clear + filter. */
+.search-bar.version-search-bar {
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12 10 12;
+    -fx-spacing: 8;
+}
+
+.search-bar.version-search-bar .jfx-text-field {
+    -fx-font-size: 13px;
+    -fx-padding: 6 8;
+}
+
+.search-bar.version-search-bar .jfx-decorator-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+}
+
+.search-bar.version-search-bar .jfx-decorator-button:hover {
+    -fx-background-color: -monet-surface-container-highest;
+}
+
+.search-bar .search-bar-icon .svg {
+    -fx-fill: -monet-on-surface-variant;
+}
+
+.search-bar .version-filter {
+    -fx-min-width: 118px;
+    -fx-pref-width: 122px;
+    -fx-max-width: 122px;
+    -fx-background-color: -monet-surface-container-highest;
+    -fx-background-radius: 10;
+    -fx-padding: 2 6;
+    -fx-cursor: hand;
+}
+
+.search-bar .version-filter:hover,
+.search-bar .version-filter:focused {
+    -fx-background-color: -monet-surface-container-high;
+}
+
+.search-bar .version-filter .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 13px;
+    -fx-padding: 4 6;
+}
+
+.search-bar .version-filter .arrow {
+    -fx-background-color: -monet-on-surface-variant;
+}
+
+.search-bar .jfx-decorator-button .svg {
+    -fx-fill: -monet-on-surface-variant;
+}
+
+.search-placeholder {
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-font-size: 13px;
 }
 
 .search-bar .jfx-text-field {
@@ -2955,17 +2991,6 @@
  * Line Component                                                              *
  *                                                                             *
  ******************************************************************************/
-
-.loading-overlay {
-    -fx-background-color: rgba(0, 0, 0, 0.10);
-    -fx-background-radius: 18px;
-}
-
-.loading-overlay .loading-block {
-    -fx-stroke: -monet-primary;
-    -fx-stroke-width: 1px;
-    -fx-effect: dropshadow(gaussian, -monet-primary, 10, 0.18, 0, 2);
-}
 
 .line-component .line-component-container {
     -fx-padding: 10 16 10 16;

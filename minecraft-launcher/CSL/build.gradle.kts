@@ -1,5 +1,4 @@
-import org.jackhuang.csl.gradle.TerracottaConfigUpgradeTask
-import org.jackhuang.csl.gradle.ci.GitHubActionUtils
+﻿import org.jackhuang.csl.gradle.ci.GitHubActionUtils
 import org.jackhuang.csl.gradle.ci.JenkinsUtils
 import org.jackhuang.csl.gradle.l10n.CheckTranslations
 import org.jackhuang.csl.gradle.l10n.CreateLanguageList
@@ -259,7 +258,6 @@ tasks.processResources {
     dependsOn(upsideDownTranslate)
     dependsOn(createLocaleNamesResourceBundle)
     dependsOn(createLanguageList)
-    dependsOn(bundleTerracottaCore)
 
     into("assets/") {
         from(cslPropertiesFile)
@@ -270,11 +268,6 @@ tasks.processResources {
         from(createLanguageList.map { it.outputFile })
         from(upsideDownTranslate.map { it.outputFile })
         from(createLocaleNamesResourceBundle.map { it.outputDirectory })
-    }
-
-    inputs.property("terracotta_version", libs.versions.terracotta)
-    doLast {
-        upgradeTerracottaConfig.get().checkValid()
     }
 }
 
@@ -423,61 +416,6 @@ tasks.register<JavaExec>("run") {
     doFirst {
         logger.quiet("CSL_JAVA_OPTS: {}", vmOptions)
         logger.quiet("CSL_JAVA_HOME: {}", cslJavaHome ?: System.getProperty("java.home"))
-    }
-}
-
-// terracotta
-
-val upgradeTerracottaConfig = tasks.register<TerracottaConfigUpgradeTask>("upgradeTerracottaConfig") {
-    val destination = layout.projectDirectory.file("src/main/resources/assets/terracotta.json")
-    val source = layout.projectDirectory.file("terracotta-template.json");
-
-    classifiers.set(
-        listOf(
-            "windows-x86_64", "windows-arm64",
-            "macos-x86_64", "macos-arm64",
-            "linux-x86_64", "linux-arm64", "linux-loongarch64", "linux-riscv64",
-            "freebsd-x86_64"
-        )
-    )
-
-    version.set(libs.versions.terracotta)
-    downloadURL.set($$"https://github.com/burningtnt/Terracotta/releases/download/v${version}/terracotta-${version}-${classifier}-pkg.tar.gz")
-
-    templateFile.set(source)
-    outputFile.set(destination)
-}
-
-// Bundles the Terracotta core package for the current platform into launcher resources, so that online
-// multiplayer works out of the box without downloading the core at runtime.
-val bundleTerracottaCore = tasks.register("bundleTerracottaCore") {
-    val version = libs.versions.terracotta.get()
-    val osName = System.getProperty("os.name").lowercase()
-    val osArch = System.getProperty("os.arch").lowercase()
-    val os = when {
-        osName.contains("win") -> "windows"
-        osName.contains("mac") -> "macos"
-        osName.contains("linux") -> "linux"
-        else -> "freebsd"
-    }
-    val arch = when (osArch) {
-        "amd64", "x86_64" -> "x86_64"
-        "aarch64", "arm64" -> "arm64"
-        else -> osArch
-    }
-    val classifier = "$os-$arch"
-
-    val destination = layout.projectDirectory.file("src/main/resources/assets/terracotta/terracotta-$version-$classifier-pkg.tar.gz")
-
-    inputs.property("terracotta_version", version)
-    inputs.property("classifier", classifier)
-    outputs.file(destination)
-
-    doLast {
-        val url = URI.create("https://github.com/burningtnt/Terracotta/releases/download/v$version/terracotta-$version-$classifier-pkg.tar.gz").toURL()
-        val file = destination.asFile
-        file.parentFile.mkdirs()
-        url.openStream().use { input -> file.outputStream().use { output -> input.copyTo(output) } }
     }
 }
 

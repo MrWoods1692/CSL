@@ -38,7 +38,6 @@ import org.jackhuang.csl.ui.FXUtils;
 import org.jackhuang.csl.ui.SVG;
 import org.jackhuang.csl.ui.construct.*;
 import org.jackhuang.csl.ui.construct.MessageDialogPane.MessageType;
-import org.jackhuang.csl.ui.multiplayer.MultiplayerProfileStore;
 import org.jackhuang.csl.upgrade.RemoteVersion;
 import org.jackhuang.csl.upgrade.UpdateChannel;
 import org.jackhuang.csl.upgrade.UpdateChecker;
@@ -199,32 +198,6 @@ public final class SettingsPage extends ScrollPane {
                 Node title = ComponentList.createComponentListTitle(i18n("settings.launcher.language"));
                 title.getStyleClass().add("settings-section-title");
                 rootPane.getChildren().addAll(title, languagePaneList);
-            }
-
-            {
-                ComponentList multiplayerPaneList = new ComponentList();
-                multiplayerPaneList.getStyleClass().add("settings-section");
-                {
-                    LineToggleButton autoStartPane = new LineToggleButton();
-                    autoStartPane.setTitle("启动时自动运行联机");
-                    autoStartPane.setSubtitle("启动器打开后自动启动默认的 FRP 联机配置");
-                    autoStartPane.selectedProperty().bindBidirectional(settings().autoStartMultiplayerProperty());
-                    multiplayerPaneList.getContent().add(autoStartPane);
-                }
-                {
-                    LineSelectButton<String> defaultProfilePane = new LineSelectButton<>();
-                    defaultProfilePane.setTitle("默认联机配置");
-                    defaultProfilePane.setSubtitle("自动联机时使用的已保存配置");
-                    List<String> profileNames = new MultiplayerProfileStore().load().stream()
-                            .map(MultiplayerProfileStore.Profile::name).toList();
-                    defaultProfilePane.setItems(profileNames);
-                    defaultProfilePane.valueProperty().bindBidirectional(settings().defaultMultiplayerProfileProperty());
-                    defaultProfilePane.setNullSafeConverter(value -> value == null || value.isBlank() ? "未选择" : value);
-                    multiplayerPaneList.getContent().add(defaultProfilePane);
-                }
-                Node title = ComponentList.createComponentListTitle("多人联机");
-                title.getStyleClass().add("settings-section-title");
-                rootPane.getChildren().addAll(title, multiplayerPaneList);
             }
 
             {

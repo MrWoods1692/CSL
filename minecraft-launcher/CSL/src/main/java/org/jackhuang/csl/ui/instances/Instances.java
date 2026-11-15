@@ -43,7 +43,6 @@ import org.jackhuang.csl.ui.account.CreateAccountPane;
 import org.jackhuang.csl.ui.construct.DialogCloseEvent;
 import org.jackhuang.csl.ui.construct.MessageDialogPane;
 import org.jackhuang.csl.ui.construct.PromptDialogPane;
-import org.jackhuang.csl.ui.multiplayer.MinecraftServerManager;
 import org.jackhuang.csl.ui.construct.Validator;
 import org.jackhuang.csl.ui.download.ModpackInstallWizardProvider;
 import org.jackhuang.csl.ui.export.ExportWizardProvider;
@@ -316,9 +315,6 @@ public final class Instances {
             return;
         ensureSelectedAccount(account -> {
             LauncherHelper launcherHelper = new LauncherHelper(repository, account, instanceId);
-            if (MinecraftServerManager.isServerRunning()) {
-                launcherHelper.setKeep();
-            }
             for (Consumer<LauncherHelper> injecter : injecters) {
                 injecter.accept(launcherHelper);
             }
