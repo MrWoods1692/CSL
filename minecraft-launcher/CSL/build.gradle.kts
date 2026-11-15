@@ -1,4 +1,4 @@
-﻿import org.jackhuang.csl.gradle.ci.GitHubActionUtils
+import org.jackhuang.csl.gradle.ci.GitHubActionUtils
 import org.jackhuang.csl.gradle.ci.JenkinsUtils
 import org.jackhuang.csl.gradle.l10n.CheckTranslations
 import org.jackhuang.csl.gradle.l10n.CreateLanguageList
@@ -52,17 +52,6 @@ if (buildNumber != null) {
 }
 
 val embedResources = configurations.register("embedResources")
-
-val bundledFrpArchives = listOf(
-    "frp_0.70.1_darwin_amd64.tar.gz",
-    "frp_0.70.1_freebsd_amd64.tar.gz",
-    "frp_0.70.1_linux_amd64.tar.gz",
-    "frp_0.70.1_linux_arm.tar.gz",
-    "frp_0.70.1_linux_arm64.tar.gz",
-    "frp_0.70.1_linux_loong64.tar.gz",
-    "frp_0.70.1_linux_mips.tar.gz",
-    "frp_0.70.1_windows_amd64.zip",
-)
 
 dependencies {
     implementation(project(":CSLCore"))
@@ -159,16 +148,6 @@ val addOpens = listOf(
 
 tasks.compileJava {
     options.compilerArgs.addAll(addOpens.map { "--add-exports=$it=ALL-UNNAMED" })
-}
-
-tasks.processResources {
-    into("assets/frp") {
-        bundledFrpArchives.forEach { archive ->
-            val source = rootProject.file("../$archive")
-            if (!source.isFile) throw GradleException("Missing bundled FRP archive: $source")
-            from(source)
-        }
-    }
 }
 
 val cslProperties = buildList {
@@ -397,7 +376,14 @@ tasks.register<JavaExec>("run") {
     classpath = files(jarPath)
     workingDir = rootProject.rootDir
 
-    val vmOptions = parseToolOptions(System.getenv("CSL_JAVA_OPTS") ?: "-Xmx1g")
+    // The launcher itself is a JavaFX application: the JVM plus the JavaFX toolkit is the
+    // floor of its footprint, while the animation-heavy UI is gone now. The default options
+    // below keep the heap small, avoid the G1 bookkeeping memory and cap metaspace / code
+    // cache, which measured ~250 MB of resident memory and ~2.2 s until the window shows up.
+    val vmOptions = parseToolOptions(
+        System.getenv("CSL_JAVA_OPTS")
+            ?: "-Xms32m -Xmx512m -XX:+UseSerialGC -XX:MaxMetaspaceSize=192m -XX:ReservedCodeCacheSize=64m -XX:-UsePerfData"
+    )
     if (vmOptions.none { it.startsWith("-Dcsl.offline.auth.restricted=") })
         vmOptions += "-Dcsl.offline.auth.restricted=false"
     if (vmOptions.none { it.startsWith("-Dcsl.self_integrity_check.disable=") })

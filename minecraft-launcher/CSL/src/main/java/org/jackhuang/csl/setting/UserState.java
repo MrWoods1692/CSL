@@ -121,15 +121,6 @@ public final class UserState extends ObservableSetting implements JsonSchemaSett
         return agreementVersion;
     }
 
-    /// The accepted Terracotta agreement version.
-    @SerializedName("terracottaAgreementVersion")
-    private final IntegerProperty terracottaAgreementVersion = new SimpleIntegerProperty();
-
-    /// Returns the accepted Terracotta agreement version property.
-    public IntegerProperty terracottaAgreementVersionProperty() {
-        return terracottaAgreementVersion;
-    }
-
     /// The platform prompt version shown to the user.
     @SerializedName("platformPromptVersion")
     private final IntegerProperty platformPromptVersion = new SimpleIntegerProperty();

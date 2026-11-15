@@ -213,24 +213,6 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return disableAutoShowUpdateDialog;
     }
 
-    /// Whether the default FRP multiplayer profile should start with the launcher.
-    @SerializedName("autoStartMultiplayer")
-    private final BooleanProperty autoStartMultiplayer = new SimpleBooleanProperty(false);
-
-    /// Returns the automatic multiplayer startup property.
-    public BooleanProperty autoStartMultiplayerProperty() {
-        return autoStartMultiplayer;
-    }
-
-    /// The saved multiplayer profile name selected for automatic startup.
-    @SerializedName("defaultMultiplayerProfile")
-    private final StringProperty defaultMultiplayerProfile = new SimpleStringProperty("");
-
-    /// Returns the default multiplayer profile property.
-    public StringProperty defaultMultiplayerProfileProperty() {
-        return defaultMultiplayerProfile;
-    }
-
     /// Whether April Fools features are disabled.
     @SerializedName("disableAprilFools")
     private final BooleanProperty disableAprilFools = new SimpleBooleanProperty(false);
