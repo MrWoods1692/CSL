@@ -30,6 +30,9 @@ import java.util.Objects;
 /// Identifies a built-in launcher background wallpaper.
 @NotNullByDefault
 public enum BuiltinBackground {
+    /// Launcher wallpaper shipped with this fork.
+    WALLPAPER_PREVIEW("preview", "#3F6AA2"),
+
     /// Built-in launcher wallpaper from 2021-08-26.
     WALLPAPER_2021_08_26("2021-08-26", "#3F6AA2"),
 
@@ -40,8 +43,9 @@ public enum BuiltinBackground {
     WALLPAPER_2015_06_22("2015-06-22", "#FBC578"),
     ;
 
-    /// Built-in wallpaper used when a wallpaper ID is missing or unsupported.
-    public static final BuiltinBackground FALLBACK = WALLPAPER_2021_08_26;
+    /// Built-in wallpaper used when a wallpaper ID is missing or unsupported, and the wallpaper
+    /// shown when no local background image is configured.
+    public static final BuiltinBackground FALLBACK = WALLPAPER_PREVIEW;
 
     /// Built-in wallpapers keyed by serialized wallpaper ID.
     public static final @Unmodifiable Map<String, BuiltinBackground> BUILTIN_BACKGROUNDS;
