@@ -8,12 +8,12 @@
  *
  * 功能：
  * - 自动检测用户操作系统并高亮推荐
- * - 点击下载按钮触发下载（模拟）
+ * - 点击下载按钮直接跳转到 GitHub Release 上的 jar 资源
  * - 可查看历史版本更新日志
  */
 
 import React, { useEffect, useState } from 'react';
-import { Download, Calendar, FileText, History, Monitor, Apple, Laptop, Check, ShieldCheck, Zap } from 'lucide-react';
+import { Download, Calendar, FileText, History, Monitor, Apple, Laptop, Check, ShieldCheck, Zap, Terminal } from 'lucide-react';
 import RippleButton from '@/components/common/RippleButton';
 import { Badge } from '@/components/ui/badge';
 import MainLayout from '@/components/layouts/MainLayout';
@@ -39,39 +39,44 @@ interface DownloadOption {
 }
 
 /** 当前最新版本号 */
-const latestVersion = '0.1.0';
+const latestVersion = '0.2.0';
 /** 发布日期 */
-const releaseDate = '2026-07-28';
+const releaseDate = '2026-11-15';
+
+/** GitHub Release 页面 */
+const releasePageUrl = 'https://github.com/MrWoods1692/CSL/releases/tag/v0.2.0';
+/** 启动器本体（跨平台 fat jar，需要 Java 21+） */
+const launcherJarUrl = `https://github.com/MrWoods1692/CSL/releases/download/v0.2.0/CSL-${latestVersion}.jar`;
+/** 校验文件 */
+const launcherSha256Url = `https://github.com/MrWoods1692/CSL/releases/download/v0.2.0/CSL-${latestVersion}.jar.sha256`;
 
 /** 平台下载数据 */
 const platforms = [
   {
     name: 'Windows',
     icon: Monitor,
-    arch: '64-bit',
-    description: '适用于 Windows 10/11，双击安装即可使用。',
-    downloads: [{ label: '下载安装包', format: '.exe', size: '42 MB', href: '#' }],
+    arch: '10 / 11 · x64',
+    description: '下载 jar 后运行 java -jar，需要已安装 Java 21。',
+    downloads: [{ label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl }],
     color: 'bg-primary',
   },
   {
     name: 'macOS',
     icon: Apple,
     arch: 'Intel / Apple Silicon',
-    description: '支持 Intel 与 Apple Silicon 芯片。',
-    downloads: [{ label: '下载安装包', format: '.dmg', size: '58 MB', href: '#' }],
+    description: '同一个 jar 通用，需要已安装 Java 21。',
+    downloads: [{ label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl }],
     color: 'bg-accent',
   },
   {
     name: 'Linux',
     icon: Laptop,
-    arch: 'x64 / AppImage',
-    description: '提供主流发行版安装包与便携版本。',
+    arch: 'x64 / arm64',
+    description: '同一个 jar 通用，需要已安装 Java 21。',
     downloads: [
-      { label: 'Debian / Ubuntu', format: '.deb', size: '48 MB', href: '#' },
-      { label: 'RedHat / Fedora', format: '.rpm', size: '48 MB', href: '#' },
-      { label: 'AppImage', format: '.AppImage', size: '62 MB', href: '#' },
-      { label: 'Docker 镜像', format: 'docker pull', size: '镜像', href: '#' },
-      { label: '便携压缩包', format: '.tar.gz', size: '45 MB', href: '#' },
+      { label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl },
+      { label: 'SHA-256 校验文件', format: '.sha256', size: '1 KB', href: launcherSha256Url },
+      { label: '查看 Release 说明', format: 'GitHub', size: '页面', href: releasePageUrl },
     ],
     color: 'bg-secondary',
   },
@@ -80,24 +85,19 @@ const platforms = [
 /** 版本历史数据 */
 const versionHistory: Version[] = [
   {
+    version: '0.2.0',
+    date: '2026-11-15',
+    changelog: [
+      '移除多人联机、系统状态、外观与代理设置，安装包减小约 131 MB',
+      '移除动态背景与各处方块加载动画，常驻内存由约 920 MB 降到约 250 MB',
+      '优化默认 JVM 参数，启动时间由约 4.4 s 缩短到约 2.2 s',
+      '重做下载页搜索筛选栏，新增下载详情页与安装向导的返回按钮',
+    ],
+  },
+  {
     version: '0.1.0',
     date: '2026-07-28',
-    changelog: ['修复部分模组加载器识别错误', '优化启动内存分配提示', '改进深色模式下的对比度'],
-  },
-  {
-    version: '3.1.2',
-    date: '2026-06-30',
-    changelog: ['修复 Linux 下 Java 自动检测失败问题', '优化下载速度与断点续传'],
-  },
-  {
-    version: '3.1.1',
-    date: '2026-06-12',
-    changelog: ['改进离线账户登录体验', '新增版本隔离快捷切换'],
-  },
-  {
-    version: '3.1.0',
-    date: '2026-05-28',
-    changelog: ['全新 UI 设计', '支持 Microsoft 账户自动刷新', '新增服务器快捷加入'],
+    changelog: ['首个公开版本', '支持游戏实例管理与模组下载', '支持 Microsoft 账户登录'],
   },
 ];
 
@@ -166,8 +166,8 @@ const DownloadPage: React.FC = () => {
             <div className="mx-auto mb-10 grid max-w-3xl gap-3 text-sm sm:grid-cols-3">
               {[
                 { icon: ShieldCheck, text: '开源透明，安全可靠' },
-                { icon: Zap, text: '高速下载，断点续传' },
-                { icon: Check, text: '支持三大桌面平台' },
+                { icon: Zap, text: '轻量精简，启动更快' },
+                { icon: Check, text: '同一 jar 跨平台通用' },
               ].map((item) => (
                 <div key={item.text} className="flex items-center justify-center gap-2 border-2 border-foreground/20 bg-card px-3 py-3 font-semibold shadow-[var(--shadow-solid-sm)]">
                   <item.icon className="h-4 w-4 text-accent" />
@@ -236,6 +236,21 @@ const DownloadPage: React.FC = () => {
               );
             })}
           </StaggerContainer>
+
+          <AnimatedSection delay={0.25}>
+            <div className="mx-auto mt-10 max-w-3xl border-2 border-foreground bg-card p-5 shadow-[var(--shadow-solid-sm)]">
+              <p className="mb-2 flex items-center gap-2 font-display text-base font-bold">
+                <Terminal className="h-4 w-4 text-accent" />
+                运行方式
+              </p>
+              <code className="block select-all break-all rounded border-2 border-foreground/20 bg-muted px-3 py-2 font-mono text-sm">
+                java -jar CSL-{latestVersion}.jar
+              </code>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                需要 Java 21 或更高版本。Windows / macOS / Linux 通用同一个 jar；把下载的文件放到任意目录，在该目录执行上面的命令即可启动。
+              </p>
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 

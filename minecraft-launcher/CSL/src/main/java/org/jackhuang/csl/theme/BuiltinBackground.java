@@ -31,7 +31,7 @@ import java.util.Objects;
 @NotNullByDefault
 public enum BuiltinBackground {
     /// Launcher wallpaper shipped with this fork.
-    WALLPAPER_PREVIEW("preview", "#3F6AA2"),
+    WALLPAPER_PREVIEW("preview", "#E79C49"),
 
     /// Built-in launcher wallpaper from 2021-08-26.
     WALLPAPER_2021_08_26("2021-08-26", "#3F6AA2"),

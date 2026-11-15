@@ -42,7 +42,9 @@ if (buildNumber != null) {
     }
 } else {
     val shortCommit = System.getenv("GITHUB_SHA")?.lowercase()?.substring(0, 7)
-    version = if (shortCommit.isNullOrBlank()) {
+    version = if (versionType == "release") {
+        versionRoot
+    } else if (shortCommit.isNullOrBlank()) {
         "$versionRoot.SNAPSHOT"
     } else if (isOfficial) {
         "$versionRoot.dev-$shortCommit"
