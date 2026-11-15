@@ -47,6 +47,8 @@ const releaseDate = '2026-11-15';
 const releasePageUrl = 'https://github.com/MrWoods1692/CSL/releases/tag/v0.2.0';
 /** 启动器本体（跨平台 fat jar，需要 Java 21+） */
 const launcherJarUrl = `https://github.com/MrWoods1692/CSL/releases/download/v0.2.0/CSL-${latestVersion}.jar`;
+/** Windows 免安装包：jpackage app-image，内置 Java 运行时与 JavaFX */
+const launcherZipUrl = `https://github.com/MrWoods1692/CSL/releases/download/v0.2.0/CSL-${latestVersion}-windows-x64.zip`;
 /** 校验文件 */
 const launcherSha256Url = `https://github.com/MrWoods1692/CSL/releases/download/v0.2.0/CSL-${latestVersion}.jar.sha256`;
 
@@ -56,15 +58,18 @@ const platforms = [
     name: 'Windows',
     icon: Monitor,
     arch: '10 / 11 · x64',
-    description: '下载 jar 后运行 java -jar，需要已安装 Java 21。',
-    downloads: [{ label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl }],
+    description: '压缩包内置 Java 运行时，解压后双击 CSL.exe 即可，无需安装 Java。',
+    downloads: [
+      { label: '下载 Windows 版（含 Java）', format: '.zip', size: '75 MB', href: launcherZipUrl },
+      { label: '仅下载 jar', format: '.jar', size: '13.4 MB', href: launcherJarUrl },
+    ],
     color: 'bg-primary',
   },
   {
     name: 'macOS',
     icon: Apple,
     arch: 'Intel / Apple Silicon',
-    description: '同一个 jar 通用，需要已安装 Java 21。',
+    description: '下载 jar 后运行 java -jar，需要已安装 Java 21。',
     downloads: [{ label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl }],
     color: 'bg-accent',
   },
@@ -72,7 +77,7 @@ const platforms = [
     name: 'Linux',
     icon: Laptop,
     arch: 'x64 / arm64',
-    description: '同一个 jar 通用，需要已安装 Java 21。',
+    description: '下载 jar 后运行 java -jar，需要已安装 Java 21。',
     downloads: [
       { label: '下载 CSL 启动器', format: '.jar', size: '13.4 MB', href: launcherJarUrl },
       { label: 'SHA-256 校验文件', format: '.sha256', size: '1 KB', href: launcherSha256Url },
@@ -92,6 +97,7 @@ const versionHistory: Version[] = [
       '移除动态背景与各处方块加载动画，常驻内存由约 920 MB 降到约 250 MB',
       '优化默认 JVM 参数，启动时间由约 4.4 s 缩短到约 2.2 s',
       '重做下载页搜索筛选栏，新增下载详情页与安装向导的返回按钮',
+      '新增 Windows 免安装包：内置 Java 运行时，解压双击即用',
     ],
   },
   {
@@ -167,7 +173,7 @@ const DownloadPage: React.FC = () => {
               {[
                 { icon: ShieldCheck, text: '开源透明，安全可靠' },
                 { icon: Zap, text: '轻量精简，启动更快' },
-                { icon: Check, text: '同一 jar 跨平台通用' },
+                { icon: Check, text: 'Windows 免安装包，内置 Java' },
               ].map((item) => (
                 <div key={item.text} className="flex items-center justify-center gap-2 border-2 border-foreground/20 bg-card px-3 py-3 font-semibold shadow-[var(--shadow-solid-sm)]">
                   <item.icon className="h-4 w-4 text-accent" />
@@ -243,11 +249,12 @@ const DownloadPage: React.FC = () => {
                 <Terminal className="h-4 w-4 text-accent" />
                 运行方式
               </p>
+              <p className="mb-2 text-xs font-semibold text-foreground">Windows（推荐）：解压 zip，双击 CSL.exe，无需安装 Java。</p>
               <code className="block select-all break-all rounded border-2 border-foreground/20 bg-muted px-3 py-2 font-mono text-sm">
                 java -jar CSL-{latestVersion}.jar
               </code>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                需要 Java 21 或更高版本。Windows / macOS / Linux 通用同一个 jar；把下载的文件放到任意目录，在该目录执行上面的命令即可启动。
+                选择 jar 时需要 Java 21 或更高版本（macOS / Linux 同样适用）。jar 首次启动会联网下载约 15 MB 的 JavaFX 运行库，之后从本地缓存加载。
               </p>
             </div>
           </AnimatedSection>

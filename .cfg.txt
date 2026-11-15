@@ -1,5 +1,0 @@
-release: v0.2.0
-
-- bump launcher version to 0.2.0 and support exact version for release builds
-- fix default preview wallpaper accent colour
-- website: point download page at the v0.2.0 GitHub Release jar, refresh version history
